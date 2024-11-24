@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 
 function BuyMoney() {
   const [currency, setCurrency] = useState("");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [exchangeRate, setExchangeRate] = useState(0);
-  const [userLocation, setUserLocation] = useState(""); 
+  const [userLocation, setUserLocation] = useState("");
+  const navigate = useNavigate();
 
   // Kakao 주소 검색 모달 열기
   const openKakaoPostcode = () => {
@@ -29,6 +31,11 @@ function BuyMoney() {
         .catch((error) => console.error("환율 API 호출 실패:", error));
     }
   }, [currency]);
+
+  // 판매자 추천 받으러 가기 버튼 클릭 시 실행
+  const handleNavigate = () => {
+    navigate("/SellerMatch"); // SellerMatch 페이지로 이동
+  };
 
   return (
     <Container>
@@ -117,19 +124,22 @@ function BuyMoney() {
               value={userLocation}
               readOnly
             />
-            <LocationButton onClick={openKakaoPostcode}>주소 검색</LocationButton>
+            <LocationButton onClick={openKakaoPostcode}>
+              주소 검색
+            </LocationButton>
           </LocationInputContainer>
         </Label>
 
         {/* 버튼 */}
-        <SubmitButton>판매자 추천 받으러 가기</SubmitButton>
+        <SubmitButton onClick={handleNavigate}>
+          판매자 추천 받으러 가기
+        </SubmitButton>
       </Form>
     </Container>
   );
 }
 
 export default BuyMoney;
-
 
 const Container = styled.div`
   font-family: "Arial", sans-serif;
@@ -192,7 +202,7 @@ const Input = styled.input`
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
-  margin-top:10px;
+  margin-top: 10px;
 `;
 
 const Suffix = styled.span`
@@ -227,7 +237,7 @@ const LocationButton = styled.button`
   padding: 8px 12px;
   cursor: pointer;
   width: 120px;
-  margin-top:10px;
+  margin-top: 10px;
 `;
 
 const SubmitButton = styled.button`
