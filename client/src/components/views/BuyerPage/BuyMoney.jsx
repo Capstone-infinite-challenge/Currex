@@ -3,11 +3,13 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 function BuyMoney() {
-  const [currency, setCurrency] = useState("");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [userLocation, setUserLocation] = useState("");
+  const [currency, setCurrency] = useState(""); // 외화 종류
+  const [minAmount, setMinAmount] = useState(""); // 거래 희망 최소 금액
+  const [maxAmount, setMaxAmount] = useState(""); // 거래 희망 최대 금액
+  const [exchangeRate, setExchangeRate] = useState(0); // 실시간 환율
+  const [KRW_minAmount, setKRWMinAmount] = useState(""); // 환산된 최소 원화 금액
+  const [KRW_maxAmount, setKRWMaxAmount] = useState(""); // 환산된 최대 원화 금액
+  const [userLocation, setUserLocation] = useState(""); // 거래 희망 위치
   const navigate = useNavigate();
 
   // Kakao 주소 검색 모달 열기
@@ -32,8 +34,33 @@ function BuyMoney() {
     }
   }, [currency]);
 
+  // 원화 환산 금액 계산
+  useEffect(() => {
+    if (minAmount && exchangeRate) {
+      setKRWMinAmount(Math.floor(minAmount * exchangeRate)); // 소수점 제거
+    } else {
+      setKRWMinAmount("");
+    }
+
+    if (maxAmount && exchangeRate) {
+      setKRWMaxAmount(Math.floor(maxAmount * exchangeRate)); // 소수점 제거
+    } else {
+      setKRWMaxAmount("");
+    }
+  }, [minAmount, maxAmount, exchangeRate]);
+
   // 판매자 추천 받으러 가기 버튼 클릭 시 실행
   const handleNavigate = () => {
+    const requestData = {
+      currency,
+      KRW_minAmount,
+      KRW_maxAmount,
+      userLocation,
+    };
+
+    console.log("백엔드로 전송할 데이터:", requestData);
+
+    // 여기에 백엔드로 데이터를 전송하는 코드 추가 가능
     navigate("/SellerMatch"); // SellerMatch 페이지로 이동
   };
 
@@ -86,28 +113,12 @@ function BuyMoney() {
           원화 환산 금액
           <AmountRange>
             <InputContainer>
-              <Input
-                type="text"
-                readOnly
-                value={
-                  minAmount && exchangeRate
-                    ? Math.floor(minAmount * exchangeRate)
-                    : ""
-                } // 소수점 제거
-              />
+              <Input type="text" readOnly value={KRW_minAmount} />
               <Suffix>KRW</Suffix>
             </InputContainer>
             <span>~</span>
             <InputContainer>
-              <Input
-                type="text"
-                readOnly
-                value={
-                  maxAmount && exchangeRate
-                    ? Math.floor(maxAmount * exchangeRate)
-                    : ""
-                }
-              />
+              <Input type="text" readOnly value={KRW_maxAmount} />
               <Suffix>KRW</Suffix>
             </InputContainer>
           </AmountRange>
@@ -140,6 +151,7 @@ function BuyMoney() {
 }
 
 export default BuyMoney;
+
 
 const Container = styled.div`
   font-family: "Arial", sans-serif;

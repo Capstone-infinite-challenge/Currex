@@ -11,11 +11,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route exact path="/" element={<BuyMoney />} />
-<<<<<<< HEAD
           <Route exact path="/SellerMatch" element={<SellerMatch />} />
-=======
           <Route exact path="/chat" element={<Chat />} />
->>>>>>> main
         </Routes>
       </BrowserRouter>
     </div>
