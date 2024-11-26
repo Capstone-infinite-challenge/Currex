@@ -9,7 +9,7 @@ const GlobalStyle = createGlobalStyle`
   }
   @font-face {
     font-family: 'Pretendard-Bold';
-    src: url(${PretendardBold}) format('woff2');
+    src: url(${PretendardBold}) format('woff2');c
   }
   * {
     --vh: 100%;
