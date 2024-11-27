@@ -10,7 +10,7 @@ function App() {
       <GlobalStyle />
       <BrowserRouter>
         <Routes>
-          <Route exact path="/" element={<BuyMoney />} />
+          <Route exact path="/buy" element={<BuyMoney />} />
           <Route exact path="/SellerMatch" element={<SellerMatch />} />
           <Route exact path="/chat" element={<Chat />} />
         </Routes>

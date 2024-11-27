@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function BuyMoney() {
-  const [currency, setCurrency] = useState("");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [userLocation, setUserLocation] = useState("");
+  const [currency, setCurrency] = useState(""); // 외화 종류
+  const [minAmount, setMinAmount] = useState(""); // 거래 희망 최소 금액
+  const [maxAmount, setMaxAmount] = useState(""); // 거래 희망 최대 금액
+  const [exchangeRate, setExchangeRate] = useState(0); // 실시간 환율
+  const [KRW_minAmount, setKRWMinAmount] = useState(""); // 환산된 최소 원화 금액
+  const [KRW_maxAmount, setKRWMaxAmount] = useState(""); // 환산된 최대 원화 금액
+  const [userLocation, setUserLocation] = useState(""); // 거래 희망 위치
   const navigate = useNavigate();
 
   // Kakao 주소 검색 모달 열기
@@ -32,10 +35,56 @@ function BuyMoney() {
     }
   }, [currency]);
 
-  // 판매자 추천 받으러 가기 버튼 클릭 시 실행
-  const handleNavigate = () => {
-    navigate("/SellerMatch"); // SellerMatch 페이지로 이동
+  // 원화 환산 금액 계산
+  useEffect(() => {
+    if (minAmount && exchangeRate) {
+      setKRWMinAmount(Math.floor(minAmount * exchangeRate)); // 소수점 제거
+    } else {
+      setKRWMinAmount("");
+    }
+
+    if (maxAmount && exchangeRate) {
+      setKRWMaxAmount(Math.floor(maxAmount * exchangeRate)); // 소수점 제거
+    } else {
+      setKRWMaxAmount("");
+    }
+  }, [minAmount, maxAmount, exchangeRate]);
+
+ 
+ // 판매자 추천 받으러 가기 버튼 클릭 시 실행
+const handleNavigate = async () => {
+  const requestData = {
+    currency,
+    KRW_minAmount,
+    KRW_maxAmount,
+    userLocation,
   };
+
+  try {
+    // 백엔드 서버가 http://localhost:5000에서 실행되고 있음 (일단 일케 해놨는데 app.js 바꿔도됨)
+    const response = await axios.post("http://localhost:5000/buy", requestData, {
+      headers: {
+        "Content-Type": "application/json", // JSON 형식으로 데이터 전송
+      },
+    });
+
+    console.log("백엔드 응답 데이터:", response.data); //성공
+
+    // 성공적으로 응답을 받으면 페이지 이동
+    navigate("/SellerMatch");
+  } catch (error) {
+    console.error("백엔드 요청 중 오류 발생:", error);
+
+    // 사용자에게 오류 메시지 표시
+    if (error.response) {
+      // 서버가 응답한 경우
+      console.error("서버 응답:", error.response.data);
+      alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
+    } else {
+      alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+    }
+  }
+};
 
   return (
     <Container>
@@ -86,28 +135,12 @@ function BuyMoney() {
           원화 환산 금액
           <AmountRange>
             <InputContainer>
-              <Input
-                type="text"
-                readOnly
-                value={
-                  minAmount && exchangeRate
-                    ? Math.floor(minAmount * exchangeRate)
-                    : ""
-                } // 소수점 제거
-              />
+              <Input type="text" readOnly value={KRW_minAmount} />
               <Suffix>KRW</Suffix>
             </InputContainer>
             <span>~</span>
             <InputContainer>
-              <Input
-                type="text"
-                readOnly
-                value={
-                  maxAmount && exchangeRate
-                    ? Math.floor(maxAmount * exchangeRate)
-                    : ""
-                }
-              />
+              <Input type="text" readOnly value={KRW_maxAmount} />
               <Suffix>KRW</Suffix>
             </InputContainer>
           </AmountRange>
@@ -140,6 +173,7 @@ function BuyMoney() {
 }
 
 export default BuyMoney;
+
 
 const Container = styled.div`
   font-family: "Arial", sans-serif;
