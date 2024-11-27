@@ -55,8 +55,8 @@ function BuyMoney() {
 const handleNavigate = async () => {
   const requestData = {
     currency,
-    KRW_minAmount,
-    KRW_maxAmount,
+    minAmount,
+    maxAmount,
     userLocation,
   };
 
