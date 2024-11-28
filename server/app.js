@@ -73,7 +73,7 @@ app.get('/SellerMatch', async(req, res) => {
         currency: currency,
         amount: { $gte: Number(minAmount), $lte: Number(maxAmount)},
       });
-
+    
     console.log(sellers);           //값 확인용
     res.status(200).json(sellers);
   }catch(error){
