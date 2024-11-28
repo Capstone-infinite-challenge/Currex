@@ -14,6 +14,17 @@ const sellerSchema = new Schema({   //스키마 객체 생성
     amount: {
         type: Number,
         required: true,
+    },
+    location: {
+        type: String,
+    },
+    latitude: {
+        type: Number,
+        required: true,
+    },
+    longitude: {
+        type: Number,
+        required: true,
     }
 }, {timestamps: true});     //이렇게 하면 timestamp 자동으로 추가 가능
 

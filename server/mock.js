@@ -8,6 +8,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 connectToDatabase();
 
+
+// 대한민국 내에서 랜덤 위도와 경도를 생성하는 함수
+function getRandomKoreaLocation() {
+    const latitude = (Math.random() * (38.6 - 33.0) + 33.0).toFixed(6); // 33.0 ~ 38.6
+    const longitude = (Math.random() * (131.9 - 124.6) + 124.6).toFixed(6); // 124.6 ~ 131.9
+    return { latitude, longitude };
+}
+
+
 // 더미 데이터 생성 함수
 const createMockSellers = async () => {
     try {
@@ -16,11 +25,16 @@ const createMockSellers = async () => {
 
         // 더미 데이터 생성
         const mockSellers = [];
-        for (let i = 0; i < 10; i++) { // 1000개의 더미 데이터 생성
+        for (let i = 0; i < 20; i++) { // 1000개의 더미 데이터 생성
+            const { latitude, longitude } = getRandomKoreaLocation(); // 랜덤 위치 생성
+
             mockSellers.push({
-                name: `Seller_${i}`,
+                name: `Seller_${i+1}`,
                 currency: ['JPY', 'USD', 'EUR'][Math.floor(Math.random() * 3)],
                 amount: Math.floor(Math.random() * 1000000),
+                location: `Location_${i+1}`,
+                latitude,
+                longitude
             });
         }
 
