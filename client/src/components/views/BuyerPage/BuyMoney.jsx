@@ -11,16 +11,44 @@ function BuyMoney() {
   const [KRW_minAmount, setKRWMinAmount] = useState(""); // 환산된 최소 원화 금액
   const [KRW_maxAmount, setKRWMaxAmount] = useState(""); // 환산된 최대 원화 금액
   const [userLocation, setUserLocation] = useState(""); // 거래 희망 위치
+  const [latitude, setLatitude] = useState(null); // 위도
+  const [longitude, setLongitude] = useState(null); // 경도
   const navigate = useNavigate();
 
   // Kakao 주소 검색 모달 열기
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
-      oncomplete: (data) => {
+      oncomplete: async (data) => {
         const fullAddress = data.address; // 선택된 주소
         setUserLocation(fullAddress); // 주소 업데이트
+
+        try {
+          // Kakao Local API를 사용하여 주소 -> 위도/경도 변환
+          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`;
+          const kakaoApiKey = process.env.REACT_APP_KAKAO_API_KEY; // client폴더에 .env파일 넣어서 카카오맵 api key 넣어주기
+
+          const response = await axios.get(geocodeUrl, {
+            headers: {
+              Authorization: `KakaoAK ${kakaoApiKey}`,
+            },
+          });
+
+
+          const { documents } = response.data;
+          if (documents.length > 0) {
+            const { x, y } = documents[0]; // x: 경도, y: 위도
+            setLongitude(parseFloat(x));
+            setLatitude(parseFloat(y));
+            console.log("위도:", y, "경도:", x); // 디버깅용
+          } else {
+            alert("위치 정보를 찾을 수 없습니다.");
+          }
+        } catch (error) {
+          console.error("주소 변환 중 오류 발생:", error);
+          alert("주소 변환에 실패했습니다.");
+        }
       },
-    }).open(); // Kakao Postcode 모달 열기
+    }).open();
   };
 
   // 실시간 환율 API
@@ -50,41 +78,43 @@ function BuyMoney() {
     }
   }, [minAmount, maxAmount, exchangeRate]);
 
- 
- // 판매자 추천 받으러 가기 버튼 클릭 시 실행
-const handleNavigate = async () => {
-  const requestData = {
-    currency,
-    minAmount,
-    maxAmount,
-    userLocation,
-  };
-
-  try {
-    // 백엔드 서버가 http://localhost:5000에서 실행되고 있음 (일단 일케 해놨는데 app.js 바꿔도됨)
-    const response = await axios.post("http://localhost:5000/buy", requestData, {
-      headers: {
-        "Content-Type": "application/json", // JSON 형식으로 데이터 전송
-      },
-    });
-
-    console.log("백엔드 응답 데이터:", response.data); //성공
-
-    // 성공적으로 응답을 받으면 페이지 이동
-    navigate("/SellerMatch");
-  } catch (error) {
-    console.error("백엔드 요청 중 오류 발생:", error);
-
-    // 사용자에게 오류 메시지 표시
-    if (error.response) {
-      // 서버가 응답한 경우
-      console.error("서버 응답:", error.response.data);
-      alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
-    } else {
-      alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+  // 판매자 추천 받으러 가기 버튼 클릭 시 실행
+  const handleNavigate = async () => {
+    if (!latitude || !longitude) {
+      alert("주소 변환이 완료될 때까지 기다려주세요.");
+      return;
     }
-  }
-};
+
+    const requestData = {
+      currency,
+      minAmount,
+      maxAmount,
+      userLocation,
+      latitude,
+      longitude,
+    };
+
+    console.log("전송 데이터:", requestData);
+
+    try {
+      const response = await axios.post("http://localhost:5000/buy", requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("백엔드 응답 데이터:", response.data);
+      navigate("/SellerMatch");
+    } catch (error) {
+      console.error("백엔드 요청 중 오류 발생:", error);
+      if (error.response) {
+        console.error("서버 응답:", error.response.data);
+        alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
+      } else {
+        alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      }
+    }
+  };
 
   return (
     <Container>
@@ -173,6 +203,7 @@ const handleNavigate = async () => {
 }
 
 export default BuyMoney;
+
 
 
 const Container = styled.div`
