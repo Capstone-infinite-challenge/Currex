@@ -37,6 +37,8 @@ app.post('/buy', (req, res) => {
       minAmount: req.body.minAmount,
       maxAmount: req.body.maxAmount,
       userLocation: req.body.userLocation,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
     };
 
     if (!sellMatchInfoRequest.currency){
