@@ -1,58 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import axios from "axios";
 
 function SellerMatch() {
-  const [sellers, setSellers] = useState([
-    {
-      id: 1,
-      name: "나화연",
-      distance: "120m",
-      currency: "3403 JPY",
-      avatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    },
-    {
-      id: 2,
-      name: "김민환",
-      distance: "700m",
-      currency: "3789 JPY",
-      avatar: "https://randomuser.me/api/portraits/men/2.jpg",
-    },
-    {
-      id: 3,
-      name: "김기림",
-      distance: "120m",
-      currency: "3403 JPY",
-      avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    },
-    {
-      id: 4,
-      name: "박세진",
-      distance: "700m",
-      currency: "3789 JPY",
-      avatar: "https://randomuser.me/api/portraits/men/4.jpg",
-    },
-    {
-      id: 5,
-      name: "박민서",
-      distance: "120m",
-      currency: "3403 JPY",
-      avatar: "https://randomuser.me/api/portraits/women/5.jpg",
-    },
-  ]);
+  const [sellers, setSellers] = useState([]);
+
+  useEffect(() => {
+    const fetchSellers = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/SellerMatch", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("백엔드 응답 데이터:", response.data);
+
+        // 거리순으로 정렬
+        const sortedSellers = response.data.sort((a, b) => {
+          const distanceA = parseFloat(a.distance.replace("km", ""));
+          const distanceB = parseFloat(b.distance.replace("km", ""));
+          return distanceA - distanceB;
+        });
+
+        setSellers(
+          sortedSellers.map((seller, index) => ({
+            ...seller,
+            avatar: `https://randomuser.me/api/portraits/${
+              index % 2 === 0 ? "men" : "women"
+            }/${(index % 100) + 1}.jpg`,
+          }))
+        ); // 정렬된 데이터에 랜덤 아바타 추가
+      } catch (error) {
+        console.error("판매자 데이터 불러오기 오류:", error);
+      }
+    };
+
+    fetchSellers();
+  }, []);
 
   return (
     <Container>
       <Title>AI가 추천해준 판매자 목록이에요!</Title>
       <SellerList>
-        {sellers.map((seller) => (
-          <SellerCard key={seller.id}>
-            <Avatar src={seller.avatar} alt={`${seller.name}'s avatar`} />
+        {sellers.map((seller, index) => (
+          <SellerCard key={index}>
+            <Avatar
+              src={seller.avatar}
+              alt={`${seller.name || "익명"}의 아바타`}
+            />
             <InfoContainer>
               <SellerInfo>
-                <Name>{seller.name}</Name>
+                <Name>{seller.name || "익명"}</Name>
                 <Distance>{seller.distance}</Distance>
               </SellerInfo>
-              <Currency>보유 외화: {seller.currency}</Currency>
+              <Currency>
+                보유 외화: {seller.amount} {seller.currency}
+              </Currency>
             </InfoContainer>
             <ButtonGroup>
               <SellButton>판매 게시글 보기</SellButton>
@@ -62,7 +66,9 @@ function SellerMatch() {
         ))}
       </SellerList>
       <SubmitButtonContainer>
-        <SubmitButton>AI 재추천 받기</SubmitButton>
+        <SubmitButton onClick={() => window.location.reload()}>
+          AI 재추천 받기
+        </SubmitButton>
       </SubmitButtonContainer>
     </Container>
   );
@@ -70,6 +76,7 @@ function SellerMatch() {
 
 export default SellerMatch;
 
+// Styled Components
 const Container = styled.div`
   font-family: "Arial", sans-serif;
   padding: 16px;
@@ -117,7 +124,7 @@ const SellerInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px; /* 이름과 거리 사이 간격 */
+  gap: 10px;
 `;
 
 const Name = styled.p`
@@ -167,7 +174,7 @@ const ChatButton = styled.button`
 
 const SubmitButtonContainer = styled.div`
   display: flex;
-  justify-content: center; /* 중앙 정렬 */
+  justify-content: center;
   margin-top: 20px;
 `;
 
