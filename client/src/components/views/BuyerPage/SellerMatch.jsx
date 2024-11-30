@@ -175,7 +175,7 @@ function SellerMatch() {
             </InfoContainer>
             <ButtonGroup>
               <SellButton>판매 게시글 보기</SellButton>
-              <ChatButton onClick={() => handleChatClick(seller.name)}>Chat</ChatButton>
+              <ChatButton onClick={() => handleChatClick(seller.name)}>중간 위치</ChatButton>
             </ButtonGroup>
           </SellerCard>
         ))}
