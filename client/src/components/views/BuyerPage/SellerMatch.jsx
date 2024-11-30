@@ -43,7 +43,7 @@ function SellerMatch() {
     fetchSellers();
   }, []);
 
-   // 여기에 handleChatClick 추가
+
   const handleChatClick = async (sellerName) => {
     const buyerLatitude = buyerInfo.latitude;
     const buyerLongitude = buyerInfo.longitude;
@@ -61,6 +61,43 @@ function SellerMatch() {
           },
         }
       );
+
+      //좌표 -> 위치
+      const getAddressFromCoordinates = async (latitude, longitude) => {
+        try {
+          const response = await axios.get(
+            `https://dapi.kakao.com/v2/local/geo/coord2address.json`,
+            {
+              headers: {
+                Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}`,
+              },
+              params: {
+                x: longitude, // 경도
+                y: latitude,  // 위도
+                input_coord: "WGS84", // 좌표 체계
+              },
+            }
+          );
+      
+          if (response.data.documents.length > 0) {
+            const addressInfo = response.data.documents[0].address;
+            const roadAddressInfo = response.data.documents[0].road_address;
+      
+            // 주소 데이터
+            return {
+              address: addressInfo ? addressInfo.address_name : "주소 정보 없음",
+              roadAddress: roadAddressInfo
+                ? roadAddressInfo.address_name
+                : "도로명 주소 없음",
+            };
+          } else {
+            return { address: "주소 정보를 찾을 수 없습니다." };
+          }
+        } catch (error) {
+          console.error("좌표로 주소 변환 오류:", error);
+          throw error;
+        }
+      };
 
       //근처 편의점
       const fetchNearbyConvenienceStores = async (latitude, longitude) => {
@@ -95,20 +132,27 @@ function SellerMatch() {
       
       const { middleLatitude, middleLongitude } = response.data;
 
-      // 호출 예시
+      // Kakao API로 중간 위치의 주소 조회
+      const address = await getAddressFromCoordinates(
+        middleLatitude,
+        middleLongitude
+      );
+
+      // 편의점 찾기
       fetchNearbyConvenienceStores(middleLatitude, middleLongitude ).then((places) => {
         console.log("근처 편의점:", places);
       });
 
 
       alert(
-        `중간 위치는 위도: ${middleLatitude}, 경도: ${middleLongitude} 입니다.`
+          `중간 위치는 위도: ${middleLatitude}, 경도: ${middleLongitude} 입니다. \n
+           중간 위치는 ${address.address}입니다.`
       );
     } catch (error) {
       console.error("중간 위치 계산 오류:", error);
-      alert("중간 위치를 계산할 수 없습니다.");
+      alert("중간 위치를 계산하거나 주소를 조회할 수 없습니다.");
     }
-  };
+};
 
   return (
     <Container>
