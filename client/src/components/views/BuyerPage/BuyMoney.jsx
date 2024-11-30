@@ -24,7 +24,9 @@ function BuyMoney() {
 
         try {
           // Kakao Local API를 사용하여 주소 -> 위도/경도 변환
-          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`;
+          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+            fullAddress
+          )}`;
           const kakaoApiKey = process.env.REACT_APP_KAKAO_API_KEY; // client폴더에 .env파일 넣어서 카카오맵 api key 넣어주기
 
           const response = await axios.get(geocodeUrl, {
@@ -32,7 +34,6 @@ function BuyMoney() {
               Authorization: `KakaoAK ${kakaoApiKey}`,
             },
           });
-
 
           const { documents } = response.data;
           if (documents.length > 0) {
@@ -97,11 +98,15 @@ function BuyMoney() {
     console.log("전송 데이터:", requestData);
 
     try {
-      const response = await axios.post("http://localhost:5000/buy", requestData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:5000/buy",
+        requestData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("백엔드 응답 데이터:", response.data);
       navigate("/SellerMatch");
@@ -203,8 +208,6 @@ function BuyMoney() {
 }
 
 export default BuyMoney;
-
-
 
 const Container = styled.div`
   font-family: "Arial", sans-serif;
