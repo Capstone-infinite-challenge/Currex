@@ -28,7 +28,7 @@
 ## **팀원 소개**
 
 <div align="center">
-  <img src="https://files.oaiusercontent.com/file-AC9BZncNvTavtAUfi3hWWU?se=2024-12-02T04%3A30%3A34Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dimage.png&sig=PKcqGa0wvfTxnTu27fRbW77S8WKkLZu7BTaiwDZRpsU%3D" alt="Team Members" width="500" />
+  <img src="https://media.discordapp.net/attachments/1281149603240083503/1313003049572368495/image.png?ex=674e8ce1&is=674d3b61&hm=e1f72fe5e20bd203748b1fcfe11b680bc5f8dcc2742559e0b67cafe03185565f&=&format=webp&quality=lossless&width=508&height=210" alt="Team Members" width="500" />
   <br/><br/>
   <table>
     <tr align="center">
