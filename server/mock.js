@@ -25,7 +25,7 @@ const createMockSellers = async () => {
 
         // 더미 데이터 생성
         const mockSellers = [];
-        for (let i = 0; i < 200; i++) { // 1000개의 더미 데이터 생성
+        for (let i = 0; i < 20000; i++) { // 1000개의 더미 데이터 생성
             const { latitude, longitude } = getRandomKoreaLocation(); // 랜덤 위치 생성
 
             mockSellers.push({
