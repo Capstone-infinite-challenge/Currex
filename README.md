@@ -9,6 +9,7 @@ P2P 환전 서비스 <br>
 ## 기술 스택
 - FE: REACT
 - BE: Node.js
+- AI: MobileVNet2
 - DB: MongoDB
 
 ## 실행방법
