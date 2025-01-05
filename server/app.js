@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
 import Seller from "./models/seller-model.js";
 
@@ -17,6 +18,17 @@ connectToDatabase();
 
 // 구매자 정보 저장용 변수
 let buyerInfo = null;
+
+// 라우터
+app.use('/auth', authRoutes);
+
+
+// 변수명
+//  currency       // 거래 통화 (jpy, usd)
+//  minAmount      // 최소 거래 금액 (외화 기준)
+//  maxAmount      // 최대 거래 금액 (외화 기준)
+//  exchangeRate   // 환율
+//  userLocation   // 거래 희망 위치
 
 // 구매자의 외화 구매 조건 저장
 app.post("/buy", (req, res) => {
@@ -60,6 +72,8 @@ app.get("/SellerMatch", async (req, res) => {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
 
+//판매자 매칭
+app.get("/SellerMatch", async(req, res) => {
     // 구매자 정보를 기준으로 판매자 필터링
     const sellers = await Seller.find({
       currency: buyerInfo.currency,
@@ -143,3 +157,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+export default app;

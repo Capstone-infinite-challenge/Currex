@@ -1,0 +1,4 @@
+### 카카오 로그아웃 테스트
+POST http://localhost:5000/auth/kakaologout
+Content-Type: application/json
+Authorization: NevGNNc2GXzkbXntX45KJ2gQzTbvk6_AAAAAAQo9c04AAAGUNlskd1R13198v8Zc
