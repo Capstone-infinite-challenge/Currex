@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GlobalStyle from "../src/components/style/GlobalStyle";
 import BuyMoney from "../src/components/views/BuyerPage/BuyMoney";
+import Calculator from "../src/components/views/BuyerPage/CurrencyCalculator";
 import SellerMatch from "../src/components/views/BuyerPage/SellerMatch";
 import Chat from "../src/components/views/ChattingPage/Chat";
 
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route exact path="/buy" element={<BuyMoney />} />
           <Route exact path="/SellerMatch" element={<SellerMatch />} />
+          <Route exact path="/calculator" element={<Calculator />} />
           <Route exact path="/chat" element={<Chat />} />
         </Routes>
       </BrowserRouter>
