@@ -1,9 +1,9 @@
-import express from 'express';
+import express from "express";
 import cors from "cors";
-import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes.js';
-import connectToDatabase from './configs/mongodb-connection.js';
-import Seller from './models/seller-model.js';
+import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
+import connectToDatabase from "./configs/mongodb-connection.js";
+import Seller from "./models/seller-model.js";
 
 dotenv.config();
 
@@ -32,7 +32,7 @@ app.use('/auth', authRoutes);
 //  userLocation   // 거래 희망 위치
 
 // 구매자의 외화 구매 조건
-app.post('/buy', (req, res) => {
+app.post("/buy", (req, res) => {
   try {
     console.log("Request body:", req.body); // 제대로 값이 들어오는지 확인용
     const sellMatchInfoRequest = {
@@ -70,7 +70,7 @@ app.post('/buy', (req, res) => {
 
 
 //판매자 매칭
-app.get('/SellerMatch', async(req, res) => {
+app.get("/SellerMatch", async(req, res) => {
 
   try{
     const { currency, minAmount, maxAmount, userLocation } = req.query;
