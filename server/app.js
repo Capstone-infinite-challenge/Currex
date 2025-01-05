@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from "cors";
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
 import connectToDatabase from './configs/mongodb-connection.js';
 import Seller from './models/seller-model.js';
 
@@ -20,6 +21,8 @@ connectToDatabase();
 
 
 // 라우터
+app.use('/auth', authRoutes);
+
 
 // 변수명
 //  currency       // 거래 통화 (jpy, usd)
@@ -89,3 +92,6 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+export default app;
