@@ -133,7 +133,13 @@ function CurrencyCalculator() {
             <option value="JPY">JPY</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
+             <option value="CNY">CNY</option>
+            <option value="HKD">HKD</option>
+            <option value="TWD">TWD</option>
+            <option value="AUD">AUD</option>
+            <option value="VND">VND</option>
           </CurrencyDropdown>
+          <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
         </CurrencySelector>
       </Header>
 
@@ -235,6 +241,16 @@ const CurrencyDropdown = styled.select`
   cursor: pointer;
 `;
 
+const DropdownIcon = styled.img`
+  position: absolute;
+  left:2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  margin-left:50px;
+`;
+
 const TitleContainer = styled.div`
   padding: 20px 16px;
 `;
@@ -321,7 +337,7 @@ const Unit = styled.span`
 
 const TotalContainer = styled.div`
   position: fixed;
-  bottom: 30px;
+  bottom: 0px;
   left: 0;
   width: 100%;
   padding: 16px;
