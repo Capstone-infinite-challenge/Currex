@@ -14,6 +14,8 @@ function BuyMoney() {
   const [KRW_minAmount, setKRWMinAmount] = useState(""); // 환산된 최소 원화 금액
   const [KRW_maxAmount, setKRWMaxAmount] = useState(""); // 환산된 최대 원화 금액
   const [userLocation, setUserLocation] = useState(""); // 거래 희망 위치
+  const [latitude, setLatitude] = useState(null); // 위도
+  const [longitude, setLongitude] = useState(null); // 경도
 
   const navigate = useNavigate();
 
@@ -44,14 +46,72 @@ function BuyMoney() {
 
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
-      oncomplete: (data) => {
-        setUserLocation(data.address);
+      oncomplete: async (data) => {
+        const fullAddress = data.address;
+        setUserLocation(fullAddress);
+
+        try {
+          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`;
+          const kakaoApiKey = process.env.REACT_APP_KAKAO_API_KEY;
+
+          const response = await axios.get(geocodeUrl, {
+            headers: {
+              Authorization: `KakaoAK ${kakaoApiKey}`,
+            },
+          });
+
+          const { documents } = response.data;
+          if (documents.length > 0) {
+            const { x, y } = documents[0];
+            setLongitude(parseFloat(x));
+            setLatitude(parseFloat(y));
+          } else {
+            alert("위치 정보를 찾을 수 없습니다.");
+          }
+        } catch (error) {
+          console.error("주소 변환 중 오류 발생:", error);
+          alert("주소 변환에 실패했습니다.");
+        }
       },
     }).open();
   };
 
   const handleCurrencyChange = (e) => {
-    setCurrency(e.target.value); // 통화 변경
+    setCurrency(e.target.value);
+  };
+
+  const handleSubmit = async () => {
+    if (!latitude || !longitude || !minAmount || !maxAmount || !userLocation) {
+      alert("모든 필드를 입력해주세요.");
+      return;
+    }
+
+    const requestData = {
+      currency,
+      minAmount,
+      maxAmount,
+      userLocation,
+      latitude,
+      longitude,
+    };
+
+    try {
+      const response = await axios.post("http://localhost:5000/buy", requestData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("백엔드 응답 데이터:", response.data);
+      navigate("/SellerMatch");
+    } catch (error) {
+      console.error("백엔드 요청 중 오류 발생:", error);
+      if (error.response) {
+        alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
+      } else {
+        alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
+      }
+    }
   };
 
   return (
@@ -60,15 +120,19 @@ function BuyMoney() {
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
         <CurrencySelector>
           <CurrencyDropdownContainer>
-          <CurrencyDropdown value={currency} onChange={handleCurrencyChange}>
-            <option value="USD">🇺🇸 USD</option>
-            <option value="JPY">🇯🇵 JPY</option>
-            <option value="EUR">🇪🇺 EUR</option>
-          </CurrencyDropdown>
-        <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
-        </CurrencyDropdownContainer>
+            <CurrencyDropdown value={currency} onChange={handleCurrencyChange}>
+              <option value="USD">USD</option>
+              <option value="JPY">JPY</option>
+              <option value="EUR">EUR</option>
+              <option value="CNY">CNY</option>
+              <option value="HKD">HKD</option>
+              <option value="TWD">TWD</option>
+              <option value="AUD">AUD</option>
+              <option value="VND">VND</option>
+            </CurrencyDropdown>
+            <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
+          </CurrencyDropdownContainer>
         </CurrencySelector>
-
       </Header>
 
       <TitleContainer>
@@ -117,24 +181,30 @@ function BuyMoney() {
           </AmountRange>
           <Note>소수점은 절삭된 금액입니다.</Note>
         </Label>
-
+        
         <Label>
           거래 희망 위치
-            <WideInput type="text" placeholder="주소 입력" value={userLocation} readOnly />
-            <LocationButton onClick={openKakaoPostcode}>
-              <SearchIcon src={searchicon} alt="주소 검색" />
-            </LocationButton>
+          <WideInput
+            type="text"
+            placeholder="주소 입력"
+            value={userLocation}
+            readOnly
+          />
+          <LocationButton onClick={openKakaoPostcode}>
+            <SearchIcon src={searchicon} alt="주소 검색" />
+          </LocationButton>
         </Label>
 
         <InfoText>거래 희망 금액과 위치를 기반으로 AI가 최적의 판매자를 추천합니다.</InfoText>
 
-        <SubmitButton>AI에게 추천 받기</SubmitButton>
+        <SubmitButton onClick={handleSubmit}>AI에게 추천 받기</SubmitButton>
       </Form>
     </Container>
   );
 }
 
 export default BuyMoney;
+
 
 const Container = styled.div`
   width: 375px;
@@ -182,11 +252,6 @@ const CurrencySelector = styled.div`
   margin-left:10px;
 `;
 
-const SelectedCurrency = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-`;
 const CurrencyDropdownContainer = styled.div`
   position: relative;
   display: flex;
@@ -194,12 +259,12 @@ const CurrencyDropdownContainer = styled.div`
 `;
 const DropdownIcon = styled.img`
   position: absolute;
-  right: 0px; /* 드롭다운 아이콘 위치 조정 */
+  left:2px;
   top: 50%;
   transform: translateY(-50%);
   width: 12px;
   height: 12px;
-  pointer-events: none; /* 아이콘 클릭 방지 */
+  margin-left:50px;
 `;
 
 const TitleContainer = styled.div`
@@ -323,7 +388,7 @@ const InfoText = styled.p`
   font-weight: 500;
   color: #8EA0AC;
   text-align: center;
-  margin-top:100px;
+  margin-top:10px;
 `;
 
 const SubmitButton = styled.button`
@@ -343,26 +408,26 @@ const SubmitButton = styled.button`
 
 const WideInput = styled.input`
   width: 150%;
-  padding: 11px; /* 내부 여백 조정 */
-  font-size: 14px; /* 글씨 크기 조정 */
-  border: 1px solid #ccc; /* 테두리 색상 및 두께 */
-  border-radius: 8px; /* 테두리 둥글기 */
-  box-sizing: border-box; /* 여백 포함 */
-  margin-top: 0px; /* 위쪽 간격 */
+  padding: 11px; 
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px; 
+  box-sizing: border-box;
+  margin-top: 0px; 
   margin-left:0px;
 
   ::placeholder {
     font-size: 14px;
-    color: #888; /* 기본 placeholder 색상 */
-    transition: color 0.3s ease; /* 색상 변경 애니메이션 */
+    color: #888; 
+    transition: color 0.3s ease; 
   }
 
   &:focus::placeholder {
-    color: red; /* 포커스 시 placeholder 색상 변경 */
+    color: red; 
   }
 
   &:focus {
-    outline: none; /* 기본 outline 제거 */
-    border: 1px solid #CA2F28; /* 테두리 색상 변경 */
+    outline: none;
+    border: 1px solid #CA2F28;
   }
 `;
