@@ -72,8 +72,6 @@ app.get("/SellerMatch", async (req, res) => {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
 
-//판매자 매칭
-app.get("/SellerMatch", async(req, res) => {
     // 구매자 정보를 기준으로 판매자 필터링
     const sellers = await Seller.find({
       currency: buyerInfo.currency,
@@ -108,6 +106,7 @@ app.get("/SellerMatch", async(req, res) => {
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
   }
 });
+
 
 // 거리 계산 함수 (위도, 경도로 거리 계산)
 function calculateDistance(lat1, lon1, lat2, lon2) {
