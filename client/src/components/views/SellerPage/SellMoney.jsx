@@ -6,6 +6,7 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
+import equalicon from "../../images/equalicon.svg"
 
 function SellMoney() {
   const [currency, setCurrency] = useState("USD"); // 기본 선택된 통화
@@ -135,42 +136,43 @@ function SellMoney() {
       </TitleContainer>
 
       <Form>
-        <Label>
+      <Label>
           거래 희망 금액
-          <CurrencyAmountWrapper>
-            <CurrencyDropdownContainer>
-              <CurrencyDropdown value={currency} onChange={handleCurrencyChange}>
-                <option value="USD">USD</option>
-                <option value="JPY">JPY</option>
-                <option value="EUR">EUR</option>
-                <option value="CNY">CNY</option>
-                <option value="HKD">HKD</option>
-                <option value="TWD">TWD</option>
-                <option value="AUD">AUD</option>
-                <option value="VND">VND</option>
-              </CurrencyDropdown>
-              <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
-            </CurrencyDropdownContainer>
-            <Input
+          <CurrencyInputWrapper>
+            <CurrencyDropdown value={currency} onChange={(e) => setCurrency(e.target.value)}>
+              <option value="USD">USD</option>
+              <option value="JPY">JPY</option>
+              <option value="EUR">EUR</option>
+              <option value="CNY">CNY</option>
+              <option value="HKD">HKD</option>
+              <option value="TWD">TWD</option>
+              <option value="AUD">AUD</option>
+              <option value="VND">VND</option>
+            </CurrencyDropdown>
+            <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
+            <AmountInput
               type="number"
               placeholder="금액 입력"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
             <Suffix>{currency}</Suffix>
-          </CurrencyAmountWrapper>
+          </CurrencyInputWrapper>
         </Label>
+        
         <Note>
           잠깐! 총액을 모른다면? <CalculatorLink onClick={() => navigate("/calculator")}>외화계산기 이용</CalculatorLink>
         </Note>
 
         <Label>
           원화 환산 금액
+          <EqualIcon src={equalicon} alt="= 아이콘" />
           <InputContainer>
             <Input type="text" readOnly value={KRWAmount} />
-            <Suffix>KRW</Suffix>
+            <KRWSuffix>KRW</KRWSuffix>
           </InputContainer>
         </Label>
+
 
         <Label>
           거래 위치
@@ -183,7 +185,6 @@ function SellMoney() {
         </Label>
 
         <Label>
-          사진
           <ImageSection>
             <ImageLabel>사진 ({maxImageCount - uploadedImages.length}장 남음)</ImageLabel>
             <ImageUploadWrapper>
@@ -247,6 +248,7 @@ const BackButton = styled.img`
   width: 20px;
   height: 20px;
   cursor: pointer;
+  margin-left: 0px;
 `;
 
 const CurrencyDropdown = styled.select`
@@ -259,19 +261,30 @@ const CurrencyDropdown = styled.select`
   padding: 4px 8px;
 `;
 
-const CurrencyDropdownContainer = styled.div`
-  position: relative;
+const CurrencyInputWrapper = styled.div`
   display: flex;
   align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  gap: 8px;
+  width:123%;
 `;
+
 
 const DropdownIcon = styled.img`
   position: absolute;
-  right: -10px;
-  top: 50%;
+  margin-left:45px;
+  margin-top:10px;
   transform: translateY(-50%);
   width: 12px;
   height: 12px;
+`;
+
+const AmountInput = styled.input`
+  border: none;
+  font-size: 14px;
+  flex: 2;
 `;
 
 const TitleContainer = styled.div`
@@ -297,6 +310,7 @@ const Form = styled.div`
   display: flex;
   flex-direction: column;
   gap: 24px;
+  margin-left: 0px;
 `;
 
 const Label = styled.label`
@@ -307,6 +321,7 @@ const Label = styled.label`
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-left: 0px;
 `;
 
 const CurrencyAmountWrapper = styled.div`
@@ -318,15 +333,17 @@ const CurrencyAmountWrapper = styled.div`
 const InputContainer = styled.div`
   position: relative;
   width: 100%;
+  margin-left:20px;
 `;
 
 const Input = styled.input`
-  width: 100%;
+  width: 125%;
   padding: 11px;
   font-size: 14px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
+  margin-left:10px;
 
   &:focus {
     outline: none;
@@ -336,11 +353,31 @@ const Input = styled.input`
 
 const Suffix = styled.span`
   position: absolute;
-  right: 10px;
+  left:310px;
   top: 30%;
   transform: translateY(-50%);
   font-size: 14px;
   color: #888;
+`;
+
+const KRWSuffix = styled.span`
+  position: absolute;
+  left:270px;
+  top: 44%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #888;
+`;
+
+const EqualIcon = styled.img`
+  position: absolute;
+  left: 10px;
+  top: 46%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #8ea0ac;
+  margin-left:10px;
 `;
 
 const Note = styled.p`
@@ -348,27 +385,38 @@ const Note = styled.p`
   font-weight: 500;
   color: #666666;
   text-align: left;
+  margin-left: 0px;
 `;
 
 const CalculatorLink = styled.span`
   color: #CA2F28;
   font-weight: 700;
   cursor: pointer;
+  margin-left:160px;
 `;
 
 const LocationWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 140%;
 `;
 
 const WideInput = styled.input`
-  flex: 1;
-  padding: 11px;
+  width: 200%;
+  padding: 11px; 
   font-size: 14px;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 8px; 
   box-sizing: border-box;
+  margin-top: 0px; 
+  margin-left:0px;
+
+  ::placeholder {
+    font-size: 14px;
+    color: #888; 
+    transition: color 0.3s ease; 
+  }
 
   &:focus {
     outline: none;
@@ -397,12 +445,14 @@ const ImageLabel = styled.span`
   font-size: 12px;
   font-weight: 400;
   color: #8EA0AC;
+  margin-left:0px;
 `;
 
 const ImageUploadWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left:0px;
 `;
 
 const UploadButton = styled.label`
@@ -433,7 +483,7 @@ const ImagePreview = styled.img`
 `;
 
 const Textarea = styled.textarea`
-  width: 100%;
+  width: 180%;
   height: 100px;
   padding: 11px;
   font-size: 14px;
