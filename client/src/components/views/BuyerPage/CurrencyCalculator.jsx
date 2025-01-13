@@ -74,6 +74,92 @@ function CurrencyCalculator() {
         { denomination: 500, amount: 0 },
       ],
     },
+    CNY: {
+      symbol: "\u5143",
+      coins: [
+        { denomination: 0.1, amount: 0 },
+        { denomination: 0.5, amount: 0 },
+        { denomination: 1, amount: 0 },
+      ],
+      bills: [
+        { denomination: 1, amount: 0 },
+        { denomination: 5, amount: 0 },
+        { denomination: 10, amount: 0 },
+        { denomination: 20, amount: 0 },
+        { denomination: 50, amount: 0 },
+        { denomination: 100, amount: 0 },
+      ],
+    },
+    HKD: {
+      symbol: "\u0024",
+      coins: [
+        { denomination: 0.1, amount: 0 },
+        { denomination: 0.2, amount: 0 },
+        { denomination: 0.5, amount: 0 },
+        { denomination: 1, amount: 0 },
+        { denomination: 2, amount: 0 },
+        { denomination: 5, amount: 0 },
+        { denomination: 10, amount: 0 },
+      ],
+      bills: [
+        { denomination: 10, amount: 0 },
+        { denomination: 20, amount: 0 },
+        { denomination: 50, amount: 0 },
+        { denomination: 100, amount: 0 },
+        { denomination: 500, amount: 0 },
+        { denomination: 1000, amount: 0 },
+      ],
+    },
+    TWD: {
+      symbol: "\u0024",
+      coins: [
+        { denomination: 1, amount: 0 },
+        { denomination: 5, amount: 0 },
+        { denomination: 10, amount: 0 },
+        { denomination: 50, amount: 0 },
+      ],
+      bills: [
+        { denomination: 100, amount: 0 },
+        { denomination: 500, amount: 0 },
+        { denomination: 1000, amount: 0 },
+      ],
+    },
+    AUD: {
+      symbol: "\u0024",
+      coins: [
+        { denomination: 0.05, amount: 0 },
+        { denomination: 0.1, amount: 0 },
+        { denomination: 0.2, amount: 0 },
+        { denomination: 0.5, amount: 0 },
+        { denomination: 1, amount: 0 },
+        { denomination: 2, amount: 0 },
+      ],
+      bills: [
+        { denomination: 5, amount: 0 },
+        { denomination: 10, amount: 0 },
+        { denomination: 20, amount: 0 },
+        { denomination: 50, amount: 0 },
+        { denomination: 100, amount: 0 },
+      ],
+    },
+    VND: {
+      symbol: "\u20ab",
+      coins: [
+        { denomination: 200, amount: 0 },
+        { denomination: 500, amount: 0 },
+        { denomination: 1000, amount: 0 },
+        { denomination: 2000, amount: 0 },
+        { denomination: 5000, amount: 0 },
+      ],
+      bills: [
+        { denomination: 10000, amount: 0 },
+        { denomination: 20000, amount: 0 },
+        { denomination: 50000, amount: 0 },
+        { denomination: 100000, amount: 0 },
+        { denomination: 200000, amount: 0 },
+        { denomination: 500000, amount: 0 },
+      ],
+    },
   };
 
   // 환율 API 호출
@@ -81,10 +167,23 @@ function CurrencyCalculator() {
     axios
       .get("https://api.exchangerate-api.com/v4/latest/KRW")
       .then((response) => {
-        setExchangeRates(response.data.rates);
+        const rates = response.data.rates;
+  
+        // 다른 통화를 KRW 기준으로 변환
+        const krwRates = Object.keys(rates).reduce((acc, key) => {
+          acc[key] = 1 / rates[key];
+          return acc;
+        }, {});
+  
+        setExchangeRates(krwRates);
       })
       .catch((error) => console.error("환율 API 호출 실패:", error));
   }, []);
+  
+  useEffect(() => {
+    console.log("환율 데이터:", exchangeRates);
+  }, [exchangeRates]);
+  
 
   // 통화 변경 시 데이터 업데이트
   useEffect(() => {
@@ -116,13 +215,14 @@ function CurrencyCalculator() {
       0
     );
     setTotalCoin(coinTotal);
-
+  
     const billTotal = billData.reduce(
       (acc, item) => acc + item.denomination * item.amount,
       0
     );
     setTotalBill(billTotal);
   }, [coinData, billData]);
+  
 
   return (
     <Container>
@@ -133,7 +233,7 @@ function CurrencyCalculator() {
             <option value="JPY">JPY</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
-             <option value="CNY">CNY</option>
+            <option value="CNY">CNY</option>
             <option value="HKD">HKD</option>
             <option value="TWD">TWD</option>
             <option value="AUD">AUD</option>
@@ -155,9 +255,10 @@ function CurrencyCalculator() {
             <Denomination>{currencyConfig[currency].symbol}{coin.denomination}</Denomination>
             <Equals>=</Equals>
             <ValueContainer isHighlighted={coin.amount > 0}>
-              <ConvertedValue>
-                {(coin.denomination * (1 / exchangeRates[currency] || 0)).toFixed(2)} 원
-              </ConvertedValue>
+            <ConvertedValue>
+  {((coin.denomination * exchangeRates[currency]) || 0).toFixed(2)} 원
+</ConvertedValue>
+
               <AmountInput
                 type="number"
                 value={coin.amount}
@@ -177,7 +278,7 @@ function CurrencyCalculator() {
             <Equals>=</Equals>
             <ValueContainer isHighlighted={bill.amount > 0}>
               <ConvertedValue>
-                {(bill.denomination * (1 / exchangeRates[currency] || 0)).toFixed(2)} 원
+              {((bill.denomination * exchangeRates[currency]) || 0).toFixed(2)} 원
               </ConvertedValue>
               <AmountInput
                 type="number"
@@ -191,9 +292,18 @@ function CurrencyCalculator() {
       </Section>
 
       <TotalContainer>
-        <TotalText>{currencyConfig[currency]?.symbol} {totalCoin + totalBill}</TotalText>
-        <TotalText>총 {((totalCoin + totalBill) * (1 / exchangeRates[currency] || 0)).toFixed(2)} 원</TotalText>
-      </TotalContainer>
+  {/* 선택된 화폐 기준 총합 표시 */}
+  <TotalText>
+    {currencyConfig[currency]?.symbol} {(totalCoin + totalBill).toFixed(2)}
+  </TotalText>
+  {/* 원화로 환산된 총합 */}
+  <TotalText>
+    총 {((totalCoin + totalBill) * (exchangeRates[currency] || 0)).toFixed(2)} 원
+  </TotalText>
+</TotalContainer>
+
+
+
     </Container>
   );
 }
