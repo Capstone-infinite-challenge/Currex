@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-//예시로 일단 만들어놓음
-const sellerSchema = new Schema({   //스키마 객체 생성
+const sellSchema = new Schema({   //스키마 객체 생성
     name: {
         type: String,
         required: true, //필수 필드
@@ -25,7 +24,17 @@ const sellerSchema = new Schema({   //스키마 객체 생성
     longitude: {
         type: Number,
         required: true,
-    }
+    },
+    content: {
+        type: String,
+        required: false,
+    },
+    images: [
+        { // 이미지 데이터 저장 (Binary)                 --나중에 url업로드 방식으로 바꾸는거 고려필요
+            data: Buffer,       //이미지 데이터
+            contentType: String //이미지 MIME 타입
+        }
+    ],
 }, {timestamps: true});     //이렇게 하면 timestamp 자동으로 추가 가능
 
-export default mongoose.model('Seller', sellerSchema);
+export default mongoose.model('Sell', sellSchema);
