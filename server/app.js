@@ -2,8 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import sellRoutes from "./routes/sellRoutes.js";
+import donationRoutes from "./routes/donationRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
-import Seller from "./models/seller-model.js";
+import Seller from "./models/sell.js";
 
 dotenv.config();
 
@@ -21,7 +23,8 @@ let buyerInfo = null;
 
 // 라우터
 app.use('/auth', authRoutes);
-
+app.use('/sell', sellRoutes);
+app.use('/donation', donationRoutes);
 
 // 변수명
 //  currency       // 거래 통화 (jpy, usd)
@@ -64,16 +67,16 @@ app.post("/buy", (req, res) => {
   }
 });
 
-// 판매자 매칭
-app.get("/SellerMatch", async (req, res) => {
-  try {
-    // 구매자 정보가 없는 경우
-    if (!buyerInfo) {
-      return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
-    }
 
+//판매자 매칭
+app.get("/SellerMatch", async(req, res) => {
     // 구매자 정보를 기준으로 판매자 필터링
-    const sellers = await Seller.find({
+  try{
+    //구매자 정보가 없는 경우
+    if (!buyerInfo){
+      return res.status(400).json({error: "구매자 정보를 먼저 입력해주세요"});
+    }
+    const sellers = await Sell.find({
       currency: buyerInfo.currency,
       amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
     });
@@ -106,7 +109,6 @@ app.get("/SellerMatch", async (req, res) => {
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
   }
 });
-
 
 // 거리 계산 함수 (위도, 경도로 거리 계산)
 function calculateDistance(lat1, lon1, lat2, lon2) {
