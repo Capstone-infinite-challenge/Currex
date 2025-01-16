@@ -2,7 +2,7 @@
 
 import mongoose from 'mongoose';
 import connectToDatabase from './configs/mongodb-connection.js'
-import Seller from './models/seller-model.js'; 
+import Sell from './models/sell.js'; 
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -18,29 +18,30 @@ function getRandomKoreaLocation() {
 
 
 // 더미 데이터 생성 함수
-const createMockSellers = async () => {
+const createMockSells = async () => {
     try {
         // 기존 데이터 삭제 
-        await Seller.deleteMany({});
+        await Sell.deleteMany({});
 
         // 더미 데이터 생성
-        const mockSellers = [];
+        const mockSells = [];
         for (let i = 0; i < 20; i++) { // 1000개의 더미 데이터 생성
             const { latitude, longitude } = getRandomKoreaLocation(); // 랜덤 위치 생성
 
-            mockSellers.push({
-                name: `Seller_${i+1}`,
+            mockSells.push({
+                name: `Sell_${i+1}`,
                 currency: ['JPY', 'USD', 'EUR'][Math.floor(Math.random() * 3)],
                 amount: Math.floor(Math.random() * 1000000),
                 location: `Location_${i+1}`,
                 latitude,
-                longitude
+                longitude,
+                content: `sellMockData_${i+1}`
             });
         }
 
         // 데이터 삽입
-        await Seller.insertMany(mockSellers);
-        console.log(`${mockSellers.length}개의 판매자 데이터 생성 완료`);
+        await Sell.insertMany(mockSells);
+        console.log(`${mockSells.length}개의 판매자 데이터 생성 완료`);
     } catch (err) {
         console.error('더미 데이터 생성 중 오류 발생:', err);
     }finally{
@@ -50,4 +51,4 @@ const createMockSellers = async () => {
 };
 
 // 더미 데이터 생성 실행
-createMockSellers();
+createMockSells();

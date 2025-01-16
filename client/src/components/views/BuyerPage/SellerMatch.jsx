@@ -4,6 +4,7 @@ import axios from "axios";
 
 function SellerMatch() {
   const [sellers, setSellers] = useState([]);
+  const [buyerInfo, setBuyerInfo] = useState(null);
 
   useEffect(() => {
     const fetchSellers = async () => {
@@ -17,7 +18,7 @@ function SellerMatch() {
         console.log("백엔드 응답 데이터:", response.data);
 
         // 거리순으로 정렬
-        const sortedSellers = response.data.sort((a, b) => {
+        const sortedSellers = response.data.sellersWithDistance.sort((a, b) => {
           const distanceA = parseFloat(a.distance.replace("km", ""));
           const distanceB = parseFloat(b.distance.replace("km", ""));
           return distanceA - distanceB;
@@ -31,6 +32,9 @@ function SellerMatch() {
             }/${(index % 100) + 1}.jpg`,
           }))
         ); // 정렬된 데이터에 랜덤 아바타 추가
+
+        setBuyerInfo(response.data.buyerInfo);
+
       } catch (error) {
         console.error("판매자 데이터 불러오기 오류:", error);
       }
@@ -38,6 +42,117 @@ function SellerMatch() {
 
     fetchSellers();
   }, []);
+
+
+  const handleChatClick = async (sellerName) => {
+    const buyerLatitude = buyerInfo.latitude;
+    const buyerLongitude = buyerInfo.longitude;
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/SellerMatch/${sellerName}`,
+        {
+          buyerLatitude: buyerLatitude,
+          buyerLongitude: buyerLongitude
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      //좌표 -> 위치
+      const getAddressFromCoordinates = async (latitude, longitude) => {
+        try {
+          const response = await axios.get(
+            `https://dapi.kakao.com/v2/local/geo/coord2address.json`,
+            {
+              headers: {
+                Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}`,
+              },
+              params: {
+                x: longitude, // 경도
+                y: latitude,  // 위도
+                input_coord: "WGS84", // 좌표 체계
+              },
+            }
+          );
+      
+          if (response.data.documents.length > 0) {
+            const addressInfo = response.data.documents[0].address;
+            const roadAddressInfo = response.data.documents[0].road_address;
+      
+            // 주소 데이터
+            return {
+              address: addressInfo ? addressInfo.address_name : "주소 정보 없음",
+              roadAddress: roadAddressInfo
+                ? roadAddressInfo.address_name
+                : "도로명 주소 없음",
+            };
+          } else {
+            return { address: "주소 정보를 찾을 수 없습니다." };
+          }
+        } catch (error) {
+          console.error("좌표로 주소 변환 오류:", error);
+          throw error;
+        }
+      };
+
+      //근처 편의점
+      const fetchNearbyConvenienceStores = async (latitude, longitude) => {
+        const apiKey = process.env.REACT_APP_KAKAO_API_KEY; // 카카오 API 키
+      
+        try {
+          const response = await axios.get(
+            `https://dapi.kakao.com/v2/local/search/category.json`,
+            {
+              headers: {
+                Authorization: `KakaoAK ${apiKey}`,
+              },
+              params: {
+                category_group_code: "CS2", // 편의점
+                x: longitude,
+                y: latitude,
+                radius: 1000, // 반경 1km (단위: 미터)
+              },
+            }
+          );
+      
+          const places = response.data.documents;
+          return places.map((place) => ({
+            name: place.place_name,
+            address: place.address_name,
+          }));
+        } catch (error) {
+          console.error("근처 편의점 검색 오류:", error);
+          return [];
+        }
+      };
+      
+      const { middleLatitude, middleLongitude } = response.data;
+
+      // Kakao API로 중간 위치의 주소 조회
+      const address = await getAddressFromCoordinates(
+        middleLatitude,
+        middleLongitude
+      );
+
+      // 편의점 찾기
+      fetchNearbyConvenienceStores(middleLatitude, middleLongitude ).then((places) => {
+        console.log("근처 편의점:", places);
+      });
+
+
+      alert(
+          `중간 위치는 위도: ${middleLatitude}, 경도: ${middleLongitude} 입니다. \n
+           중간 위치는 ${address.address}입니다.`
+      );
+    } catch (error) {
+      console.error("중간 위치 계산 오류:", error);
+      alert("중간 위치를 계산하거나 주소를 조회할 수 없습니다.");
+    }
+};
 
   return (
     <Container>
@@ -60,7 +175,7 @@ function SellerMatch() {
             </InfoContainer>
             <ButtonGroup>
               <SellButton>판매 게시글 보기</SellButton>
-              <ChatButton>Chat</ChatButton>
+              <ChatButton onClick={() => handleChatClick(seller.name)}>중간 위치</ChatButton>
             </ButtonGroup>
           </SellerCard>
         ))}

@@ -1,8 +1,11 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
+import sellRoutes from "./routes/sellRoutes.js";
+import donationRoutes from "./routes/donationRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
-import Seller from "./models/seller-model.js";
+import Seller from "./models/sell.js";
 
 dotenv.config();
 
@@ -17,6 +20,18 @@ connectToDatabase();
 
 // 구매자 정보 저장용 변수
 let buyerInfo = null;
+
+// 라우터
+app.use("/auth", authRoutes);
+app.use("/sell", sellRoutes);
+app.use("/donation", donationRoutes);
+
+// 변수명
+//  currency       // 거래 통화 (jpy, usd)
+//  minAmount      // 최소 거래 금액 (외화 기준)
+//  maxAmount      // 최대 거래 금액 (외화 기준)
+//  exchangeRate   // 환율
+//  userLocation   // 거래 희망 위치
 
 // 구매자의 외화 구매 조건 저장
 app.post("/buy", (req, res) => {
@@ -39,7 +54,9 @@ app.post("/buy", (req, res) => {
     } else if (!buyerInfo.maxAmount) {
       return res.status(400).json({ error: "최대 금액을 입력해주세요" });
     } else if (buyerInfo.minAmount > buyerInfo.maxAmount) {
-      return res.status(400).json({ error: "최대 금액은 최소 금액보다 커야 합니다" });
+      return res
+        .status(400)
+        .json({ error: "최대 금액은 최소 금액보다 커야 합니다" });
     }
 
     console.log("저장된 구매자 정보:", buyerInfo);
@@ -50,16 +67,15 @@ app.post("/buy", (req, res) => {
   }
 });
 
-// 판매자 매칭
+//판매자 매칭
 app.get("/SellerMatch", async (req, res) => {
+  // 구매자 정보를 기준으로 판매자 필터링
   try {
-    // 구매자 정보가 없는 경우
+    //구매자 정보가 없는 경우
     if (!buyerInfo) {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
-
-    // 구매자 정보를 기준으로 판매자 필터링
-    const sellers = await Seller.find({
+    const sellers = await Sell.find({
       currency: buyerInfo.currency,
       amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
     });
@@ -81,10 +97,12 @@ app.get("/SellerMatch", async (req, res) => {
     });
 
     // 거리 순 정렬
-    sellersWithDistance.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+    sellersWithDistance.sort(
+      (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
+    );
 
     console.log("필터링된 판매자 목록:", sellersWithDistance);
-    res.status(200).json(sellersWithDistance);
+    res.status(200).json({ sellersWithDistance, buyerInfo });
   } catch (error) {
     console.error("에러 발생:", error);
     res.status(500).json({ error: "서버 오류가 발생했습니다." });
@@ -106,7 +124,37 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c; // 거리 반환 (km)
 }
 
+app.post("/SellerMatch/:name", async (req, res) => {
+  try {
+    const sellerName = req.params.name;
+    const { buyerLatitude, buyerLongitude } = req.body;
+
+    const seller = await Seller.findOne({ name: sellerName });
+    if (!seller) {
+      return res.status(400).json({ error: "판매자를 찾을 수 없습니다." });
+    }
+
+    console.log(seller);
+
+    //중간위치 계산
+    const middleLatitude = (buyerLatitude + seller.latitude) / 2;
+    const middleLongitude = (buyerLongitude + seller.longitude) / 2;
+
+    console.log(`중간 위도: ${middleLatitude}, 중간 경도: ${middleLongitude}`);
+
+    return res.json({
+      middleLatitude,
+      middleLongitude,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "서버 오류 발생" });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+export default app;
