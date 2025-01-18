@@ -6,6 +6,7 @@ import SellerMatch from "../src/components/views/BuyerPage/SellerMatch";
 import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
 import Chat from "../src/components/views/ChattingPage/Chat";
+import Login from "../src/components/views/LoginPage/Login";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route exact path="/sell" element={<SellMoney />} />
           <Route exact path="/list" element={<PostList />} />
           <Route exact path="/chat" element={<Chat />} />
+          <Route exact path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter>
     </div>
