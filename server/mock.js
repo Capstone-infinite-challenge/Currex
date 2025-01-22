@@ -41,7 +41,7 @@ const createMockSells = async () => {
 
         // 데이터 삽입
         await Sell.insertMany(mockSells);
-        console.log(`${mockSells.length}개의 판매자 데이터 생성 완료`);
+        console.log(`${mockSells.length}개의 판매 데이터 생성 완료`);
     } catch (err) {
         console.error('더미 데이터 생성 중 오류 발생:', err);
     }finally{

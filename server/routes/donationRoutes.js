@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Donation from '../models/donation.js';
 import multer from 'multer';
-
+import { getUserDonationTotal } from '../services/donationService.js';
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
@@ -16,6 +16,11 @@ router.post("/dRegi", upload.array('donationImages', 5), async(req, res) => {
             address: req.body.address,
             images: [] // 이미지 배열 초기화
         };
+
+        //로그인된 사용자 아이디 함께 저장(사용자 식별 위해서)
+        const userId = req.user.id;     //로그인된 사용자의 ID
+        donationInfo.userId = userId;
+
 
         if(req.files && req.files.length > 0){
             req.files.forEach(file => {
@@ -46,5 +51,33 @@ router.post("/dRegi", upload.array('donationImages', 5), async(req, res) => {
         res.status(500).json({error: "서버 오류가 발생하였습니다."});
     }
 })
+
+
+//로그인 정보 확인은 아직 추가안함 추가필요!!!!
+//기부 랭킹위에 기부 누적금액 api
+router.get("/total", async(req, res) => {
+    try{
+        const userId = req.user.id;     //로그인된 사용자의 ID
+        const total = await getUserDonationTotal(userId);
+        res.json({userId, toatlAmount: total});
+    }catch(error){
+        res.status(500).json({error: 'Failed to fetch total donations'});
+    }
+});
+
+
+//기부 랭킹
+router.get("/rank", async(req, res) => {
+    try{
+
+    }catch(error){
+        console.log("에러: ", error);
+        res.status(500).json({error: "랭킹을 불러오는 도중 에러가 발생하였습니다."});
+    }
+})
+
+
+
+
 
 export default router;

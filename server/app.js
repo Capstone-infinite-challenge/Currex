@@ -5,7 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import sellRoutes from "./routes/sellRoutes.js";
 import donationRoutes from "./routes/donationRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
-import Seller from "./models/sell.js";
+import Sell from "./models/sell.js";
 
 dotenv.config();
 
@@ -81,13 +81,13 @@ app.get("/SellerMatch", async (req, res) => {
     if (!buyerInfo) {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
-    const sellers = await Sell.find({
+    const sells = await Sell.find({
       currency: buyerInfo.currency,
       amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
     });
 
     // 거리 계산 및 추가 정보 반환
-    const sellersWithDistance = sellers.map((seller) => {
+    const sellersWithDistance = sells.map((seller) => {
       const distance = calculateDistance(
         buyerInfo.latitude,
         buyerInfo.longitude,
@@ -135,9 +135,9 @@ app.post("/SellerMatch/:name", async (req, res) => {
     const sellerName = req.params.name;
     const { buyerLatitude, buyerLongitude } = req.body;
 
-    const seller = await Seller.findOne({ name: sellerName });
+    const seller = await Sell.findOne({ name: sellerName });
     if (!seller) {
-      return res.status(400).json({ error: "판매자를 찾을 수 없습니다." });
+      return res.status(404).json({ error: "판매자를 찾을 수 없습니다." });
     }
 
     console.log(seller);
