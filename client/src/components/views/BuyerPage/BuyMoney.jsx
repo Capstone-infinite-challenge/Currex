@@ -96,11 +96,15 @@ function BuyMoney() {
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/buy", requestData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:5000/buy",
+        requestData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       console.log("백엔드 응답 데이터:", response.data);
       navigate("/SellerMatch");
@@ -204,7 +208,6 @@ function BuyMoney() {
 }
 
 export default BuyMoney;
-
 
 const Container = styled.div`
   width: 375px;
