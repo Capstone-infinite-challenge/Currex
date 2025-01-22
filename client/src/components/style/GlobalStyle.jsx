@@ -3,6 +3,16 @@ import Pretendard from "../utils/font/Pretendard-Medium.woff2";
 import PretendardBold from "../utils/font/Pretendard-Bold.woff2";
 
 const GlobalStyle = createGlobalStyle`
+ input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield; /* Firefox용 */
+  }
+    
   @font-face {
     font-family: 'Pretendard';
     src: url(${Pretendard}) format('woff2');
