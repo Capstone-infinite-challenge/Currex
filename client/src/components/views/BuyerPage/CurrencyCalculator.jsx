@@ -12,8 +12,32 @@ function CurrencyCalculator() {
   const [billData, setBillData] = useState([]);
   const [totalCoin, setTotalCoin] = useState(0);
   const [totalBill, setTotalBill] = useState(0);
+  const [showCoins, setShowCoins] = useState(true); // 동전 섹션 열림/접힘 상태
+  const [showBills, setShowBills] = useState(true); // 지폐 섹션 열림/접힘 상태
 
   const navigate = useNavigate();
+
+  // 스타일 관련 설정
+  const toggleSection = (section) => {
+    if (section === "coins") {
+      setShowCoins(!showCoins);
+    } else if (section === "bills") {
+      setShowBills(!showBills);
+    }
+  };
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const handleScroll = () => {
+    const scrollY = window.scrollY;
+    setIsScrolled(scrollY > 100); // 스크롤이 100px 이상 내려가면 숨김
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
 
   // 통화별 데이터 설정
   const currencyConfig = {
@@ -180,10 +204,6 @@ function CurrencyCalculator() {
       .catch((error) => console.error("환율 API 호출 실패:", error));
   }, []);
   
-  useEffect(() => {
-    console.log("환율 데이터:", exchangeRates);
-  }, [exchangeRates]);
-  
 
   // 통화 변경 시 데이터 업데이트
   useEffect(() => {
@@ -229,7 +249,7 @@ function CurrencyCalculator() {
       <Header>
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
         <CurrencySelector>
-          <CurrencyDropdown value={currency} onChange={handleCurrencyChange}>
+        <CurrencyDropdown value={currency} onChange={(e) => setCurrency(e.target.value)}>
             <option value="JPY">JPY</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
@@ -239,69 +259,87 @@ function CurrencyCalculator() {
             <option value="AUD">AUD</option>
             <option value="VND">VND</option>
           </CurrencyDropdown>
-          <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
+          <CurrencyDropdownIcon src={dropdown} alt="드롭다운 아이콘" />
         </CurrencySelector>
       </Header>
 
       <TitleContainer>
-        <Title>{currencyConfig[currency]?.symbol} 환율 계산기</Title>
+        <Title>{currency}를 얼마나 <br></br>소유하고 계신가요?</Title>
         <ExchangeRateText>1 {currency} = {exchangeRates[currency]?.toFixed(2) || 0} 원</ExchangeRateText>
       </TitleContainer>
 
       <Section>
-        <SectionTitle>동전</SectionTitle>
-        {coinData.map((coin, index) => (
-          <Row key={coin.denomination}>
-            <Denomination>{currencyConfig[currency].symbol}{coin.denomination}</Denomination>
-            <Equals>=</Equals>
-            <ValueContainer isHighlighted={coin.amount > 0}>
-            <ConvertedValue>
-  {((coin.denomination * exchangeRates[currency]) || 0).toFixed(2)} 원
-</ConvertedValue>
-
-              <AmountInput
-                type="number"
-                value={coin.amount}
-                onChange={(e) => handleCoinChange(index, e.target.value)}
-              />
-              <Unit>개</Unit>
-            </ValueContainer>
-          </Row>
-        ))}
+        <SectionHeader onClick={() => toggleSection("coins")}>
+          <SectionTitle>동전</SectionTitle>
+          <DropdownIcon src={dropdown} alt="접기/펼치기 아이콘" rotated={!showCoins} />
+        </SectionHeader>
+        <Divider />
+        {showCoins &&
+          coinData.map((coin, index) => (
+            <Row key={coin.denomination}>
+              <Denomination>{currencyConfig[currency].symbol}{coin.denomination}</Denomination>
+              <ValueContainer isHighlighted={coin.amount > 0}>
+              <Equals>=</Equals>
+              <ConvertedValue>
+                <span style={{ color: "#1f2024" }}> 
+                {(coin.denomination * exchangeRates[currency] || 0).toFixed(2)}
+                </span>
+                <span style={{ color: "#8ea0ac", marginLeft: "4px" }}> 
+                원
+                </span>
+                </ConvertedValue>
+                <AmountInput
+                  type="number"
+                  value={coin.amount}
+                  onChange={(e) => handleCoinChange(index, e.target.value)}
+                />
+                <Unit>개</Unit>
+              </ValueContainer>
+            </Row>
+          ))}
       </Section>
 
       <Section>
-        <SectionTitle>지폐</SectionTitle>
-        {billData.map((bill, index) => (
-          <Row key={bill.denomination}>
-            <Denomination>{currencyConfig[currency].symbol}{bill.denomination}</Denomination>
-            <Equals>=</Equals>
-            <ValueContainer isHighlighted={bill.amount > 0}>
+        <SectionHeader onClick={() => toggleSection("bills")}>
+          <SectionTitle>지폐</SectionTitle>
+          <DropdownIcon src={dropdown} alt="접기/펼치기 아이콘" rotated={!showBills} />
+        </SectionHeader>
+        <Divider />
+        {showBills &&
+          billData.map((bill, index) => (
+            <Row key={bill.denomination}>
+              <Denomination>{currencyConfig[currency].symbol}{bill.denomination}</Denomination>
+              <ValueContainer isHighlighted={bill.amount > 0}>
+              <Equals>=</Equals>
               <ConvertedValue>
-              {((bill.denomination * exchangeRates[currency]) || 0).toFixed(2)} 원
-              </ConvertedValue>
-              <AmountInput
-                type="number"
-                value={bill.amount}
-                onChange={(e) => handleBillChange(index, e.target.value)}
-              />
-              <Unit>개</Unit>
-            </ValueContainer>
-          </Row>
-        ))}
+                <span style={{ color: "#1f2024" }}> 
+                {(bill.denomination * exchangeRates[currency] || 0).toFixed(2)}
+                </span>
+                <span style={{ color: "#8ea0ac", marginLeft: "4px" }}> 
+                원
+                </span>
+                </ConvertedValue>
+
+                <AmountInput
+                  type="number"
+                  value={bill.amount}
+                  onChange={(e) => handleBillChange(index, e.target.value)}
+                />
+                <Unit>개</Unit>
+              </ValueContainer>
+            </Row>
+          ))}
       </Section>
 
-      <TotalContainer>
-  {/* 선택된 화폐 기준 총합 표시 */}
-  <TotalText>
-    {currencyConfig[currency]?.symbol} {(totalCoin + totalBill).toFixed(2)}
-  </TotalText>
-  {/* 원화로 환산된 총합 */}
-  <TotalText>
-    총 {((totalCoin + totalBill) * (exchangeRates[currency] || 0)).toFixed(2)} 원
-  </TotalText>
-</TotalContainer>
-
+      <TotalContainer isHidden={isScrolled}>
+        <TotalText>
+        {currencyConfig[currency]?.symbol} {(totalCoin + totalBill).toFixed(2)}
+        </TotalText>
+  
+        <TotalText>
+        총 {((totalCoin + totalBill) * (exchangeRates[currency] || 0)).toFixed(2)}  원
+        </TotalText>
+      </TotalContainer>
 
 
     </Container>
@@ -349,26 +387,34 @@ const CurrencyDropdown = styled.select`
   border: none;
   background: none;
   cursor: pointer;
+  margin-right: 10px; 
+`;
+
+const CurrencyDropdownIcon = styled.img`
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
 `;
 
 const DropdownIcon = styled.img`
-  position: absolute;
-  left:2px;
-  top: 50%;
-  transform: translateY(-50%);
   width: 12px;
   height: 12px;
-  margin-left:50px;
+  margin-right:0px;
+  margin-top:6px;
+  transform: ${({ rotated }) => (rotated ? "rotate(180deg)" : "rotate(0)")};
 `;
 
 const TitleContainer = styled.div`
   padding: 20px 16px;
+  margin-left:0;
 `;
 
 const Title = styled.h1`
   font-size: 24px;
   font-weight: 700;
   color: #1f2024;
+  margin-bottom:10px;
+  margin-left:0;
 `;
 
 const ExchangeRateText = styled.p`
@@ -379,45 +425,60 @@ const ExchangeRateText = styled.p`
 
 const Section = styled.div`
   margin-bottom: 24px;
+  margin-left: 0px;
+`;
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 16px;
 `;
 
-
 const SectionTitle = styled.h2`
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: #1f2024;
-  margin-bottom: 16px;
+  margin-bottom: 2px;
+  margin-left: -10px;  
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background-color:rgba(241, 241, 241, 0.94);
+  margin-bottom:20px;
 `;
 
 const Row = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between; 
   margin-bottom: 12px;
-  margin-left:10px;
+  margin-left: 10px; 
+  width: 100%; 
 `;
 
 const Denomination = styled.span`
   font-size: 14px;
   font-weight: 600;
   color: #1f2024;
-  margin-right: 8px;
+  min-width: 50px; /
+  text-align: left; 
 `;
 
-const Equals = styled.span`
-  font-size: 14px;
-  font-weight: 400;
-  color: #8ea0ac;
-  margin-right: 8px;
-`;
 
 const ValueContainer = styled.div`
   display: flex;
   align-items: center;
   flex: 1;
-  padding: 8px;
+  padding: 16px 12px; 
   border: 1px solid ${({ isHighlighted }) => (isHighlighted ? "#CA2F28" : "#F1F1F1")};
   border-radius: 8px;
+  transition: border-color 0.2s;
+  margin-right:15px;
 
+  &:focus-within {
+    border-color: #CA2F28; /* 입력 포커스 시 빨간색 */
+  }
 `;
 
 const ConvertedValue = styled.span`
@@ -426,7 +487,22 @@ const ConvertedValue = styled.span`
   font-size: 13px;
   font-weight: 400;
   color: #1f2024;
+  margin-right: 8px;
 `;
+
+const Equals = styled.span`
+  font-size: 14px;
+  font-weight: 400;
+  color: #8ea0ac; 
+  margin-right: 8px;
+`;
+
+const Unit = styled.span`
+  font-size: 13px;
+  font-weight: 400;
+  color: #8ea0ac; 
+`;
+
 
 const AmountInput = styled.input`
   width: 40px;
@@ -435,32 +511,38 @@ const AmountInput = styled.input`
   font-weight: 400;
   border: none;
   outline: none;
-  margin-left: 8px;
-  margin-right: 4px;
-`;
-
-const Unit = styled.span`
-  font-size: 13px;
-  font-weight: 400;
-  color: #8ea0ac;
+  margin-left: 30px;
+  margin-right: 0px;
+   -webkit-appearance: none; /* 크롬 등 Webkit 브라우저 */
+  -moz-appearance: textfield; /* 파이어폭스 */
+  appearance: none; /* 기타 브라우저 */
 `;
 
 const TotalContainer = styled.div`
   position: fixed;
-  bottom: 0px;
-  left: 0;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 100%;
-  padding: 16px;
-  background: black;
-  box-shadow: 0px -5px 20px rgba(0, 0, 0, 0.1);
-  display: flex;
+  padding: 16px 24px;
+  background: #1f2024;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  display: ${({ isHidden }) => (isHidden ? "none" : "flex")}; /* 스크롤 시 숨김 */
   justify-content: space-between;
   align-items: center;
-  border-radius: 16px 16px 0 0;
+  gap: 24px;
+  transition: all 0.3s ease; 
 `;
 
+
+
 const TotalText = styled.span`
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 500;
   color: white;
+  display: flex;
+  align-items: center;
+  white-space: nowrap; 
 `;
+
