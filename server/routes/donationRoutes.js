@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Donation from '../models/donation.js';
 import multer from 'multer';
-import { getUserDonationTotal } from '../services/donationService.js;'
+import { getUserDonationTotal } from '../services/donationService.js';
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();

@@ -1,6 +1,6 @@
-import Donation from '../models/donation';
+import Donation from '../models/donation.js';
 
-export async function getUserDonationTotal(userId) {
+async function getUserDonationTotal(userId) {
     try {
         // 특정 사용자의 모든 기부내역 금액 총합 계산
         const total = await Donation.aggregate([
@@ -14,3 +14,7 @@ export async function getUserDonationTotal(userId) {
         throw new Error('Could not calculate donation total');
     }
 }
+
+export {
+    getUserDonationTotal
+};

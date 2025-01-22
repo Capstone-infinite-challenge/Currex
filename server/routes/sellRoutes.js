@@ -69,5 +69,16 @@ router.get('/sellDescription/:sellId', async(req, res) => {
 });
 
 
+//전체 판매자 목록 페이지
+router.get('/sellerList', async(req, res) => {
+    try{
+        
+
+
+    }catch(error){
+        res.status(500).json({message: "판매자 목록을 불러오는 도중 에러가 발생하였습니다."})
+    }
+});
+
 
 export default router;
