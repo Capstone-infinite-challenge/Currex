@@ -1,47 +1,51 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../../images/currexlogo.png";
 import kakaoIcon from "../../images/kakaoicon.svg";
 import googleIcon from "../../images/googleicon.png";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation(); //현재 URL 쿼리 파라미터 가져옴
+  const [loginInfo, setLoginInfo] = useState(null);
+
+  console.log("this code is now functioning");    //마운팅 확인용
 
   // 카카오 로그인 요청 URL
   const KAKAO_AUTH_URL = "http://localhost:5000/auth/kakao";
 
   useEffect(() => {
-    // 로그인 후 리다이렉션된 URL에서 token, loginId, nickname 추출
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
     const loginId = urlParams.get("loginId");
     const nickname = urlParams.get("nickname");
 
-    if (token) {
-      // JWT 토큰을 로컬 스토리지에 저장
-      localStorage.setItem("token", token);
-
-      // 유저 정보를 저장하거나 사용할 수 있음
+    if (token && loginId && nickname) {
+      setLoginInfo({ token, loginId, nickname });
+      console.log("토큰:", token);
       console.log("로그인 ID:", loginId);
       console.log("닉네임:", nickname);
 
-      // 판매 목록 페이지로 이동
-      navigate("/list");
-    }
-  }, [navigate]);
+      // 토큰이 이미 쿠키에 저장되어 있다면 이 부분은 제거할 수 있습니다.
+      sessionStorage.setItem("token", token);
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    console.log("토큰:", urlParams.get("token"));
-    console.log("로그인 ID:", urlParams.get("loginId"));
-    console.log("닉네임:", urlParams.get("nickname"));
-  }, []);
+      navigate("/list");
+    } else {
+      console.log("로그인 정보가 없습니다.");
+    }
+  }, [navigate, location]);
+
   
 
   const handleKakaoLogin = () => {
     // 백엔드의 카카오 로그인 URL로 리다이렉트
-    window.location.href = KAKAO_AUTH_URL;
+    try {
+      window.location.href = KAKAO_AUTH_URL;
+    } catch (error) {
+      console.error("카카오 로그인 중 오류 발생:", error);
+      alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
+    }
   };
 
   return (
