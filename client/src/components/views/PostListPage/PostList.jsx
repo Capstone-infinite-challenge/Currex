@@ -12,7 +12,9 @@ function PostList() {
   const handleNavigateToBuy = () => {
     navigate("/buy");
   };
-
+  const handleRegisterClick = () => {
+    navigate("/sell");
+  };
   const posts = [
     {
       id: 1,
@@ -128,6 +130,8 @@ function PostList() {
           </Post>
         ))}
       </PostListContainer>
+
+      <RegisterButton onClick={handleRegisterClick}>판매등록 +</RegisterButton>
 
       <RecommendationSection>
         <InfoContainer>
@@ -335,4 +339,20 @@ const RecommendationButton = styled.button`
   border-radius: 4px;
   padding: 6px 12px;
   cursor: pointer;
+`;
+
+const RegisterButton = styled.button`
+  position: fixed;
+  bottom: 124px; /* RecommendationSection 위에 고정 */
+  left: 57%; /* 화면 가운데 정렬 */
+  transform: translateX(-50%); /* 중앙 정렬 */
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  border-radius: 20px;
+  padding: 13px 16px;
+  cursor: pointer;
+  z-index: 101; /* 다른 요소 위로 */
 `;
