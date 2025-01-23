@@ -22,6 +22,7 @@ function App() {
           <Route exact path="/list" element={<PostList />} />
           <Route exact path="/chat" element={<Chat />} />
           <Route exact path="/login" element={<Login />} />
+          <Route exact path="/auth/kakao/callback" element ={<Login />} />
         </Routes>
         <NavBar /> 
       </BrowserRouter>

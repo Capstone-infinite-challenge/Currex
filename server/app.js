@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from 'cookie-parser';
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
@@ -6,6 +7,7 @@ import sellRoutes from "./routes/sellRoutes.js";
 import donationRoutes from "./routes/donationRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
 import Sell from "./models/sell.js";
+import authenticateToken from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
@@ -20,6 +22,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // 몽고디비 연결
 connectToDatabase();
@@ -29,7 +32,7 @@ let buyerInfo = null;
 
 // 라우터
 app.use("/auth", authRoutes);
-app.use("/sell", sellRoutes);
+app.use("/sell", authenticateToken, sellRoutes);
 app.use("/donation", donationRoutes);
 
 // 변수명
@@ -40,7 +43,7 @@ app.use("/donation", donationRoutes);
 //  userLocation   // 거래 희망 위치
 
 // 구매자의 외화 구매 조건 저장
-app.post("/buy", (req, res) => {
+app.post("/buy", authenticateToken, (req, res) => {
   try {
     console.log("Request body:", req.body); // 제대로 값이 들어오는지 확인용
     buyerInfo = {
@@ -74,7 +77,7 @@ app.post("/buy", (req, res) => {
 });
 
 //판매자 매칭
-app.get("/SellerMatch", async (req, res) => {
+app.get("/SellerMatch", authenticateToken, async (req, res) => {
   // 구매자 정보를 기준으로 판매자 필터링
   try {
     //구매자 정보가 없는 경우
@@ -130,7 +133,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c; // 거리 반환 (km)
 }
 
-app.post("/SellerMatch/:name", async (req, res) => {
+app.post("/SellerMatch/:name", authenticateToken, async (req, res) => {
   try {
     const sellerName = req.params.name;
     const { buyerLatitude, buyerLongitude } = req.body;
