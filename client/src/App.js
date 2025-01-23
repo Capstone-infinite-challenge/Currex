@@ -7,23 +7,24 @@ import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
 import Chat from "../src/components/views/ChattingPage/Chat";
 import Login from "../src/components/views/LoginPage/Login";
-import NavBar from "./components/views/NavBar/NavBar"; 
+import Layout from "./components/views/Layout/Layout"; 
 
 function App() {
   return (
     <div className="App">
       <GlobalStyle />
       <BrowserRouter>
-        <Routes>
-          <Route exact path="/buy" element={<BuyMoney />} />
-          <Route exact path="/SellerMatch" element={<SellerMatch />} />
-          <Route exact path="/calculator" element={<Calculator />} />
-          <Route exact path="/sell" element={<SellMoney />} />
-          <Route exact path="/list" element={<PostList />} />
-          <Route exact path="/chat" element={<Chat />} />
-          <Route exact path="/login" element={<Login />} />
-        </Routes>
-        <NavBar /> 
+        <Layout>
+          <Routes>
+            <Route exact path="/buy" element={<BuyMoney />} />
+            <Route exact path="/SellerMatch" element={<SellerMatch />} />
+            <Route exact path="/calculator" element={<Calculator />} />
+            <Route exact path="/sell" element={<SellMoney />} />
+            <Route exact path="/list" element={<PostList />} />
+            <Route exact path="/chat" element={<Chat />} />
+            <Route exact path="/login" element={<Login />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </div>
   );
