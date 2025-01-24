@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import axios from 'axios';
 import qs from 'querystring';
+import crypto from 'crypto'; 
 import { loginOrSignupKakaoUser, loginOrSignupGoogleUser} from '../services/authService.js'; // 서비스 호출
 const router = Router();
 
@@ -170,7 +171,7 @@ router.get('/google/callback', async(req, res) => {
     console.log('user Data:', user.loginId, user.nickname);           //점검용 4
 
     // 클라이언트로 리다이렉션
-    clientRedirectUrl = //이거 뭐임??
+    const clientRedirectUrl = `http://localhost:3000/login?token=${encodeURIComponent(token)}&loginId=${encodeURIComponent(user.loginId)}&nickname=${encodeURIComponent(user.nickname)}`;
     res.redirect(clientRedirectUrl);
 
   }catch(error){
