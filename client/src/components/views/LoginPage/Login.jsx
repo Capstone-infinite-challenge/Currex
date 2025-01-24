@@ -7,10 +7,10 @@ import googleIcon from "../../images/googleicon.png";
 
 function Login() {
   const navigate = useNavigate();
-  const location = useLocation(); //현재 URL 쿼리 파라미터 가져옴
+  const location = useLocation(); // 현재 URL 쿼리 파라미터 가져옴
   const [loginInfo, setLoginInfo] = useState(null);
 
-  console.log("this code is now functioning");    //마운팅 확인용
+  console.log("this code is now functioning"); // 마운팅 확인용
 
   // 카카오 로그인 요청 URL
   const KAKAO_AUTH_URL = "http://localhost:5000/auth/kakao";
@@ -20,6 +20,15 @@ function Login() {
     const token = urlParams.get("token");
     const loginId = urlParams.get("loginId");
     const nickname = urlParams.get("nickname");
+    const state = urlParams.get("state");
+    const storedState = sessionStorage.getItem("oauthState");
+
+    // state 값 검증
+    if (state && storedState !== state) {
+      console.error("State 값이 일치하지 않습니다. 보안 문제가 발생했습니다.");
+      alert("로그인 과정에서 오류가 발생했습니다. 다시 시도해주세요.");
+      return;
+    }
 
     if (token && loginId && nickname) {
       setLoginInfo({ token, loginId, nickname });
@@ -27,7 +36,7 @@ function Login() {
       console.log("로그인 ID:", loginId);
       console.log("닉네임:", nickname);
 
-      // 토큰이 이미 쿠키에 저장되어 있다면 이 부분은 제거할 수 있습니다.
+      // 토큰 저장
       sessionStorage.setItem("token", token);
 
       navigate("/list");
@@ -36,14 +45,33 @@ function Login() {
     }
   }, [navigate, location]);
 
-  
+  const generateState = () => {
+    return [...Array(16)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join("");
+  };
 
   const handleKakaoLogin = () => {
-    // 백엔드의 카카오 로그인 URL로 리다이렉트
     try {
       window.location.href = KAKAO_AUTH_URL;
     } catch (error) {
       console.error("카카오 로그인 중 오류 발생:", error);
+      alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    try {
+      // Google OAuth 요청 URL 생성
+      const state = generateState();
+      sessionStorage.setItem("oauthState", state); // 브라우저에 state 값 저장
+      const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID; // .env에서 클라이언트 ID 가져오기
+      const GOOGLE_REDIRECT_URI = "http://localhost:5000/auth/google/callback";
+      const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}&response_type=code&scope=profile email&state=${state}`;
+
+      window.location.href = GOOGLE_AUTH_URL; // Google OAuth로 리다이렉트
+    } catch (error) {
+      console.error("구글 로그인 중 오류 발생:", error);
       alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
     }
   };
@@ -57,8 +85,16 @@ function Login() {
       <SocialLoginContainer>
         <LoginText>Sign up with Social Networks</LoginText>
         <IconsWrapper>
-          <SocialIcon src={kakaoIcon} alt="Kakao Login" onClick={handleKakaoLogin} />
-          <SocialIcon src={googleIcon} alt="Google Login" />
+          <SocialIcon
+            src={kakaoIcon}
+            alt="Kakao Login"
+            onClick={handleKakaoLogin}
+          />
+          <SocialIcon
+            src={googleIcon}
+            alt="Google Login"
+            onClick={handleGoogleLogin}
+          />
         </IconsWrapper>
       </SocialLoginContainer>
     </Container>
