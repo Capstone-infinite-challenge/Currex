@@ -6,6 +6,7 @@ import SellerMatch from "../src/components/views/BuyerPage/SellerMatch";
 import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
 import Chat from "../src/components/views/ChattingPage/Chat";
+import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout"; 
 
@@ -22,6 +23,7 @@ function App() {
             <Route exact path="/sell" element={<SellMoney />} />
             <Route exact path="/list" element={<PostList />} />
             <Route exact path="/chat" element={<Chat />} />
+            <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/login" element={<Login />} />
             <Route exact path="/auth/kakao/callback" element ={<Login />} />
           </Routes>

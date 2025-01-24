@@ -10,10 +10,11 @@ function Login() {
   const location = useLocation(); //현재 URL 쿼리 파라미터 가져옴
   const [loginInfo, setLoginInfo] = useState(null);
 
-  console.log("this code is now functioning");    //마운팅 확인용
+  console.log("this code is now functioning"); // 마운팅 확인용
 
-  // 카카오 로그인 요청 URL
+  // 카카오 및 구글 로그인 요청 URL
   const KAKAO_AUTH_URL = "http://localhost:5000/auth/kakao";
+  const GOOGLE_AUTH_URL = "http://localhost:5000/auth/google";
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -36,14 +37,22 @@ function Login() {
     }
   }, [navigate, location]);
 
-  
-
   const handleKakaoLogin = () => {
     // 백엔드의 카카오 로그인 URL로 리다이렉트
     try {
       window.location.href = KAKAO_AUTH_URL;
     } catch (error) {
       console.error("카카오 로그인 중 오류 발생:", error);
+      alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    // 백엔드의 구글 로그인 URL로 리다이렉트
+    try {
+      window.location.href = GOOGLE_AUTH_URL;
+    } catch (error) {
+      console.error("구글 로그인 중 오류 발생:", error);
       alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
     }
   };
@@ -57,8 +66,16 @@ function Login() {
       <SocialLoginContainer>
         <LoginText>Sign up with Social Networks</LoginText>
         <IconsWrapper>
-          <SocialIcon src={kakaoIcon} alt="Kakao Login" onClick={handleKakaoLogin} />
-          <SocialIcon src={googleIcon} alt="Google Login" />
+          <SocialIcon
+            src={kakaoIcon}
+            alt="Kakao Login"
+            onClick={handleKakaoLogin}
+          />
+          <SocialIcon
+            src={googleIcon}
+            alt="Google Login"
+            onClick={handleGoogleLogin}
+          />
         </IconsWrapper>
       </SocialLoginContainer>
     </Container>
