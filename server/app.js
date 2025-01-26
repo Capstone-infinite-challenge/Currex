@@ -1,4 +1,5 @@
 import express from "express";
+import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import cors from "cors";
 import dotenv from "dotenv";
@@ -23,6 +24,11 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(session({
+  secret: 'sessionsecretkey',
+  resave: false,
+  saveUninitialized: true
+}))
 
 // 몽고디비 연결
 connectToDatabase();

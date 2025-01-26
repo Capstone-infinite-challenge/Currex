@@ -5,12 +5,11 @@ import crypto from 'crypto';
 import { loginOrSignupKakaoUser, loginOrSignupGoogleUser} from '../services/authService.js'; // 서비스 호출
 const router = Router();
 
-
+//카카오 로그인에 필요한 정보
 const kakao = {
     CLIENT_ID: process.env.REST_API_KEY,
     REDIRECT_URI: process.env.REDIRECT_URI,
-  };
-
+};
 
 const blacklist = new Set();
 
@@ -116,22 +115,42 @@ router.post('/kakaologout', async (req, res) => {
 
 
 //구글 로그인
+const GOOGLE_OAUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;// YOUR GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;// YOUR GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+const GOOGLE_SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'];
+
+//State 생성
+function generateState(){
+  return crypto.randomBytes(16).toString('hex');
+}
+
+//oauth url 생성 함수
+function createGoogleOAuthURL() {
+  const state = generateState();
+  const scopes = GOOGLE_SCOPES.join(' ');
+  
+  const url = `${GOOGLE_OAUTH_URL}?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(GOOGLE_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scopes)}&state=${state}`;
+  
+  return { url, state };
+}
 
 
 router.get('/google', (req, res) => {
-  const state = crypto.randomBytes(16).toString('hex');
+  const { url, state } = createGoogleOAuthURL();
+  console.log('Generated OAuth URL:', url);             //점검용
   req.session.oauthState = state; // 세션에 state 저장
-  let url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}&response_type=code&scope=profile email`;
   res.redirect(url);
 });
 
 // 구글 계정 선택 화면에서 계정 선택 후 redirect
 router.get('/google/callback', async(req, res) => {
-  const { code } = req.query;
+  const { state, code } = req.query;
   
+  if(state !== req.session.oauthState){
+    return res.status(400).send("Invalid state parameter");
+  }
   try{
     // 액세스 토큰 요청
     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
@@ -156,9 +175,12 @@ router.get('/google/callback', async(req, res) => {
       name: userInfo.data.name,
     }
 
+    console.log('Google User Info:', googleUserInfo);
+
     // 사용자 정보를 처리하고 세션을 생성하거나 JWT를 발급
     const { user, token } = await loginOrSignupGoogleUser(googleUserInfo);
 
+    console.log('generated token', token);      //점검용 -- 지금 안됨
 
     // JWT 토큰을 HttpOnly 쿠키에 저장
     res.cookie('token', token, {
