@@ -7,12 +7,7 @@ const userSchema = new Schema({
         unique: true
     },
     nickname: {
-        type: String,
-        //required: true,  이게 필수적인거였나???
-    },
-    password:{
-        type: String,
-        required: false
+        type: String
     }
 }, {timestamps: true});
 

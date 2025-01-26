@@ -31,6 +31,11 @@ async function loginOrSignupGoogleUser(googleUserInfo){
   const { google_account, name } = googleUserInfo;
 
   try{
+
+    if (!google_account) {
+      throw new Error('Invalid Google Account: loginId is missing.');
+    }
+
     let user = await User.findOne({ loginId: google_account });
 
     if(!user){

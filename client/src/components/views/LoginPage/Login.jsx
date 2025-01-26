@@ -15,6 +15,9 @@ function Login() {
   // 카카오 로그인 요청 URL
   const KAKAO_AUTH_URL = "http://localhost:5000/auth/kakao";
 
+  // 구글 로그인 요청 URL
+  const GOOGLE_AUTH_URL = "http://localhost:5000/auth/google";
+
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const token = urlParams.get("token");
@@ -62,19 +65,13 @@ function Login() {
 
   const handleGoogleLogin = () => {
     try {
-      // Google OAuth 요청 URL 생성
-      const state = generateState();
-      sessionStorage.setItem("oauthState", state); // 브라우저에 state 값 저장
-      const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID; // .env에서 클라이언트 ID 가져오기
-      const GOOGLE_REDIRECT_URI = "http://localhost:5000/auth/google/callback";
-      const GOOGLE_AUTH_URL = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}&response_type=code&scope=profile email&state=${state}`;
-
-      window.location.href = GOOGLE_AUTH_URL; // Google OAuth로 리다이렉트
+      window.location.href = GOOGLE_AUTH_URL;
     } catch (error) {
       console.error("구글 로그인 중 오류 발생:", error);
       alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
     }
   };
+  
 
   return (
     <Container>
