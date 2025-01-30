@@ -10,7 +10,9 @@ const router = Router();
 
 //판매 등록 페이지
 router.post("/productRegi", upload.array('images', 5), async(req, res) => {
-
+    console.log("요청 도착: 판매 등록 API");
+    console.log("Authorization Header:", req.headers.authorization);
+    console.log("Cookies:", req.cookies);
     try{
         //프론트에서 입력 정보 받아오기
         const sellInfo = {
@@ -19,7 +21,8 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
             sellerLocation: req.body.sellerLocation,
             latitude: req.body.latitude,
             longitude: req.body.longitude,
-            content: req.body.content
+            content: req.body.content,
+            images: []
         };
 
         //사용자 정보 받아오기

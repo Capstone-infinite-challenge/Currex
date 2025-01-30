@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
 const sellSchema = new Schema({   //스키마 객체 생성
-    name: {
+    /*name: {
         type: String,
         required: true, //필수 필드
-    },
+    },*/
     currency: {
         type: String,
         enum: ['JPY', 'USD', 'EUR'],   //값 주어지고 선택하는 방법

@@ -9,6 +9,7 @@ import Chat from "../src/components/views/ChattingPage/Chat";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout"; 
+import KakaoMap from "./components/utils/KakaoMap"; 
 
 function App() {
   return (
