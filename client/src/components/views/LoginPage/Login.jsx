@@ -5,6 +5,7 @@ import logo from "../../images/currexlogo.png";
 import kakaoIcon from "../../images/kakaoicon.svg";
 import googleIcon from "../../images/googleicon.png";
 import axios from 'axios'; 
+import api from "../../utils/api";
 
 function Login() {
   const navigate = useNavigate();

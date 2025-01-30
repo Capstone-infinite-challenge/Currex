@@ -8,6 +8,7 @@ import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
 import equalicon from "../../images/equalicon.svg"
 import KakaoMap from "../..//utils/KakaoMap"; 
+import api from "../../utils/api";
 
 function SellMoney() {
   const [currency, setCurrency] = useState("USD"); // 기본 선택된 통화
@@ -120,6 +121,7 @@ function SellMoney() {
     formData.append("longitude", longitude);
     formData.append("content", content);
     formData.append("name", "판매글");
+    formData.append("KRWAmount", KRWAmount);  
 
     uploadedImages.forEach((image) => {
       formData.append("images", image);
