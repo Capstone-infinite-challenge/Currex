@@ -1,147 +1,103 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import NavBar from "../NavBar/NavBar";
 import locationicon from "../../images/locationicon.svg";
-import post1 from "../../images/post1.png";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 function PostList() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState([]); // 판매글 데이터 저장
+  const [loading, setLoading] = useState(true); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
 
-  const handleNavigateToBuy = () => {
-    navigate("/buy");
-  };
-  const handleRegisterClick = () => {
-    navigate("/sell");
-  };
-  const posts = [
-    {
-      id: 1,
-      currency: "JPY",
-      amount: "$4,010",
-      distance: "120m",
-      won: "37,436.56원",
-      location: "마포구 대흥동",
-      reserved: false,
-      image: post1,
-    },
-    {
-      id: 2,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 3,
-      currency: "JPY",
-      amount: "$4,010",
-      distance: "120m",
-      won: "37,436.56원",
-      location: "마포구 대흥동",
-      reserved: false,
-      image: post1,
-    },
-    {
-      id: 4,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 5,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 6,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 7,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    // 나머지 데이터... (백엔드에서 불러옴)
-  ];
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        console.log("현재 저장된 accessToken:", accessToken);
+
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+          return;
+        }
+
+        const response = await axios.get("http://localhost:5000/sell/list", { //api추가필요요
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+
+        console.log("불러온 판매 데이터:", response.data);
+        setPosts(response.data);
+      } catch (err) {
+        console.error("판매 목록 불러오기 실패:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [navigate]);
+
+  const handleNavigateToBuy = () => navigate("/buy");
+  const handleRegisterClick = () => navigate("/sell");
 
   return (
     <Container>
       <Header>
         <Title>목록</Title>
-        <Filters>
-          <Filter>국가 전체</Filter>
-          <Filter selected>금액 범위 20 - 30만원</Filter>
-          <Filter>거래장소 전체</Filter>
-        </Filters>
-        <Total>
-          Total <span>412</span>
-        </Total>
       </Header>
 
-      <PostListContainer>
-        {posts.map((post) => (
-          <Post key={post.id}>
-            <ImageContainer>
-              <PostImage src={post.image} alt={`${post.currency} image`} />
-              {post.reserved && <ReservedLabel>예약중</ReservedLabel>}
-            </ImageContainer>
-            <PostInfo>
-              <Currency>{post.currency}</Currency>
-              <Amount>{post.amount}</Amount>
-              <Details>
-                <Distance>{post.distance}</Distance>
-                <span></span>
-                <Won>{post.won}</Won>
-              </Details>
-              <Location>
-                <img
-                src={locationicon}
-                alt="location icon"
-                style={{ width: "12px", height: "12px", marginRight: "3px", marginLeft: "8px" }}
-                />
-                {post.location}
-              </Location>
-            </PostInfo>
-          </Post>
-        ))}
-      </PostListContainer>
+      {loading ? (
+        <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
+      ) : error ? (
+        <ErrorMessage>데이터를 불러오지 못했습니다.</ErrorMessage>
+      ) : posts.length === 0 ? (
+        <NoDataMessage>판매 글이 없습니다.</NoDataMessage>
+      ) : (
+        <PostListContainer>
+          {posts.map((post) => (
+            <Post key={post._id}>
+              <ImageContainer>
+                {post.images && post.images.length > 0 ? (
+                  <PostImage src={post.images[0]} alt="상품 이미지" />
+                ) : (
+                  <NoImage>이미지 없음</NoImage>
+                )}
+              </ImageContainer>
+              <PostInfo>
+                <Currency>{post.currency}</Currency>
+                <Amount>{post.amount} {post.currency}</Amount>
+                <Details>
+                  <Distance>📍 {post.sellerLocation}</Distance>
+                  <Won>{post.KRWAmount} 원</Won>
+                </Details>
+                <Location>
+                  <img src={locationicon} alt="location icon" width="12" height="12" />
+                  {post.sellerLocation}
+                </Location>
+              </PostInfo>
+            </Post>
+          ))}
+        </PostListContainer>
+      )}
 
       <RegisterButton onClick={handleRegisterClick}>판매등록 +</RegisterButton>
 
       <RecommendationSection>
         <InfoContainer>
-          <img src={infoicon} alt="info icon" style={{ width: "16px", height: "16px" }} />
+          <img src={infoicon} alt="info icon" width="16" height="16" />
           <InfoText>AI에게 판매자를 추천받아 보세요</InfoText>
         </InfoContainer>
         <RecommendationButton onClick={handleNavigateToBuy}>추천받기</RecommendationButton>
       </RecommendationSection>
 
-      {/* NavBar 컴포넌트 사용 */}
       <NavBar active="list" />
     </Container>
   );
@@ -356,3 +312,27 @@ const RegisterButton = styled.button`
   cursor: pointer;
   z-index: 101; /* 다른 요소 위로 */
 `;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: red;
+  margin-top: 20px;
+`;
+
+const NoDataMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
+`; 
+
+const NoImage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
+`; 
