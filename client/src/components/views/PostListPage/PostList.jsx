@@ -5,6 +5,7 @@ import NavBar from "../NavBar/NavBar";
 import locationicon from "../../images/locationicon.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../../utils/api";
 
 function PostList() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ function PostList() {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/sell/list", { //api추가필요요
+        const response = await axios.get("http://localhost:5000/sell/sellList", { 
           headers: { Authorization: `Bearer ${accessToken}` },
           withCredentials: true,
         });
@@ -44,6 +45,36 @@ function PostList() {
 
     fetchPosts();
   }, [navigate]);
+
+  // 실시간 환율 가져오기
+  const [exchangeRates, setExchangeRates] = useState({}); // 환율 데이터를 저장할 상태
+
+  useEffect(() => {
+  const fetchExchangeRates = async () => {
+    const uniqueCurrencies = [...new Set(posts.map((post) => post.currency))]; // 중복 제거
+    const rates = {};
+
+    try {
+      // 각 통화에 대한 환율 데이터를 비동기적으로 가져오기
+      await Promise.all(
+        uniqueCurrencies.map(async (currency) => {
+          const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+          rates[currency] = response.data.rates.KRW; // KRW에 대한 환율 저장
+        })
+      );
+
+      setExchangeRates(rates); // 가져온 환율 데이터 상태 업데이트
+    } catch (error) {
+      console.error("환율 데이터를 불러오는 중 오류 발생:", error);
+    }
+  };
+
+  if (posts.length > 0) {
+    fetchExchangeRates();
+  }
+}, [posts]);
+
+
 
   const handleNavigateToBuy = () => navigate("/buy");
   const handleRegisterClick = () => navigate("/sell");
@@ -63,28 +94,30 @@ function PostList() {
       ) : (
         <PostListContainer>
           {posts.map((post) => (
-            <Post key={post._id}>
-              <ImageContainer>
-                {post.images && post.images.length > 0 ? (
-                  <PostImage src={post.images[0]} alt="상품 이미지" />
-                ) : (
-                  <NoImage>이미지 없음</NoImage>
-                )}
-              </ImageContainer>
-              <PostInfo>
-                <Currency>{post.currency}</Currency>
-                <Amount>{post.amount} {post.currency}</Amount>
-                <Details>
-                  <Distance>📍 {post.sellerLocation}</Distance>
-                  <Won>{post.KRWAmount} 원</Won>
-                </Details>
-                <Location>
-                  <img src={locationicon} alt="location icon" width="12" height="12" />
-                  {post.sellerLocation}
-                </Location>
-              </PostInfo>
-            </Post>
-          ))}
+          <Post key={post._id}>
+          <ImageContainer>
+            {post.images && post.images.length > 0 ? (
+           <PostImage src={post.images[0]} alt="상품 이미지" />
+             ) : (
+             <NoImage>이미지 없음</NoImage>
+            )}
+          </ImageContainer>
+
+          <PostInfo>
+          <Currency>{post.currency}</Currency>
+          <Amount>{post.amount} {post.currency}</Amount>
+          <Details>
+            <Distance>📍 {post.sellerLocation ? post.sellerLocation : "위치 정보 없음"}</Distance>
+            <Won>
+            {exchangeRates[post.currency]
+            ? `${Math.round(post.amount * exchangeRates[post.currency])} 원`
+            : "환율 정보 없음"}
+           </Won>
+          </Details>
+          </PostInfo>
+
+    </Post>
+))}
         </PostListContainer>
       )}
 
@@ -247,7 +280,7 @@ const Location = styled.div`
   color: #898D99;
   font-size: 12px;
   align-self: flex-start; 
-  margin-left:-10px;
+  margin-left:00px;
 `;
 
 const RecommendationSection = styled.div`
