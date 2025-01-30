@@ -35,6 +35,15 @@ const sellSchema = new Schema({   //스키마 객체 생성
             contentType: String //이미지 MIME 타입
         }
     ],
+    status: {
+        type : String,
+        enum : ['판매중', '거래중', '거래완료'],
+        default: '판매중'
+    },
+    buyer: {
+        type: Schema.Types.ObjectId,
+        ref: 'User'
+    }
 }, {timestamps: true});     //이렇게 하면 timestamp 자동으로 추가 가능
 
 export default mongoose.model('Sell', sellSchema);
