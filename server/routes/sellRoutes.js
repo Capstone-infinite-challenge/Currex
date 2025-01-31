@@ -59,15 +59,20 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
 
 
 // 판매자 화면 페이지 - 각 판매 데이터 상세
-router.get('/sellDescription/:sellId', async(req, res) => {
-    try{
-        const sell = await Sell.findById(req.params.id);
-        if(!sell){
-            return res.status(404).json({message: 'Sell not found'});
+router.get('/sellDescription/:sellId', async (req, res) => {
+    try {
+        console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
+        const sell = await Sell.findById(req.params.sellId);
+        
+        if (!sell) {
+            console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
+            return res.status(404).json({ message: 'Sell not found' });
         }
+
         res.json(sell);
-    }catch(error){
-        res.status(500).json({error: error.message});
+    } catch (error) {
+        console.error("판매 정보 불러오기 실패:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 

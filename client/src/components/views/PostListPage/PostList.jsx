@@ -9,12 +9,12 @@ import api from "../../utils/api";
 
 function PostList() {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState([]); // 판매글 데이터 저장
+  const [sells, setSells] = useState([]); // 판매글 데이터 저장
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 상태
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchSells = async () => {
       setLoading(true);
       setError(null);
 
@@ -34,7 +34,7 @@ function PostList() {
         });
 
         console.log("불러온 판매 데이터:", response.data);
-        setPosts(response.data);
+        setSells(response.data);
       } catch (err) {
         console.error("판매 목록 불러오기 실패:", err);
         setError(err.message);
@@ -43,7 +43,7 @@ function PostList() {
       }
     };
 
-    fetchPosts();
+    fetchSells();
   }, [navigate]);
 
   // 실시간 환율 가져오기
@@ -51,7 +51,7 @@ function PostList() {
 
   useEffect(() => {
   const fetchExchangeRates = async () => {
-    const uniqueCurrencies = [...new Set(posts.map((post) => post.currency))]; // 중복 제거
+    const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))]; // 중복 제거
     const rates = {};
 
     try {
@@ -69,10 +69,10 @@ function PostList() {
     }
   };
 
-  if (posts.length > 0) {
+  if (sells.length > 0) {
     fetchExchangeRates();
   }
-}, [posts]);
+}, [sells]);
 
 
 
@@ -89,28 +89,28 @@ function PostList() {
         <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
       ) : error ? (
         <ErrorMessage>데이터를 불러오지 못했습니다.</ErrorMessage>
-      ) : posts.length === 0 ? (
+      ) : sells.length === 0 ? (
         <NoDataMessage>판매 글이 없습니다.</NoDataMessage>
       ) : (
         <PostListContainer>
-          {posts.map((post) => (
-          <Post key={post._id}>
+          {sells.map((sell) => (
+          <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
           <ImageContainer>
-            {post.images && post.images.length > 0 ? (
-           <PostImage src={post.images[0]} alt="상품 이미지" />
+            {sell.images && sell.images.length > 0 ? (
+           <PostImage src={sell.images[0]} alt="상품 이미지" />
              ) : (
              <NoImage>이미지 없음</NoImage>
             )}
           </ImageContainer>
 
           <PostInfo>
-          <Currency>{post.currency}</Currency>
-          <Amount>{post.amount} {post.currency}</Amount>
+          <Currency>{sell.currency}</Currency>
+          <Amount>{sell.amount} {sell.currency}</Amount>
           <Details>
-            <Distance>📍 {post.sellerLocation ? post.sellerLocation : "위치 정보 없음"}</Distance>
+            <Distance>📍 {sell.sellerLocation ? sell.sellerLocation : "위치 정보 없음"}</Distance>
             <Won>
-            {exchangeRates[post.currency]
-            ? `${Math.round(post.amount * exchangeRates[post.currency])} 원`
+            {exchangeRates[sell.currency]
+            ? `${Math.round(sell.amount * exchangeRates[sell.currency])} 원`
             : "환율 정보 없음"}
            </Won>
           </Details>
