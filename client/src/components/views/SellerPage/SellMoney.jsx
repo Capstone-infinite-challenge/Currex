@@ -38,11 +38,12 @@ function SellMoney() {
 
   useEffect(() => {
     if (amount && exchangeRate) {
-      setKRWAmount((amount * exchangeRate).toFixed(2));
+      setKRWAmount(Math.floor(amount * exchangeRate)); // 소수점 제거
     } else {
       setKRWAmount("");
     }
   }, [amount, exchangeRate]);
+  
 
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
