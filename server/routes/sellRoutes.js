@@ -10,7 +10,9 @@ const router = Router();
 
 //판매 등록 페이지
 router.post("/productRegi", upload.array('images', 5), async(req, res) => {
-
+    console.log("요청 도착: 판매 등록 API");
+    console.log("Authorization Header:", req.headers.authorization);
+    console.log("Cookies:", req.cookies);
     try{
         //프론트에서 입력 정보 받아오기
         const sellInfo = {
@@ -19,7 +21,8 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
             sellerLocation: req.body.sellerLocation,
             latitude: req.body.latitude,
             longitude: req.body.longitude,
-            content: req.body.content
+            content: req.body.content,
+            images: []
         };
 
         //사용자 정보 받아오기
@@ -56,34 +59,48 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
 
 
 // 판매자 화면 페이지 - 각 판매 데이터 상세
-router.get('/sellDescription/:sellId', async(req, res) => {
-    try{
-        const sell = await Sell.findById(req.params.id);
-        if(!sell){
-            return res.status(404).json({message: 'Sell not found'});
+router.get('/sellDescription/:sellId', async (req, res) => {
+    try {
+        console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
+        const sell = await Sell.findById(req.params.sellId);
+        
+        if (!sell) {
+            console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
+            return res.status(404).json({ message: 'Sell not found' });
         }
+
         res.json(sell);
-    }catch(error){
-        res.status(500).json({error: error.message});
+    } catch (error) {
+        console.error("판매 정보 불러오기 실패:", error);
+        res.status(500).json({ error: error.message });
     }
 });
 
 
-//전체 판매 목록 페이지
-router.get('/sellList', async(req, res) => {
-    try{
-        const sellList = await SellModel.find({status: '판매중'});
+// 전체 판매 목록 페이지
+router.get('/sellList', async (req, res) => {
+    try {
+        const sellList = await Sell.find({ status: '판매중' });
 
-        if(!sellList || sellList.length === 0){
-            return res.status(404).json({message: '판매중인 상품이 없습니다.'});
+        if (!sellList || sellList.length === 0) {
+            return res.status(404).json({ message: '판매중인 상품이 없습니다.' });
         }
 
-        res.status(200).json(sellList);
-    }catch(error){
-        console.log('Error fetching sell list:', error);
-        res.status(500).json({message: "판매자 목록을 불러오는 도중 에러가 발생하였습니다."})
+        // 이미지 데이터를 Base64로 변환
+        const formattedSellList = sellList.map(sell => ({
+            ...sell.toObject(), // Mongoose 객체를 JSON으로 변환
+            images: sell.images.map(image => 
+                `data:${image.contentType};base64,${image.data.toString('base64')}`
+            )
+        }));
+
+        res.status(200).json(formattedSellList);
+    } catch (error) {
+        console.error('Error fetching sell list:', error);
+        res.status(500).json({ message: "판매자 목록을 불러오는 도중 에러가 발생하였습니다." });
     }
 });
+
 
 
 //구매자가 판매 항목을 선택

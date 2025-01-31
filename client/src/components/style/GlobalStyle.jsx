@@ -28,6 +28,11 @@ const GlobalStyle = createGlobalStyle`
     box-sizing: border-box;
     font-family: "Pretendard";
   }
+
+  /* Slider */
+.slick-loading .slick-list {
+  background: #fff url('./ajax-loader.gif') center center no-repeat;
+}
 `;
 
 export default GlobalStyle;

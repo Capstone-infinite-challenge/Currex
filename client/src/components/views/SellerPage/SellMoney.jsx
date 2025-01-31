@@ -7,6 +7,8 @@ import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
 import equalicon from "../../images/equalicon.svg"
+import KakaoMap from "../..//utils/KakaoMap"; 
+import api from "../../utils/api";
 
 function SellMoney() {
   const [currency, setCurrency] = useState("USD"); // 기본 선택된 통화
@@ -36,11 +38,12 @@ function SellMoney() {
 
   useEffect(() => {
     if (amount && exchangeRate) {
-      setKRWAmount((amount * exchangeRate).toFixed(2));
+      setKRWAmount(Math.floor(amount * exchangeRate)); // 소수점 제거
     } else {
       setKRWAmount("");
     }
   }, [amount, exchangeRate]);
+  
 
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
@@ -49,13 +52,18 @@ function SellMoney() {
         setUserLocation(fullAddress); // 주소 업데이트
   
         try {
-          // Kakao Local API를 사용하여 주소 -> 위도/경도 변환
+          // Kakao Local API 호출 시 Authorization 헤더 추가
           const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`;
           const kakaoApiKey = process.env.REACT_APP_KAKAO_API_KEY;
   
+          if (!kakaoApiKey) {
+            console.error(" Kakao API Key가 설정되지 않았습니다!");
+            return;
+          }
+  
           const response = await axios.get(geocodeUrl, {
             headers: {
-              Authorization: `KakaoAK ${kakaoApiKey}`,
+              Authorization: `KakaoAK ${kakaoApiKey}`, //  Authorization 헤더 확인
             },
           });
   
@@ -64,7 +72,7 @@ function SellMoney() {
             const { x, y } = documents[0]; // x: 경도, y: 위도
             setLongitude(parseFloat(x));
             setLatitude(parseFloat(y));
-            console.log("위도:", y, "경도:", x); // 디버깅용
+            console.log("위치 정보 확인 - 위도:", y, "경도:", x);
           } else {
             alert("위치 정보를 찾을 수 없습니다.");
           }
@@ -95,35 +103,62 @@ function SellMoney() {
       alert("모든 필드를 입력해주세요.");
       return;
     }
+
+  const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+
+  console.log("현재 저장된 accessToken:", accessToken); // 로그 추가
+
+  if (!accessToken) {
+  alert("로그인이 필요합니다.");
+  navigate("/login"); // 로그인 페이지로 리디렉션
+}
+
   
-    const requestData = {
+    const formData = new FormData();
+    formData.append("currency", currency);
+    formData.append("amount", amount);
+    formData.append("sellerLocation", userLocation);
+    formData.append("latitude", latitude);
+    formData.append("longitude", longitude);
+    formData.append("content", content);
+    formData.append("name", "판매글");
+    formData.append("KRWAmount", KRWAmount);  
+
+    uploadedImages.forEach((image) => {
+      formData.append("images", image);
+    });
+
+    console.log("전송할 데이터 확인:", {
       currency,
       amount,
-      userLocation,
+      sellerLocation: userLocation,
       latitude,
       longitude,
       content,
-      uploadedImages,
-    };
-  
+      uploadedImages
+    });
+    
+
     try {
-      const response = await axios.post("http://localhost:5000/sell", requestData, {
+
+      console.log("API 요청 전 accessToken:", accessToken); // 추가
+      const response = await axios.post("http://localhost:5000/sell/productRegi", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${accessToken}`, 
         },
+        withCredentials: true 
       });
-  
-      console.log("백엔드 응답 데이터:", response.data);
+
+      console.log("판매 등록 성공:", response.data);
+      alert("판매 등록이 완료되었습니다!");
+      navigate("/list"); // 성공 시 목록 페이지로 이동
     } catch (error) {
-      console.error("백엔드 요청 중 오류 발생:", error);
-      if (error.response) {
-        alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
-      } else {
-        alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-      }
+      console.error("판매 등록 오류:", error);
+      alert(error.response?.data?.error || "서버 오류 발생");
     }
-  }; 
-  
+  };
+
   return (
     <Container>
       <Header>
@@ -183,6 +218,7 @@ function SellMoney() {
             </LocationButton>
           </LocationWrapper>
         </Label>
+        
 
         <Label>
           <ImageSection>
@@ -214,7 +250,8 @@ function SellMoney() {
           />
         </Label>
 
-        <SubmitButton>판매 등록</SubmitButton>
+        <SubmitButton onClick={handleSubmit}>판매 등록</SubmitButton>
+
       </Form>
     </Container>
   );

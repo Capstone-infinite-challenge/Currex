@@ -1,14 +1,20 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import GlobalStyle from "../src/components/style/GlobalStyle";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import BuyMoney from "../src/components/views/BuyerPage/BuyMoney";
 import Calculator from "../src/components/views/BuyerPage/CurrencyCalculator";
 import SellerMatch from "../src/components/views/BuyerPage/SellerMatch";
 import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
+import PostDetail from "../src/components/views/PostListPage/PostDetail";
+import PostDetail2 from "../src/components/views/PostListPage/PostDetail2";
 import Chat from "../src/components/views/ChattingPage/Chat";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout"; 
+import KakaoMap from "./components/utils/KakaoMap"; 
+
 
 function App() {
   return (
@@ -22,6 +28,8 @@ function App() {
             <Route exact path="/calculator" element={<Calculator />} />
             <Route exact path="/sell" element={<SellMoney />} />
             <Route exact path="/list" element={<PostList />} />
+            <Route path="/sell/:sellId" element={<PostDetail />} />
+            <Route path="/postdetail" element={<PostDetail2 />} />
             <Route exact path="/chat" element={<Chat />} />
             <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/login" element={<Login />} />

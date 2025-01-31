@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import logo from "../../images/currexlogo.png";
 import kakaoIcon from "../../images/kakaoicon.svg";
 import googleIcon from "../../images/googleicon.png";
+import axios from 'axios'; 
+import api from "../../utils/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -20,39 +22,22 @@ function Login() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const token = urlParams.get("token");
+    const accessToken = urlParams.get("token"); // 백엔드에서 JWT 토큰을 쿼리 스트링으로 전달
     const loginId = urlParams.get("loginId");
     const nickname = urlParams.get("nickname");
-    const state = urlParams.get("state");
-    const storedState = sessionStorage.getItem("oauthState");
 
-    // state 값 검증
-    if (state && storedState !== state) {
-      console.error("State 값이 일치하지 않습니다. 보안 문제가 발생했습니다.");
-      alert("로그인 과정에서 오류가 발생했습니다. 다시 시도해주세요.");
-      return;
-    }
+    if (accessToken) {
+        console.log("프론트에서 받은 accessToken:", accessToken);
+        sessionStorage.setItem("accessToken", accessToken);
 
-    if (token && loginId && nickname) {
-      setLoginInfo({ token, loginId, nickname });
-      console.log("토큰:", token);
-      console.log("로그인 ID:", loginId);
-      console.log("닉네임:", nickname);
-
-      // 토큰 저장
-      sessionStorage.setItem("token", token);
-
-      navigate("/list");
+        navigate("/list"); // 로그인 성공 후 /list 페이지로 이동
     } else {
-      console.log("로그인 정보가 없습니다.");
+        console.log("accessToken 없음, 로그인 필요");
     }
-  }, [navigate, location]);
+}, [location, navigate]);
 
-  const generateState = () => {
-    return [...Array(16)]
-      .map(() => Math.floor(Math.random() * 16).toString(16))
-      .join("");
-  };
+
+
 
   const handleKakaoLogin = () => {
     try {

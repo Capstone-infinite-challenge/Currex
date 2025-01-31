@@ -1,147 +1,136 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import NavBar from "../NavBar/NavBar";
 import locationicon from "../../images/locationicon.svg";
-import post1 from "../../images/post1.png";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import api from "../../utils/api";
 
 function PostList() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const [sells, setSells] = useState([]); // 판매글 데이터 저장
+  const [loading, setLoading] = useState(true); // 로딩 상태
+  const [error, setError] = useState(null); // 에러 상태
 
-  const handleNavigateToBuy = () => {
-    navigate("/buy");
+  useEffect(() => {
+    const fetchSells = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        console.log("현재 저장된 accessToken:", accessToken);
+
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+          return;
+        }
+
+        const response = await axios.get("http://localhost:5000/sell/sellList", { 
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+
+        console.log("불러온 판매 데이터:", response.data);
+        setSells(response.data);
+      } catch (err) {
+        console.error("판매 목록 불러오기 실패:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSells();
+  }, [navigate]);
+
+  // 실시간 환율 가져오기
+  const [exchangeRates, setExchangeRates] = useState({}); // 환율 데이터를 저장할 상태
+
+  useEffect(() => {
+  const fetchExchangeRates = async () => {
+    const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))]; // 중복 제거
+    const rates = {};
+
+    try {
+      // 각 통화에 대한 환율 데이터를 비동기적으로 가져오기
+      await Promise.all(
+        uniqueCurrencies.map(async (currency) => {
+          const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+          rates[currency] = response.data.rates.KRW; // KRW에 대한 환율 저장
+        })
+      );
+
+      setExchangeRates(rates); // 가져온 환율 데이터 상태 업데이트
+    } catch (error) {
+      console.error("환율 데이터를 불러오는 중 오류 발생:", error);
+    }
   };
-  const handleRegisterClick = () => {
-    navigate("/sell");
-  };
-  const posts = [
-    {
-      id: 1,
-      currency: "JPY",
-      amount: "$4,010",
-      distance: "120m",
-      won: "37,436.56원",
-      location: "마포구 대흥동",
-      reserved: false,
-      image: post1,
-    },
-    {
-      id: 2,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 3,
-      currency: "JPY",
-      amount: "$4,010",
-      distance: "120m",
-      won: "37,436.56원",
-      location: "마포구 대흥동",
-      reserved: false,
-      image: post1,
-    },
-    {
-      id: 4,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 5,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 6,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    {
-      id: 7,
-      currency: "USD",
-      amount: "$205.32",
-      distance: "450m",
-      won: "159,630.48원",
-      location: "서대문구 대현동",
-      reserved: true,
-      image: post1,
-    },
-    // 나머지 데이터... (백엔드에서 불러옴)
-  ];
+
+  if (sells.length > 0) {
+    fetchExchangeRates();
+  }
+}, [sells]);
+
+
+
+  const handleNavigateToBuy = () => navigate("/buy");
+  const handleRegisterClick = () => navigate("/sell");
 
   return (
     <Container>
       <Header>
         <Title>목록</Title>
-        <Filters>
-          <Filter>국가 전체</Filter>
-          <Filter selected>금액 범위 20 - 30만원</Filter>
-          <Filter>거래장소 전체</Filter>
-        </Filters>
-        <Total>
-          Total <span>412</span>
-        </Total>
       </Header>
 
-      <PostListContainer>
-        {posts.map((post) => (
-          <Post key={post.id}>
-            <ImageContainer>
-              <PostImage src={post.image} alt={`${post.currency} image`} />
-              {post.reserved && <ReservedLabel>예약중</ReservedLabel>}
-            </ImageContainer>
-            <PostInfo>
-              <Currency>{post.currency}</Currency>
-              <Amount>{post.amount}</Amount>
-              <Details>
-                <Distance>{post.distance}</Distance>
-                <span></span>
-                <Won>{post.won}</Won>
-              </Details>
-              <Location>
-                <img
-                src={locationicon}
-                alt="location icon"
-                style={{ width: "12px", height: "12px", marginRight: "3px", marginLeft: "8px" }}
-                />
-                {post.location}
-              </Location>
-            </PostInfo>
-          </Post>
-        ))}
-      </PostListContainer>
+      {loading ? (
+        <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
+      ) : error ? (
+        <ErrorMessage>데이터를 불러오지 못했습니다.</ErrorMessage>
+      ) : sells.length === 0 ? (
+        <NoDataMessage>판매 글이 없습니다.</NoDataMessage>
+      ) : (
+        <PostListContainer>
+          {sells.map((sell) => (
+          <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
+          <ImageContainer>
+            {sell.images && sell.images.length > 0 ? (
+           <PostImage src={sell.images[0]} alt="상품 이미지" />
+             ) : (
+             <NoImage>이미지 없음</NoImage>
+            )}
+          </ImageContainer>
+
+          <PostInfo>
+          <Currency>{sell.currency}</Currency>
+          <Amount>{sell.amount} {sell.currency}</Amount>
+          <Details>
+            <Distance>📍 {sell.sellerLocation ? sell.sellerLocation : "위치 정보 없음"}</Distance>
+            <Won>
+            {exchangeRates[sell.currency]
+            ? `${Math.round(sell.amount * exchangeRates[sell.currency])} 원`
+            : "환율 정보 없음"}
+           </Won>
+          </Details>
+          </PostInfo>
+
+    </Post>
+))}
+        </PostListContainer>
+      )}
 
       <RegisterButton onClick={handleRegisterClick}>판매등록 +</RegisterButton>
 
       <RecommendationSection>
         <InfoContainer>
-          <img src={infoicon} alt="info icon" style={{ width: "16px", height: "16px" }} />
+          <img src={infoicon} alt="info icon" width="16" height="16" />
           <InfoText>AI에게 판매자를 추천받아 보세요</InfoText>
         </InfoContainer>
         <RecommendationButton onClick={handleNavigateToBuy}>추천받기</RecommendationButton>
       </RecommendationSection>
 
-      {/* NavBar 컴포넌트 사용 */}
       <NavBar active="list" />
     </Container>
   );
@@ -291,7 +280,7 @@ const Location = styled.div`
   color: #898D99;
   font-size: 12px;
   align-self: flex-start; 
-  margin-left:-10px;
+  margin-left:00px;
 `;
 
 const RecommendationSection = styled.div`
@@ -356,3 +345,27 @@ const RegisterButton = styled.button`
   cursor: pointer;
   z-index: 101; /* 다른 요소 위로 */
 `;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: red;
+  margin-top: 20px;
+`;
+
+const NoDataMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
+`; 
+
+const NoImage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
+`; 
