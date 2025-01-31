@@ -1,17 +1,31 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function SellerMatch() {
   const [sellers, setSellers] = useState([]);
   const [buyerInfo, setBuyerInfo] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSellers = async () => {
+      // 토큰 가져오기 
+      const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+
+      console.log("현재 저장된 accessToken:", accessToken);
+
+      if (!accessToken) {
+        alert("로그인이 필요합니다.");
+        navigate("/login"); // 로그인 페이지로 이동
+        return;
+      }
+
       try {
         const response = await axios.get("http://localhost:5000/SellerMatch", {
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`, // 인증 헤더 추가
           },
         });
 

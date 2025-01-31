@@ -85,38 +85,46 @@ function BuyMoney() {
       alert("모든 필드를 입력해주세요.");
       return;
     }
+  
+        //  토큰 가져오기
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
 
-    const requestData = {
-      currency,
-      minAmount,
-      maxAmount,
-      userLocation,
-      latitude,
-      longitude,
-    };
-
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/buy",
-        requestData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+        console.log("현재 저장된 accessToken:", accessToken);
+    
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+          return;
         }
-      );
-
-      console.log("백엔드 응답 데이터:", response.data);
-      navigate("/SellerMatch");
-    } catch (error) {
-      console.error("백엔드 요청 중 오류 발생:", error);
-      if (error.response) {
-        alert(`오류: ${error.response.data.error || "서버 오류 발생"}`);
-      } else {
-        alert("네트워크 오류가 발생했습니다. 다시 시도해주세요.");
-      }
-    }
-  };
+    
+        const requestData = {
+          currency,
+          minAmount,
+          maxAmount,
+          userLocation,
+          latitude,
+          longitude,
+        };
+    
+        try {
+          console.log("API 요청 전 accessToken:", accessToken);
+    
+          const response = await axios.post("http://localhost:5000/buy", requestData, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`, // 헤더에 토큰 추가
+            },
+          });
+    
+          console.log("구매 요청 성공:", response.data);
+          navigate("/SellerMatch");
+        } catch (error) {
+          console.error("구매 요청 중 오류 발생:", error);
+          alert(error.response?.data?.error || "서버 오류 발생");
+        }
+      };
+    
+  
 
   return (
     <Container>
