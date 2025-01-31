@@ -14,29 +14,49 @@ function PostDetail() {
   const [exchangeRate, setExchangeRate] = useState(null);
 
   useEffect(() => {
-    console.log("현재 sellId:", sellId);  // 🚨 sellId 값 확인
+    console.log("현재 sellId:", sellId);  //  sellId 값 확인
     if (!sellId) {
-        console.error("🚨 sellId가 undefined입니다.");
+        console.error("sellId가 undefined입니다.");
         return;
     }
 
     const fetchPost = async () => {
       try {
+        // ✅ 토큰 가져오기 (localStorage 또는 sessionStorage)
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+        console.log("현재 저장된 accessToken:", accessToken);
+
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login"); // 로그인 페이지로 이동
+          return;
+        }
+
         console.log(`📡 API 요청: http://localhost:5000/sellDescription/${sellId}`);
-        
-        const response = await axios.get(`http://localhost:5000/sellDescription/${sellId}`);
+
+        const response = await axios.get(`http://localhost:5000/sellDescription/${sellId}`, {
+          headers: {
+            "Content-Type": "application/json", // ✅ 수정된 부분
+            Authorization: `Bearer ${accessToken}`, 
+          },
+          withCredentials: true,
+        });
+
         console.log("불러온 판매 데이터:", response.data);
         setSell(response.data);
-
-       
       } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);
+        if (error.response?.status === 401) {
+          alert("인증이 만료되었습니다. 다시 로그인해주세요.");
+          navigate("/login"); 
+        } else if (error.response?.status === 404) {
+          alert("판매 정보를 찾을 수 없습니다.");
+        }
       }
     };
 
     fetchPost();
-}, [sellId]);
-
+  }, [sellId, navigate]);
 
   if (!sell) {
     return <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>;

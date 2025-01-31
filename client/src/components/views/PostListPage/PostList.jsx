@@ -12,6 +12,17 @@ function PostList() {
   const [sells, setSells] = useState([]); // 판매글 데이터 저장
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [error, setError] = useState(null); // 에러 상태
+  const [filteredSells, setFilteredSells] = useState([]); // 필터링된 판매 데이터
+
+  // 필터 상태
+  const [selectedCountries, setSelectedCountries] = useState([]); // 선택한 국가
+  const [minWon, setMinWon] = useState(""); // 최소 금액 (원화)
+  const [maxWon, setMaxWon] = useState(""); // 최대 금액 (원화)
+
+  const [showCountryFilter, setShowCountryFilter] = useState(false);
+  const [showPriceFilter, setShowPriceFilter] = useState(false);
+
+  
 
   useEffect(() => {
     const fetchSells = async () => {
@@ -29,7 +40,9 @@ function PostList() {
         }
 
         const response = await axios.get("http://localhost:5000/sell/sellList", { 
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: {
+          "Content-Type": "multipart/form-data",
+           Authorization: `Bearer ${accessToken}` },
           withCredentials: true,
         });
 
@@ -74,16 +87,100 @@ function PostList() {
   }
 }, [sells]);
 
+// 🔥 필터링 기능 (국가 + 원화 기준 금액)
+useEffect(() => {
+  let filtered = sells;
 
+  // 🔹 선택한 국가에 해당하는 데이터만 필터링
+  if (selectedCountries.length > 0) {
+    filtered = filtered.filter((sell) => selectedCountries.includes(sell.currency));
+  }
+
+  // 🔹 원화 기준 금액 필터 적용
+  if (minWon !== "" || maxWon !== "") {
+    filtered = filtered.filter((sell) => {
+      const wonPrice = exchangeRates[sell.currency] ? sell.amount * exchangeRates[sell.currency] : null;
+      if (wonPrice === null) return false;
+
+      const minCheck = minWon === "" || wonPrice >= parseFloat(minWon);
+      const maxCheck = maxWon === "" || wonPrice <= parseFloat(maxWon);
+      return minCheck && maxCheck;
+    });
+  }
+
+  setFilteredSells(filtered);
+}, [selectedCountries, minWon, maxWon, sells, exchangeRates]);
+
+// 🔹 국가 선택 핸들러
+const handleCountryChange = (currency) => {
+  setSelectedCountries((prev) =>
+    prev.includes(currency) ? prev.filter((c) => c !== currency) : [...prev, currency]
+  );
+};
 
   const handleNavigateToBuy = () => navigate("/buy");
   const handleRegisterClick = () => navigate("/sell");
 
   return (
     <Container>
-      <Header>
-        <Title>목록</Title>
+     <Header>
+        <FilterButton onClick={() => setShowCountryFilter(true)}>
+          국가 {selectedCountries.length > 0 ? selectedCountries.join(", ") : "전체"} ▸
+        </FilterButton>
+        <FilterButton onClick={() => setShowPriceFilter(true)}>
+          금액 범위 {minWon && maxWon ? `${minWon} - ${maxWon}원` : "설정하기"} ▸
+        </FilterButton>
       </Header>
+
+      {/* 국가 필터 모달 */}
+      {showCountryFilter && (
+        <Modal>
+          <ModalContent>
+            <h3>국가 선택</h3>
+            {["USD", "JPY", "EUR"].map((currency) => (
+              <CountryButton
+                key={currency}
+                selected={selectedCountries.includes(currency)}
+                onClick={() => handleCountryChange(currency)}
+              >
+                {currency}
+              </CountryButton>
+            ))}
+            <ModalActions>
+              <CloseButton onClick={() => setShowCountryFilter(false)}>닫기</CloseButton>
+            </ModalActions>
+          </ModalContent>
+        </Modal>
+      )}
+
+      {/* 금액 필터 모달 */}
+      {showPriceFilter && (
+        <Modal>
+          <ModalContent>
+            <h3>금액 범위 선택</h3>
+            <PriceInputContainer>
+              <PriceInput
+                type="number"
+                placeholder="최소 원화"
+                value={minWon}
+                onChange={(e) => setMinWon(e.target.value)}
+              />
+              <span> - </span>
+              <PriceInput
+                type="number"
+                placeholder="최대 원화"
+                value={maxWon}
+                onChange={(e) => setMaxWon(e.target.value)}
+              />
+            </PriceInputContainer>
+            <ModalActions>
+              <ConfirmButton onClick={() => setShowPriceFilter(false)}>확인</ConfirmButton>
+            </ModalActions>
+          </ModalContent>
+        </Modal>
+      )}
+
+
 
       {loading ? (
         <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
@@ -151,32 +248,79 @@ const Header = styled.div`
   padding: 16px;
 `;
 
-const Title = styled.h1`
-  font-size: 20px;
-  font-weight: bold;
+const FilterButton = styled.button`
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid #CA2F28;
+  color: #CA2F28;
+  background: #fff;
+  cursor: pointer;
 `;
 
-const Filters = styled.div`
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
-  gap: 8px;
-  margin: 12px 0;
+  justify-content: center;
+  align-items: center;
+   z-index: 101;
 `;
 
-const Filter = styled.button`
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+   z-index: 101;
+`;
+
+const CountryButton = styled.button`
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #CA2F28;
+  color: ${(props) => (props.selected ? "white" : "#CA2F28")};
+  background: ${(props) => (props.selected ? "#CA2F28" : "#fff")};
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
+const PriceInputContainer = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const PriceInput = styled.input`
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100px;
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+`;
+
+const ConfirmButton = styled.button`
+  background: #CA2F28;
+  color: white;
   padding: 8px 12px;
-  border-radius: 16px;
-  border: 1px solid ${(props) => (props.selected ? "#CA2F28" : "#ccc")};
-  color: ${(props) => (props.selected ? "#CA2F28" : "#333")};
-  background: ${(props) => (props.selected ? "#fff5f5" : "#fff")};
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 `;
 
-const Total = styled.div`
-  font-size: 14px;
-  color: #666;
-  span {
-    font-weight: bold;
-    color: #CA2F28;
-  }
+const CloseButton = styled.button`
+  background: gray;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 `;
 
 const PostListContainer = styled.div`
@@ -333,8 +477,8 @@ const RecommendationButton = styled.button`
 const RegisterButton = styled.button`
   position: fixed;
   bottom: 124px; /* RecommendationSection 위에 고정 */
-  left: 57%; /* 화면 가운데 정렬 */
   transform: translateX(-50%); /* 중앙 정렬 */
+  margin-left:300px;
   background: #000;
   color: #fff;
   font-size: 12px;
