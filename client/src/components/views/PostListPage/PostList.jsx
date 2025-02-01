@@ -22,6 +22,8 @@ function PostList() {
   const [showCountryFilter, setShowCountryFilter] = useState(false);
   const [showPriceFilter, setShowPriceFilter] = useState(false);
 
+  const [selectedSort, setSelectedSort] = useState("latest"); // 정렬 상태
+
   
 
   useEffect(() => {
@@ -87,36 +89,57 @@ function PostList() {
   }
 }, [sells]);
 
-// 🔥 필터링 기능 (국가 + 원화 기준 금액)
+//필터터
 useEffect(() => {
   let filtered = sells;
 
-  // 🔹 선택한 국가에 해당하는 데이터만 필터링
+  // 선택한 국가 필터 적용
   if (selectedCountries.length > 0) {
     filtered = filtered.filter((sell) => selectedCountries.includes(sell.currency));
   }
 
-  // 🔹 원화 기준 금액 필터 적용
+  // 원화 기준 금액 필터 적용
   if (minWon !== "" || maxWon !== "") {
     filtered = filtered.filter((sell) => {
       const wonPrice = exchangeRates[sell.currency] ? sell.amount * exchangeRates[sell.currency] : null;
       if (wonPrice === null) return false;
 
-      const minCheck = minWon === "" || wonPrice >= parseFloat(minWon);
-      const maxCheck = maxWon === "" || wonPrice <= parseFloat(maxWon);
+      const minCheck = minWon === "" || wonPrice >= parseFloat(minWon) * 10000; // "만원" 기준
+      const maxCheck = maxWon === "" || wonPrice <= parseFloat(maxWon) * 10000;
       return minCheck && maxCheck;
     });
   }
 
-  setFilteredSells(filtered);
-}, [selectedCountries, minWon, maxWon, sells, exchangeRates]);
+  // 정렬 적용
+  if (selectedSort === "latest") {
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // 최신순
+  } else if (selectedSort === "distance") {
+    filtered.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); // 거리순
+  }
 
-// 🔹 국가 선택 핸들러
-const handleCountryChange = (currency) => {
-  setSelectedCountries((prev) =>
-    prev.includes(currency) ? prev.filter((c) => c !== currency) : [...prev, currency]
-  );
+  setFilteredSells(filtered);
+}, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
+
+//국가 필터
+  const handleCountryChange = (currency) => {
+  setSelectedCountries((prev) => {
+    if (prev.includes(currency)) {
+      const updated = prev.filter((c) => c !== currency);
+      return updated.length === 0 ? [] : updated;  // 모든 국가 해제 시 '전체' 유지
+    } else {
+      if (prev.length >= 2) {
+        alert("최대 2개 국가만 선택할 수 있습니다.");
+        return prev;
+      }
+      return [...prev, currency];
+    }
+  });
 };
+//금액필터
+
+
+
+
 
   const handleNavigateToBuy = () => navigate("/buy");
   const handleRegisterClick = () => navigate("/sell");
@@ -124,20 +147,47 @@ const handleCountryChange = (currency) => {
   return (
     <Container>
      <Header>
-        <FilterButton onClick={() => setShowCountryFilter(true)}>
-          국가 {selectedCountries.length > 0 ? selectedCountries.join(", ") : "전체"} ▸
+        <Title>목록</Title>
+        <FilterContainer>
+        <FilterButton
+          selected={selectedCountries.length > 0 && selectedCountries.length < 3} // 국가 선택됨 && 전체가 아님
+          onClick={() => setShowCountryFilter(true)}
+        >
+        국가 {selectedCountries.length > 0 ? selectedCountries.join(", ") : "전체"} ▸
+         </FilterButton>
+
+         <FilterButton
+          selected={minWon && maxWon} // 금액 필터 설정 시 빨간색
+          onClick={() => setShowPriceFilter(true)}
+          >
+        금액 범위 {minWon && maxWon ? `${minWon}만원 - ${maxWon}만원` : "설정하기"} ▸
         </FilterButton>
-        <FilterButton onClick={() => setShowPriceFilter(true)}>
-          금액 범위 {minWon && maxWon ? `${minWon} - ${maxWon}원` : "설정하기"} ▸
-        </FilterButton>
+      </FilterContainer>
+
       </Header>
+
+      <SortContainer>
+        <TotalCount>
+          Total <span>{filteredSells.length}</span>
+        </TotalCount>
+        <SortSelect onChange={(e) => setSelectedSort(e.target.value)} value={selectedSort}>
+          <option value="latest">최신순</option>
+          <option value="distance">거리순</option>
+        </SortSelect>
+      </SortContainer>
 
       {/* 국가 필터 모달 */}
       {showCountryFilter && (
         <Modal>
           <ModalContent>
-            <h3>국가 선택</h3>
-            {["USD", "JPY", "EUR"].map((currency) => (
+            <h4>국가 선택 (최대 2개)</h4>
+            <CountryButton
+              selected={selectedCountries.length === 0}  // 전체 선택 상태
+              onClick={() => setSelectedCountries([])}  // 전체 선택 시 모든 국가 해제
+            >
+              전체
+            </CountryButton>
+            {["USD", "JPY", "EUR", "CNY", "HKD", "TWD", "AUD", "VND" ].map((currency) => (
               <CountryButton
                 key={currency}
                 selected={selectedCountries.includes(currency)}
@@ -155,42 +205,46 @@ const handleCountryChange = (currency) => {
 
       {/* 금액 필터 모달 */}
       {showPriceFilter && (
-        <Modal>
-          <ModalContent>
-            <h3>금액 범위 선택</h3>
-            <PriceInputContainer>
-              <PriceInput
-                type="number"
-                placeholder="최소 원화"
-                value={minWon}
-                onChange={(e) => setMinWon(e.target.value)}
-              />
-              <span> - </span>
-              <PriceInput
-                type="number"
-                placeholder="최대 원화"
-                value={maxWon}
-                onChange={(e) => setMaxWon(e.target.value)}
-              />
-            </PriceInputContainer>
-            <ModalActions>
-              <ConfirmButton onClick={() => setShowPriceFilter(false)}>확인</ConfirmButton>
-            </ModalActions>
-          </ModalContent>
-        </Modal>
-      )}
+  <Modal>
+    <ModalContent>
+      <ModalHeader>
+        <h4>금액 범위 선택</h4>
+        <ResetButton onClick={() => { setMinWon(""); setMaxWon(""); }}>초기화</ResetButton>
+      </ModalHeader>
+
+      <PriceInputContainer>
+        <PriceInput
+          type="number"
+          placeholder="00"
+          value={minWon}
+          onChange={(e) => setMinWon(e.target.value)}
+        />
+        <span>만원 -</span>
+        <PriceInput
+          type="number"
+          placeholder="00"
+          value={maxWon}
+          onChange={(e) => setMaxWon(e.target.value)}
+        />
+        <span>만원</span>
+      </PriceInputContainer>
+
+      <ConfirmButton onClick={() => setShowPriceFilter(false)}>확인</ConfirmButton>
+    </ModalContent>
+  </Modal>
+)}
 
 
 
-      {loading ? (
-        <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
-      ) : error ? (
-        <ErrorMessage>데이터를 불러오지 못했습니다.</ErrorMessage>
-      ) : sells.length === 0 ? (
-        <NoDataMessage>판매 글이 없습니다.</NoDataMessage>
-      ) : (
-        <PostListContainer>
-          {sells.map((sell) => (
+{loading ? (
+  <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>
+) : error ? (
+  <ErrorMessage>데이터를 불러오지 못했습니다.</ErrorMessage>
+) : filteredSells.length === 0 ? (  // 필터링된 결과를 기준으로 판단
+  <NoDataMessage>판매 글이 없습니다.</NoDataMessage>
+) : (
+  <PostListContainer>
+    {filteredSells.map((sell) => (  // 필터링된 데이터 사용
           <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
           <ImageContainer>
             {sell.images && sell.images.length > 0 ? (
@@ -248,18 +302,61 @@ const Header = styled.div`
   padding: 16px;
 `;
 
+const Title = styled.h1`
+  font-size: 20px;
+  font-weight: bold;
+  flex-grow: 1; 
+  text-align: center; 
+`;
+
+const FilterContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px; /* 국가 버튼과 금액 버튼 간격 */
+  margin-top: 10px;
+`;
+
 const FilterButton = styled.button`
   padding: 10px 16px;
   border-radius: 20px;
-  border: 1px solid #CA2F28;
-  color: #CA2F28;
+  border: 1px solid ${(props) => (props.selected ? "#CA2F28" : "#ccc")}; /* 선택 여부에 따라 테두리 변경 */
+  color: ${(props) => (props.selected ? "#CA2F28" : "#888")}; /* 선택 시 빨간색 */
   background: #fff;
   cursor: pointer;
+  transition: border 0.3s, color 0.3s;
+
+  &:hover {
+    border-color: #CA2F28;
+  }
+`;
+
+const SortContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 3px 0;
+  padding: 0 16px;
+`;
+
+const TotalCount = styled.div`
+  font-size: 14px;
+  font-weight: bold;
+  span {
+    color: #CA2F28;
+  }
+    margin-left:0;
+`;
+
+const SortSelect = styled.select`
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  margin-right:0;
 `;
 
 const Modal = styled.div`
   position: fixed;
-  top: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.4);
@@ -275,11 +372,19 @@ const ModalContent = styled.div`
   border-radius: 10px;
   width: 80%;
    z-index: 101;
+   font-wieght
+`;
+
+const ModalHeader = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const CountryButton = styled.button`
-  padding: 10px;
-  margin: 5px;
+  padding: 6px 5px;
+  margin: 5px 5px;
   border: 1px solid #CA2F28;
   color: ${(props) => (props.selected ? "white" : "#CA2F28")};
   background: ${(props) => (props.selected ? "#CA2F28" : "#fff")};
@@ -290,34 +395,56 @@ const CountryButton = styled.button`
 const PriceInputContainer = styled.div`
   display: flex;
   gap: 10px;
+  align-items: center;
+  font-size: 16px;
+  margin-top:10px;
 `;
 
 const PriceInput = styled.input`
+  width: 60px;
   padding: 8px;
+  text-align: center;
+  font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 100px;
+
+  &::placeholder {
+    color: #aaa;
+  }
 `;
 
 const ModalActions = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 10px;
+  margin-top: 20px;
 `;
 
 const ConfirmButton = styled.button`
   background: #CA2F28;
+  font-size:10px;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border: none;
   border-radius: 5px;
+  margin-left:100px;
+  margin-top:15px;
+`;
+
+const ResetButton = styled.button`
+  background: #ddd;
+  color: #555;
+  padding: 6px 9px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
 `;
 
+
 const CloseButton = styled.button`
-  background: gray;
+  background: #CA2F28;
+  font-size:10px;
   color: white;
-  padding: 8px 12px;
+  padding: 8px 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
