@@ -17,7 +17,7 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
       await user.save();
     }
     
-    const token = generateToken({ id: user._id, loginId: user.loginId, nickname: user.nickname });
+    const token = generateToken({ id: user.loginId, nickname: user.nickname });
     return { user, token };
   } catch (error) {
     console.error('카카오 로그인/회원가입 에러:', error);
@@ -45,7 +45,7 @@ async function loginOrSignupGoogleUser(googleUserInfo){
       });
       await user.save();
     }
-    const token = generateToken({id: user._id, loginId: user.loginId, nickname: user.nickname});
+    const token = generateToken({id: user.loginId, nickname: user.nickname});
     return { user, token };
   }catch(error){
     console.error('구글 로그인/회원가입 에러:', error);

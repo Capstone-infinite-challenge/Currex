@@ -34,7 +34,7 @@ function PostDetail() {
 
         console.log(`📡 API 요청: http://localhost:5000/sellDescription/${sellId}`);
 
-        const response = await axios.get(`http://localhost:5000/sellDescription/${sellId}`, {
+        const response = await axios.get(`http://localhost:5000/sell/sellDescription/${sellId}`, {
           headers: {
             "Content-Type": "application/json", // ✅ 수정된 부분
             Authorization: `Bearer ${accessToken}`, 
@@ -83,7 +83,7 @@ function PostDetail() {
 
         <InfoSection>
           <InfoTitle>거래 위치</InfoTitle>
-          <InfoValue>{sell.sellerLocation || "위치 정보 없음"}</InfoValue>
+          <InfoValue>{sell.location || "위치 정보 없음"}</InfoValue>
         </InfoSection>
 
         <InfoSection>
@@ -97,7 +97,7 @@ function PostDetail() {
 
         <UserInfo>
           <UserImage src="https://via.placeholder.com/40" alt="사용자 프로필" />
-          <UserName>{sell.sellerName || "익명 판매자"}</UserName>
+          <UserName>{sell.name || "익명 판매자"}</UserName>
         </UserInfo>
 
         {/* 원화 가격 표시 */}
