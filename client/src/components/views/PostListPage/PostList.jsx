@@ -22,6 +22,8 @@ function PostList() {
   const [showCountryFilter, setShowCountryFilter] = useState(false);
   const [showPriceFilter, setShowPriceFilter] = useState(false);
 
+  const [selectedSort, setSelectedSort] = useState("latest"); // 정렬 상태
+
   
 
   useEffect(() => {
@@ -108,9 +110,15 @@ useEffect(() => {
     });
   }
 
-  setFilteredSells(filtered);
-}, [selectedCountries, minWon, maxWon, sells, exchangeRates]);
+  // 정렬 적용
+  if (selectedSort === "latest") {
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // 최신순
+  } else if (selectedSort === "distance") {
+    filtered.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); // 거리순
+  }
 
+  setFilteredSells(filtered);
+}, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
 
 //국가 필터
   const handleCountryChange = (currency) => {
@@ -157,6 +165,16 @@ useEffect(() => {
       </FilterContainer>
 
       </Header>
+
+      <SortContainer>
+        <TotalCount>
+          Total <span>{filteredSells.length}</span>
+        </TotalCount>
+        <SortSelect onChange={(e) => setSelectedSort(e.target.value)} value={selectedSort}>
+          <option value="latest">최신순</option>
+          <option value="distance">거리순</option>
+        </SortSelect>
+      </SortContainer>
 
       {/* 국가 필터 모달 */}
       {showCountryFilter && (
@@ -310,6 +328,31 @@ const FilterButton = styled.button`
   &:hover {
     border-color: #CA2F28;
   }
+`;
+
+const SortContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 3px 0;
+  padding: 0 16px;
+`;
+
+const TotalCount = styled.div`
+  font-size: 14px;
+  font-weight: bold;
+  span {
+    color: #CA2F28;
+  }
+    margin-left:0;
+`;
+
+const SortSelect = styled.select`
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  margin-right:0;
 `;
 
 const Modal = styled.div`
