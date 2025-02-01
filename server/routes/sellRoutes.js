@@ -10,23 +10,32 @@ const router = Router();
 
 //판매 등록 페이지
 router.post("/productRegi", upload.array('images', 5), async(req, res) => {
+    
+    //점검용
     console.log("요청 도착: 판매 등록 API");
     console.log("Authorization Header:", req.headers.authorization);
     console.log("Cookies:", req.cookies);
+    
     try{
-        //프론트에서 입력 정보 받아오기
+        //로그인 정보 가져오기
+        if(!req.user){
+            return res.status(401).json({error: "로그인이 필요합니다."});
+        }
+
+        console.log(req.user);
+
+        //사용자 정보 할당
         const sellInfo = {
+            sellerId: req.user.id,            //사용자 id
+            name: req.user.nickname,            //사용자 닉네임
             currency: req.body.currency,
             amount: req.body.amount,
-            sellerLocation: req.body.sellerLocation,
+            location: req.body.sellerLocation,
             latitude: req.body.latitude,
             longitude: req.body.longitude,
             content: req.body.content,
             images: []
         };
-
-        //사용자 정보 받아오기
-        sellInfo.name = req.user.name; // 로그인 사용자 이름 추가 - 로그인정보 어떻게 받아올지...?
 
         //파일 저장하기
         if (req.files && req.files.length > 0) {
@@ -43,6 +52,8 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
             return res.status(400).json({ error: "통화를 입력해주세요" });
         } else if (!sellInfo.amount) {
             return res.status(400).json({ error: "금액을 입력해주세요" });
+        } else if(!sellInfo.images){
+            return res.status(400).json({error: "사진을 등록해주세요"});
         }
 
         
@@ -69,7 +80,18 @@ router.get('/sellDescription/:sellId', async (req, res) => {
             return res.status(404).json({ message: 'Sell not found' });
         }
 
-        res.json(sell);
+        console.log(sell);
+        const reformatSell = sell => ({
+            ...sell.toObject(),
+            images: sell.images.map(image =>
+                `data:${image.contentType};base64,${image.data.toString('base64')}`
+            )
+        });
+        const reformattedSell = reformatSell(sell);
+        console.log(reformattedSell);
+
+        //res.json(sell);
+        res.json(reformattedSell);
     } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);
         res.status(500).json({ error: error.message });
