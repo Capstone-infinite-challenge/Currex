@@ -8,6 +8,12 @@ const userSchema = new Schema({
     },
     nickname: {
         type: String
+    },
+    refreshToken: {                 //리프레시 토큰
+        type: String,
+    },
+    refreshTokenExpiresAt: {        //리프레시 토큰 만료시간
+        type: Date,             
     }
 }, {timestamps: true});
 

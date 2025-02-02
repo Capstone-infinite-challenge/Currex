@@ -13,13 +13,13 @@ if (!SECRET_KEY) {
 }
 
 // JWT 생성
-export function generateToken(payload) {
+function generateToken(payload) {
   const token = sign(payload, SECRET_KEY, { expiresIn: EXPIRES_IN });
   return token;
 }
 
 // JWT 검증
-export function verifyToken(token) {
+function verifyToken(token) {
   try {
     const decoded = verify(token, SECRET_KEY);
     return decoded;
@@ -28,7 +28,18 @@ export function verifyToken(token) {
   }
 }
 
+//refresh 토큰 발급
+function generateRefreshToken() {
+  //refresh token은 payload없이 발급
+  const refreshToken = sign({}, SECRET_KEY, {
+    algorithm: "HS256",
+    expiresIn: "7d",
+  });
+  return refreshToken;
+}
+
 export default {
   generateToken,
   verifyToken,
+  generateRefreshToken,
 };

@@ -9,6 +9,7 @@ import donationRoutes from "./routes/donationRoutes.js";
 import connectToDatabase from "./configs/mongodb-connection.js";
 import Sell from "./models/sell.js";
 import authenticateToken from "./middleware/authMiddleware.js";
+import refreshToken from "./middleware/refreshTokenMiddleware.js";
 
 dotenv.config();
 
@@ -41,6 +42,7 @@ let buyerInfo = null;
 app.use("/auth", authRoutes);
 app.use("/sell", authenticateToken, sellRoutes);
 app.use("/donation", donationRoutes);
+app.use("/refresh", refreshToken);
 
 // 변수명
 //  currency       // 거래 통화 (jpy, usd)
