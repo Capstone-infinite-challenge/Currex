@@ -3,6 +3,7 @@ import axios from 'axios';
 import qs from 'querystring';
 import crypto from 'crypto'; 
 import { loginOrSignupKakaoUser, loginOrSignupGoogleUser} from '../services/authService.js'; // 서비스 호출
+import refreshTokenMiddleware from '../middleware/refreshTokenMiddleware.js';
 const router = Router();
 
 //카카오 로그인에 필요한 정보
@@ -203,5 +204,7 @@ router.get('/google/callback', async(req, res) => {
 });
 
 
+//refreshToken을 통한 새 accessToken발급
+router.post('/refresh', refreshTokenMiddleware);
 
 export default router;
