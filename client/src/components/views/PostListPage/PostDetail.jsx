@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+/*import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -32,8 +32,6 @@ function PostDetail() {
           return;
         }
 
-        console.log(`📡 API 요청: http://localhost:5000/sellDescription/${sellId}`);
-
         const response = await axios.get(`http://localhost:5000/sell/sellDescription/${sellId}`, {
           headers: {
             "Content-Type": "application/json", // ✅ 수정된 부분
@@ -64,7 +62,7 @@ function PostDetail() {
 
   return (
     <Container>
-      {/* 이미지 배경 */}
+      
       <ImageBackground>
         {sell.images && sell.images.length > 0 ? (
           <MainImage src={sell.images[0]} alt="상품 이미지" />
@@ -76,7 +74,7 @@ function PostDetail() {
         </TopBar>
       </ImageBackground>
 
-      {/* 상품 정보 */}
+   
       <Content>
         <CurrencyTag>{sell.currency}</CurrencyTag>
         <Price>${sell.amount.toLocaleString()}</Price>
@@ -100,7 +98,7 @@ function PostDetail() {
           <UserName>{sell.name || "익명 판매자"}</UserName>
         </UserInfo>
 
-        {/* 원화 가격 표시 */}
+    
         <KRWContainer>
           <KRWLabel>원화</KRWLabel>
           <KRWAmount>
@@ -108,7 +106,7 @@ function PostDetail() {
           </KRWAmount>
         </KRWContainer>
 
-        {/* 문의하기 버튼 */}
+      
         <InquiryButton>문의하기</InquiryButton>
       </Content>
     </Container>
@@ -264,4 +262,4 @@ const LoadingMessage = styled.div`
   text-align: center;
   margin-top: 20px;
   color: #666;
-`;
+`;*/

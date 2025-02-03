@@ -3,7 +3,7 @@ import user from '../models/user.js';
 
 async function refreshTokenMiddleware(req, res){
     try{
-        const refreshToken = req.cookies.refreshToken || req.headers["authorization"]?split(" ")[1];
+        const refreshToken = req.cookies.refreshToken || req.headers["authorization"]?.split(" ")[1];
 
         if(!refreshToken){
             return res.status(401).json({message: "리프레시 토큰이 없습니다."});

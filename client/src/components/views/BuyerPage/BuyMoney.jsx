@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import api from "../../utils/api";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
@@ -81,41 +82,14 @@ function BuyMoney() {
   };
 
   const handleSubmit = async () => {
-    if (!latitude || !longitude || !minAmount || !maxAmount || !userLocation) {
+    if (![latitude, longitude, minAmount, maxAmount, userLocation].every(Boolean)) {
       alert("모든 필드를 입력해주세요.");
       return;
     }
   
-        //  토큰 가져오기
-        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-
-        console.log("현재 저장된 accessToken:", accessToken);
-    
-        if (!accessToken) {
-          alert("로그인이 필요합니다.");
-          navigate("/login");
-          return;
-        }
-    
-        const requestData = {
-          currency,
-          minAmount,
-          maxAmount,
-          userLocation,
-          latitude,
-          longitude,
-        };
-    
         try {
-          console.log("API 요청 전 accessToken:", accessToken);
-    
-          const response = await axios.post("http://localhost:5000/buy", requestData, {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`, // 헤더에 토큰 추가
-            },
-          });
-    
+          const requestData = { currency, minAmount, maxAmount, userLocation, latitude, longitude };
+          const response = await api.post("/buy", requestData);
           console.log("구매 요청 성공:", response.data);
           navigate("/SellerMatch");
         } catch (error) {
