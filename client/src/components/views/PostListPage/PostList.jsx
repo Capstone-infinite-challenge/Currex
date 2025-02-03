@@ -41,12 +41,14 @@ function PostList() {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/sell/sellList", { 
-          headers: {
-          "Content-Type": "multipart/form-data",
-           Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
+        const response = await api.get("/sell/sellList", { 
+          withCredentials: true, // 쿠키 전달 설정
         });
+    
+    console.log("불러온 판매 데이터:", response.data);
+    setSells(response.data);
+    
+    
 
         console.log("불러온 판매 데이터:", response.data);
         setSells(response.data);
