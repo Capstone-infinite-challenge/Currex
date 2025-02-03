@@ -28,8 +28,8 @@ function App() {
             <Route exact path="/calculator" element={<Calculator />} />
             <Route exact path="/sell" element={<SellMoney />} />
             <Route exact path="/list" element={<PostList />} />
-            <Route path="/sell/:sellId" element={<PostDetail />} />
-            <Route path="/postdetail" element={<PostDetail2 />} />
+            <Route path="/sell/:sellId" element={<PostDetail2 />} />
+            <Route path="/postdetail" element={<PostDetail />} />
             <Route exact path="/chat" element={<Chat />} />
             <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/login" element={<Login />} />

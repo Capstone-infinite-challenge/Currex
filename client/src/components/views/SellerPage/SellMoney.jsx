@@ -85,14 +85,14 @@ function SellMoney() {
   };
   
 
-  const handleImageUpload = (event) => {
-    const files = Array.from(event.target.files);
-    if (uploadedImages.length + files.length <= maxImageCount) {
+    /** 이미지 업로드 핸들러 */
+    const handleImageUpload = (event) => {
+      const files = Array.from(event.target.files);
+      if (uploadedImages.length + files.length > maxImageCount) {
+        return alert(`최대 ${maxImageCount}장까지 업로드할 수 있습니다.`);
+      }
       setUploadedImages((prevImages) => [...prevImages, ...files]);
-    } else {
-      alert(`최대 ${maxImageCount}장까지 업로드할 수 있습니다.`);
-    }
-  };
+    };
 
   const handleCurrencyChange = (e) => {
     setCurrency(e.target.value); // 통화 변경
@@ -140,19 +140,10 @@ function SellMoney() {
     
 
     try {
-
-      console.log("API 요청 전 accessToken:", accessToken); // 추가
-      const response = await axios.post("http://localhost:5000/sell/productRegi", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${accessToken}`, 
-        },
-        withCredentials: true 
-      });
-
+      const response = await api.post("/sell/productRegi", formData);
       console.log("판매 등록 성공:", response.data);
       alert("판매 등록이 완료되었습니다!");
-      navigate("/list"); // 성공 시 목록 페이지로 이동
+      navigate("/list");
     } catch (error) {
       console.error("판매 등록 오류:", error);
       alert(error.response?.data?.error || "서버 오류 발생");

@@ -3,49 +3,33 @@ import styled from "styled-components";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import backarrow from "../../images/backarrow.svg";
+import api from "../../utils/api"; 
 
 function SellerMatch() {
-  const [sells, setSells] = useState([]); // ✅ sellers → sells 로 변경
+  const [sells, setSells] = useState([]); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchSells = async () => { // ✅ fetchSellers → fetchSells
-      setLoading(true);
-      setError(null);
-
-      const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-
-      if (!accessToken) {
-        alert("로그인이 필요합니다.");
-        navigate("/login");
-        return;
-      }
-
+   /** 판매 데이터 가져오기 */
+   useEffect(() => {
+    const fetchSells = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/SellerMatch", {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
+        const response = await api.get("/SellerMatch");
         console.log("백엔드 응답 데이터:", response.data);
 
-        if (response.data.sellersWithDistance && response.data.sellersWithDistance.length > 0) {
+        if (response.data.sellersWithDistance?.length > 0) {
           const sortedSells = response.data.sellersWithDistance
-            .filter(sell => sell.distance)
-            .map(sell => ({
+            .filter((sell) => sell.distance)
+            .map((sell) => ({
               ...sell,
               distance: parseFloat(sell.distance.replace("km", "")) || 0,
             }))
             .sort((a, b) => a.distance - b.distance);
 
-          setSells(sortedSells); // ✅ setSellers → setSells
-          console.log("설정된 sells 상태:", sortedSells);
+          setSells(sortedSells);
         } else {
-          console.warn("❌ 판매 데이터가 없습니다.");
+          console.warn("판매 데이터 없음");
           setSells([]);
         }
       } catch (error) {
@@ -57,7 +41,7 @@ function SellerMatch() {
     };
 
     fetchSells();
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     console.log("sells 상태 업데이트:", sells);

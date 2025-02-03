@@ -1,31 +1,24 @@
 import React, { useState } from "react";
 import { useEffect } from "react";  
+import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import backarrowwhite from "../../images/backarrow-white.svg";
 import moredetail from "../../images/moredetails.svg";
-import post1 from "../../images/post1.png"; 
-import post2 from "../../images/post2.png";
-import post3 from "../../images/post3.png";
 import Slider from "react-slick"; // react-slick 사용을 위해 import
 import axios from "axios";
+import api from "../../utils/api";
 import "slick-carousel/slick/slick.css"; // react-slick 스타일
 import "slick-carousel/slick/slick-theme.css"; // react-slick 테마 스타일
 
 // PostDetail2 컴포넌트
 function PostDetail2() {
-  const [showMenu, setShowMenu] = useState(false); // 메뉴 열고 닫기
+  const { sellId } = useParams(); // URL에서 sellId 가져오기
+  const navigate = useNavigate();
+  const [sell, setSell] = useState(null);
+  const [exchangeRate, setExchangeRate] = useState(null);
   const [latitude, setLatitude] = useState(37.5665);
   const [longitude, setLongitude] = useState(126.9780);
-  const [sell, setSell] = useState({
-    currency: "JPY",
-    amount: 4010,
-    sellerLocation: "서울특별시 서대문구 이화여대 3길 35",
-    sellerName: "김만두",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut Read morrem ipsum dolor sit amet, consectetur adipiscing elit.",
-    images: [post1, post2, post3], // 여러 이미지 추가.. 근데 지금 이미지가 안 나옴ㅠㅠㅠ
-  });
-
-  const [exchangeRate, setExchangeRate] = useState(914.58); // 예시 환율 값
+  const [showMenu, setShowMenu] = useState(false);
 
   const toggleMenu = () => {
     setShowMenu((prevState) => !prevState); // 메뉴 열기/닫기 토글
@@ -40,6 +33,7 @@ function PostDetail2() {
     alert("삭제");
     setShowMenu(false);
   };
+
 
   // 슬라이더 설정
   const settings = {
@@ -64,12 +58,40 @@ function PostDetail2() {
   console.log("이미지 경로 확인:", sell.images); // 이미지 경로 확인
   console.log("슬라이더 설정:", settings); // 슬라이더 설정 확인
 
+
   useEffect(() => {
-    if (sell.sellerLocation) {
+    if (!sellId) {
+      console.error("sellId가 undefined입니다.");
+      return;
+    }
+  
+    const fetchPost = async () => {
+      try {
+        const response = await api.get(`/sell/sellDescription/${sellId}`); 
+        setSell(response.data);
+      } catch (error) {
+        console.error("판매 정보 불러오기 실패:", error);
+        if (error.response?.status === 401) {
+          alert("인증이 만료되었습니다. 다시 로그인해주세요.");
+          navigate("/login");
+        } else if (error.response?.status === 404) {
+          alert("판매 정보를 찾을 수 없습니다.");
+        }
+      }
+    };
+  
+    fetchPost();
+  }, [sellId, navigate]);
+  
+  
+
+
+  useEffect(() => {
+    if (sell.location) {
       const fetchCoordinates = async () => {
         try {
           const response = await axios.get(
-            `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.sellerLocation)}`,
+            `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
             {
               headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAOMAP_KEY}` },
             }
@@ -85,7 +107,7 @@ function PostDetail2() {
       };
       fetchCoordinates();
     }
-  }, [sell.sellerLocation]);
+  }, [sell.location]);
   
   useEffect(() => {
     const script = document.createElement("script");
@@ -116,22 +138,33 @@ function PostDetail2() {
   
     document.body.appendChild(script);
   }, [latitude, longitude]);
+
+  if (!sell) {
+    return <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>;
+  }
+
   
   
   
   
   return (
-    <Container>
-      {/* 이미지 슬라이드 */}
+    <Container> 
       <ImageBackground>
-        <Slider dots infinite speed={500} slidesToShow={1} slidesToScroll={1} arrows={false}>
-          {sell.images.map((image, index) => (
-            <div key={index}>
-              <img src={image} alt={`상품 이미지 ${index + 1}`} className="image-slide" />
-            </div>
-          ))}
-        </Slider>
-
+  {sell ? (
+    sell.images && sell.images.length > 0 ? (
+      <Slider {...settings}>
+        {sell.images.map((image, index) => (
+          <div key={index}>
+            <MainImage src={image} alt={`상품 이미지 ${index + 1}`} />
+          </div>
+        ))}
+      </Slider>
+    ) : (
+      <NoImage>이미지 없음</NoImage>
+    )
+  ) : (
+    <LoadingMessage>이미지를 불러오는 중...</LoadingMessage>
+  )}
         <TopBar>
           <BackButton onClick={() => window.history.back()} src={backarrowwhite} alt="뒤로가기" />
           <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
@@ -143,9 +176,8 @@ function PostDetail2() {
             <MenuItem onClick={handleDelete}>삭제</MenuItem>
           </Menu>
         )}
-      </ImageBackground>
-
-      {/* 상품 정보 */}
+    </ImageBackground>
+    //상품정보보
       <Content>
         <TopInfo>
           <CurrencyTag>{sell.currency}</CurrencyTag>
@@ -159,7 +191,7 @@ function PostDetail2() {
 
         <InfoSection>
           <InfoTitle>거래 위치</InfoTitle>
-          <InfoValue>{sell.sellerLocation || "위치 정보 없음"}</InfoValue>
+          <InfoValue>{sell.location || "위치 정보 없음"}</InfoValue>
         </InfoSection>
 
         <InfoSection>
@@ -173,7 +205,7 @@ function PostDetail2() {
 
         <LocationInfo>
             <LocationTitle>거래 희망 장소</LocationTitle>
-            <LocationAddress>{sell.sellerLocation}</LocationAddress>
+            <LocationAddress>{sell.location}</LocationAddress>
         </LocationInfo>
 
 
@@ -212,25 +244,41 @@ const ImageBackground = styled.div`
 
   .slick-dots {
     position: absolute;
-    top: 320px; /* 슬라이드 버튼 위쪽으로 이동 */
+    top: 320px; 
     left: 50%;
     transform: translateX(-50%);
   }
 
   .slick-dots li button:before {
-    color: black; /* 슬라이드 버튼 색상 */
+    color: black; 
   }
 
   .slick-dots li.slick-active button:before {
-    color: grey; /* 활성화된 슬라이드 버튼 색상 */
+    color: grey; 
   }
 
   .image-slide {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 이미지를 컨테이너 크기에 맞게 자르기 */
+    object-fit: cover; /* 이미지를 컨테이너 크기에 맞게 자르기 
   }
 `;
+
+const NoImage = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+`;
+
+const MainImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
 
 const TopBar = styled.div`
   position: absolute;
@@ -342,7 +390,7 @@ const KRWContainer = styled.div`
   justify-content: space-between;
   align-items: center;
   flex-direction: column;
-  border-top: 1px solid #eee; /* 구분선 추가 */
+  border-top: 1px solid #eee; /* 구분선 추가 
   justify-content: flex-start;
   margin-left:-20px;
 `;
@@ -371,7 +419,7 @@ const InquiryButton = styled.button`
   border-radius: 10px;
   cursor: pointer;
   align-self: flex-end;
-  border-top: 1px solid #eee; /* 구분선 추가 */
+  border-top: 1px solid #eee; 
 `;
 
 const Menu = styled.div`
@@ -395,7 +443,7 @@ const MenuItem = styled.div`
 `;
 const ButtonContainer = styled.div`
   position: fixed;
-  bottom: 0px; /* 화면 하단 20px 위 */
+  bottom: 0px; /* 화면 하단 20px 위 
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -404,7 +452,7 @@ const ButtonContainer = styled.div`
   width: 90%;
   background: white;
   padding: 10px;
-  z-index: 10; /* 다른 요소들 위에 표시 */
+  z-index: 10; /* 다른 요소들 위에 표시 
 `;
 
 const LocationInfo = styled.div`
@@ -426,4 +474,10 @@ const LocationAddress = styled.p`
   color: #898D99;
   margin-top: 5px;
   margin-left:0;
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
 `;

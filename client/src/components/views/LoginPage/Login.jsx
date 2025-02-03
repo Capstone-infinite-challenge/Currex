@@ -1,62 +1,37 @@
-import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import styled from "styled-components";
 import logo from "../../images/currexlogo.png";
 import kakaoIcon from "../../images/kakaoicon.svg";
 import googleIcon from "../../images/googleicon.png";
-import axios from 'axios'; 
 import api from "../../utils/api";
 
 function Login() {
   const navigate = useNavigate();
-  const location = useLocation(); // 현재 URL 쿼리 파라미터 가져옴
-  const [loginInfo, setLoginInfo] = useState(null);
-
-  console.log("this code is now functioning"); // 마운팅 확인용
-
-  // 카카오 로그인 요청 URL
-  const KAKAO_AUTH_URL = "http://localhost:5000/auth/kakao";
-
-  // 구글 로그인 요청 URL
-  const GOOGLE_AUTH_URL = "http://localhost:5000/auth/google";
+  const location = useLocation();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const accessToken = urlParams.get("token"); // 백엔드에서 JWT 토큰을 쿼리 스트링으로 전달
+    const accessToken = urlParams.get("token"); 
     const loginId = urlParams.get("loginId");
     const nickname = urlParams.get("nickname");
 
     if (accessToken) {
         console.log("프론트에서 받은 accessToken:", accessToken);
         sessionStorage.setItem("accessToken", accessToken);
-
-        navigate("/list"); // 로그인 성공 후 /list 페이지로 이동
+        navigate("/list"); 
     } else {
         console.log("accessToken 없음, 로그인 필요");
     }
-}, [location, navigate]);
-
-
-
+  }, [location, navigate]);
 
   const handleKakaoLogin = () => {
-    try {
-      window.location.href = KAKAO_AUTH_URL;
-    } catch (error) {
-      console.error("카카오 로그인 중 오류 발생:", error);
-      alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
-    }
+    window.location.href = "http://localhost:5000/auth/kakao";
   };
 
   const handleGoogleLogin = () => {
-    try {
-      window.location.href = GOOGLE_AUTH_URL;
-    } catch (error) {
-      console.error("구글 로그인 중 오류 발생:", error);
-      alert("로그인 시도 중 문제가 발생했습니다. 다시 시도해주세요.");
-    }
+    window.location.href = "http://localhost:5000/auth/google";
   };
-  
 
   return (
     <Container>
@@ -67,16 +42,8 @@ function Login() {
       <SocialLoginContainer>
         <LoginText>Sign up with Social Networks</LoginText>
         <IconsWrapper>
-          <SocialIcon
-            src={kakaoIcon}
-            alt="Kakao Login"
-            onClick={handleKakaoLogin}
-          />
-          <SocialIcon
-            src={googleIcon}
-            alt="Google Login"
-            onClick={handleGoogleLogin}
-          />
+          <SocialIcon src={kakaoIcon} alt="Kakao Login" onClick={handleKakaoLogin} />
+          <SocialIcon src={googleIcon} alt="Google Login" onClick={handleGoogleLogin} />
         </IconsWrapper>
       </SocialLoginContainer>
     </Container>
@@ -84,6 +51,8 @@ function Login() {
 }
 
 export default Login;
+
+// 스타일 코드 생략
 
 const Container = styled.div`
   width: 100%;
