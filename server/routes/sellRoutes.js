@@ -69,6 +69,24 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
 });
 
 
+//판매 삭제
+router.delete('/deleteSell/:sellId', async(req, res) => {
+    try{
+        const sell = await Sell.findById(req.params.sellId);
+
+        if(!sell){
+            console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
+            return res.status(404).json({ message: 'Sell not found' });
+        }
+        await Sell.findByIdAndDelete(req.params.sellId);
+        res.status(200).json({ message: 'Sell deleted successfully' });
+    }catch(error){
+        console.error('판매 삭제 중 에러 발생', error);
+        res.status(500).json({error: error.message});
+    }
+});
+
+
 // 판매자 화면 페이지 - 각 판매 데이터 상세
 router.get('/sellDescription/:sellId', async (req, res) => {
     try {
