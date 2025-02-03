@@ -1,11 +1,12 @@
 import express from "express";
-import session from 'express-session';
-import cookieParser from 'cookie-parser';
+import session from "express-session";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import sellRoutes from "./routes/sellRoutes.js";
 import donationRoutes from "./routes/donationRoutes.js";
+import modelRoutes from "./routes/modelRoutes.js"; // ai 모델 추가함
 import connectToDatabase from "./configs/mongodb-connection.js";
 import Sell from "./models/sell.js";
 import authenticateToken from "./middleware/authMiddleware.js";
@@ -25,11 +26,16 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(session({
-  secret: 'sessionsecretkey',
-  resave: false,
-  saveUninitialized: true
-}))
+app.use(
+  session({
+    secret: "sessionsecretkey",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+
+// 정적 파일 제공 (ai 업로드된 이미지 접근 가능하게)
+app.use("/uploads", express.static("uploads"));
 
 // 몽고디비 연결
 connectToDatabase();
@@ -41,6 +47,7 @@ let buyerInfo = null;
 app.use("/auth", authRoutes);
 app.use("/sell", authenticateToken, sellRoutes);
 app.use("/donation", donationRoutes);
+app.use("/api/model", modelRoutes); // YOLO 모델 API 추가
 
 // 변수명
 //  currency       // 거래 통화 (jpy, usd)
