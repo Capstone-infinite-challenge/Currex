@@ -15,6 +15,7 @@ import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout"; 
 import KakaoMap from "./components/utils/KakaoMap"; 
 import MyPage from "./components/views/MyPage/MyPage";
+import MySell from "./components/views/MyPage/MySell";
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Route exact path="/login" element={<Login />} />
             <Route exact path="/auth/kakao/callback" element ={<Login />} />
             <Route exact path="/mypage" element={<MyPage />} />
+            <Route exact path="/mysell" element={<MySell />} />
           </Routes>
         </Layout>
       </BrowserRouter>
