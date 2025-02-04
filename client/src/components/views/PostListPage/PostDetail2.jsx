@@ -10,13 +10,18 @@ import api from "../../utils/api";
 import "slick-carousel/slick/slick.css"; // react-slick 스타일
 import "slick-carousel/slick/slick-theme.css"; // react-slick 테마 스타일
 
-// PostDetail2 컴포넌트
+//세진아 이거 읽어바바
+//이거는 PostDetail2 컴포넌트임 (피그마와 동일한 스타일 적용)
+//PostDetail1은 css 거의 안함, 이미지 슬라이더 구현 안함. -> 정상적으로 사진 잘 보임 (이미지 1개)
+//현재 app.js에서 상세정보 페이지 들어가는 라우터 "/sell/:sellId" 는 PostDetail2에다 연결해놓음
+//현재 PostDetail2는 이미지 슬라이더가 제대로 구현이 안된 상태. 이미지를 불러오지 못함
+
 function PostDetail2() {
   const { sellId } = useParams(); // URL에서 sellId 가져오기
   const navigate = useNavigate();
   const [sell, setSell] = useState(null);
   const [exchangeRate, setExchangeRate] = useState(null);
-  const [latitude, setLatitude] = useState(37.5665);
+  const [latitude, setLatitude] = useState(37.5665); //이거는 나중에 바꿔야됨 일단 서울시청 기준 위도 경도도
   const [longitude, setLongitude] = useState(126.9780);
   const [showMenu, setShowMenu] = useState(false);
 
@@ -35,7 +40,7 @@ function PostDetail2() {
   };
 
 
-  // 슬라이더 설정
+  // 이미지 슬라이더 설정
   const settings = {
     dots: true, // 하단 점 표시
     infinite: true, // 무한 슬라이드
@@ -85,7 +90,7 @@ function PostDetail2() {
   
   
 
-
+// 판매자 거래 희망 장소 위도 경도 받기
   useEffect(() => {
     if (sell.location) {
       const fetchCoordinates = async () => {
@@ -109,6 +114,7 @@ function PostDetail2() {
     }
   }, [sell.location]);
   
+  //판매자 거래 희망 장소 카맵에 마커로 띄우기
   useEffect(() => {
     const script = document.createElement("script");
     script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAOMAP_KEY}&libraries=services&autoload=false`;
@@ -120,7 +126,7 @@ function PostDetail2() {
         if (window.kakao) {
           const container = document.getElementById("kakao-map");
           const options = {
-            center: new window.kakao.maps.LatLng(latitude, longitude), // 수정: new 키워드 제거
+            center: new window.kakao.maps.LatLng(latitude, longitude), 
             level: 3,
           };
   
@@ -148,6 +154,7 @@ function PostDetail2() {
   
   
   return (
+    //이 부분이 문제 구간.....
     <Container> 
       <ImageBackground>
   {sell ? (
@@ -163,8 +170,8 @@ function PostDetail2() {
       <NoImage>이미지 없음</NoImage>
     )
   ) : (
-    <LoadingMessage>이미지를 불러오는 중...</LoadingMessage>
-  )}
+    <LoadingMessage>이미지를 불러오는 중...</LoadingMessage> //여기까지 슬라이더 (문제 구간)
+  )} 
         <TopBar>
           <BackButton onClick={() => window.history.back()} src={backarrowwhite} alt="뒤로가기" />
           <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
@@ -177,7 +184,7 @@ function PostDetail2() {
           </Menu>
         )}
     </ImageBackground>
-    //상품정보보
+
       <Content>
         <TopInfo>
           <CurrencyTag>{sell.currency}</CurrencyTag>
@@ -212,15 +219,14 @@ function PostDetail2() {
         <MapContainer id="kakao-map" style={{ width: "100%", height: "250px" }}></MapContainer>
 
         <ButtonContainer>
-        <KRWContainer>
-            <KRWLabel>원화</KRWLabel>
-            <KRWAmount>
-            {exchangeRate ? `${Math.round(sell.amount * exchangeRate).toLocaleString()} 원` : "환율 정보 없음"}
-            </KRWAmount>
-        </KRWContainer>
-        <InquiryButton>문의하기</InquiryButton>
+          <KRWContainer>
+              <KRWLabel>원화</KRWLabel>
+              <KRWAmount>
+             {exchangeRate ? `${Math.round(sell.amount * exchangeRate).toLocaleString()} 원` : "환율 정보 없음"}
+              </KRWAmount>
+          </KRWContainer>
+          <InquiryButton>문의하기</InquiryButton>
         </ButtonContainer>
-
       </Content>
     </Container>
   );
