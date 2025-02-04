@@ -368,10 +368,10 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 700;
   flex-grow: 1; 
-  text-align: center; 
+  margin-left:0;
 `;
 
 const FilterContainer = styled.div`
