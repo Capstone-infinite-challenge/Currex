@@ -38,7 +38,7 @@ router.get('/kakao/callback', async (req, res) => {
       });
   
       const accessToken = tokenResponse.data.access_token;
-      console.log('Access Token:', accessToken);                //점검용1
+      //console.log('Access Token:', accessToken);                //점검용1
 
       const userResponse = await axios({
         method: 'GET',
@@ -63,7 +63,7 @@ router.get('/kakao/callback', async (req, res) => {
         maxAge: 3600000 // 1시간
       });
 
-      console.log('user Data:', user.loginId, user.nickname);           //점검용2
+      //console.log('user Data:', user.loginId, user.nickname);           //점검용2
 
       // 클라이언트 리다이렉션 URL (프론트엔드 주소로 변경해야 함)
       const clientRedirectUrl = `http://localhost:3000/login?token=${encodeURIComponent(token)}&loginId=${encodeURIComponent(user.loginId)}&nickname=${encodeURIComponent(user.nickname)}`;
@@ -174,6 +174,7 @@ router.get('/google/callback', async(req, res) => {
     const googleUserInfo =  {
       google_account: userInfo.data.id.toString(),
       name: userInfo.data.name,
+      profile_img: userInfo.data.picture
     }
 
     console.log('Google User Info:', googleUserInfo);

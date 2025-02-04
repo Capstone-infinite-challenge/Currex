@@ -8,12 +8,12 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
 
     const { id: kakaoId, kakao_account } = kakaoUserInfo;
     const nickname = kakao_account?.profile?.nickname || '익명의사용자';
-
+    const profile_img_url = kakao_account?.profile.profile_image_url || null;
     let user = await User.findOne({ loginId: kakaoId });
 
     // 리프레시 토큰 만료시간 설정 (7일)
     const refreshTokenExpiresAt = new Date();
-    refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 7); // ✅ 수정됨
+    refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 7);
 
     if (!user) {
       console.log("새로운 유저 생성");
@@ -22,6 +22,7 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
         nickname,
         refreshToken: jwt.generateRefreshToken(),
         refreshTokenExpiresAt,
+        profile_img: profile_img_url
       });
       await user.save();
     } else {
@@ -34,13 +35,12 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
       }
     }
 
-    const token = jwt.generateToken({ id: user.loginId, nickname: user.nickname }); // ✅ 수정됨
+    const token = jwt.generateToken({ id: user.loginId, nickname: user.nickname });
 
     console.log("로그인 성공, 발급된 토큰:", token);
     return { user, token, refreshToken: user.refreshToken };
 
   } catch (error) {
-    console.error('카카오 로그인/회원가입 에러:', error);
     console.error('상세 오류:', error.stack);
     throw new Error(`카카오 로그인 처리 중 오류: ${error.message}`);
   }
@@ -50,7 +50,8 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
 
 //구글 로그인 또는 회원가입 처리
 async function loginOrSignupGoogleUser(googleUserInfo){
-  const { google_account, name } = googleUserInfo;
+
+  const { google_account, name, profile_img } = googleUserInfo;
 
   try{
     if (!google_account) {
@@ -67,6 +68,7 @@ async function loginOrSignupGoogleUser(googleUserInfo){
       user = new User({
         loginId: google_account,
         nickname: name,
+        profile_img,
         refreshToken: jwt.generateRefreshToken(),
         refreshTokenExpiresAt,
       });
