@@ -24,7 +24,7 @@ function PostList() {
 
   const [selectedSort, setSelectedSort] = useState("latest"); // 정렬 상태
 
-  
+  const [districts, setDistricts] = useState({}); // 변환된 행정동 정보를 저장할 상태
 
   useEffect(() => {
     const fetchSells = async () => {
@@ -137,7 +137,67 @@ useEffect(() => {
     }
   });
 };
-//금액필터
+
+//도로명 주소를 ~구 ~동으로 변환하기기
+useEffect(() => {
+  const fetchRegionNames = async () => {
+    const newDistricts = {}; // 변환된 주소를 저장할 객체
+
+    await Promise.all(
+      filteredSells.map(async (sell) => {
+        if (!sell.location) return;
+
+        try {
+          // 도로명 주소 → 좌표 변환
+          const addressResponse = await axios.get(
+            `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
+            {
+              headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+            }
+          );
+
+          if (!addressResponse.data.documents.length) {
+            console.warn(`주소 검색 실패: ${sell.location}`);
+            return;
+          }
+
+          const { x, y } = addressResponse.data.documents[0]; // 위도, 경도 값 가져오기
+
+          // 좌표 → 행정동 변환
+          const regionResponse = await axios.get(
+            `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
+            {
+              headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+            }
+          );
+
+          if (!regionResponse.data.documents.length) {
+            console.warn(`⚠️ 행정동 변환 실패: ${sell.location} (x=${x}, y=${y})`);
+            return;
+          }
+
+          // 'H' (행정동) 타입인 지역 정보 가져오기
+          const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
+
+          if (regionInfo) {
+            newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
+            console.log(`변환 완료: ${sell.location} → ${newDistricts[sell._id]}`);
+          } else {
+            console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
+          }
+        } catch (error) {
+          console.error("주소 변환 오류:", error);
+        }
+      })
+    );
+
+    setDistricts(newDistricts); // 변환된 데이터 상태에 저장
+  };
+
+  if (filteredSells.length > 0) {
+    fetchRegionNames();
+  }
+}, [filteredSells]);
 
 
 
@@ -260,7 +320,10 @@ useEffect(() => {
           <Currency>{sell.currency}</Currency>
           <Amount>{sell.amount} {sell.currency}</Amount>
           <Details>
-            <Distance>📍 {sell.sellerLocation ? sell.sellerLocation : "위치 정보 없음"}</Distance>
+          <Distance>
+          📍 {districts[sell._id] ? districts[sell._id] : sell.location ? sell.location : "위치 정보 없음"}
+          </Distance>
+
             <Won>
             {exchangeRates[sell.currency]
             ? `${Math.round(sell.amount * exchangeRates[sell.currency])} 원`

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+/*import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000"); // 백엔드 서버 주소
+//const socket = io("http://localhost:5000"); // 백엔드 서버 주소
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -241,5 +241,4 @@ const SendButton = styled.button`
     color: white;
     font-size: 16px;
   }
-  `;
-
+  `;*/
