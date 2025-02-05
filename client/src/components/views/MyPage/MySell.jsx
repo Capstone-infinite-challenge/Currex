@@ -212,7 +212,7 @@ function MySell() {
         </PostListContainer>
       )}
 
-      <NavBar active="sell" />
+    <NavBar active="MyPage" />
     </Container>
   );
 }
@@ -249,7 +249,7 @@ const BackButton = styled.img`
 
 
 const Title = styled.h1`
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   flex-grow: 1; 
  text-align:center;
