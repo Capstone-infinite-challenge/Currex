@@ -48,19 +48,25 @@ function Chat2() {
   
 
   const handleSendPlace = (place) => {
+    const mapImageUrl = `https://map.kakao.com/v2/maps/staticmap?appkey=${process.env.REACT_APP_KAKAO_API_KEY}&center=${place.longitude},${place.latitude}&level=3&size=480x320&map_type=roadmap&markers=${place.longitude},${place.latitude}`;
+
+    console.log("🗺️ 생성된 지도 이미지 URL:", mapImageUrl); // ✅ URL 디버깅
+  
     setMessages([
       ...messages,
       {
         id: messages.length + 1,
         sender: "me",
-        text: `📍 ${place.name}\n${place.distance}`,
+        text: `📍 ${place.name}\n현재 위치에서 ${place.distance}km`,
         isPlace: true,
-        mapUrl: place.mapUrl,
+        mapUrl: mapImageUrl, // ✅ 정적 지도 URL 추가
       },
     ]);
     setShowModal(false);
   };
-
+  
+  
+  
   return (
     <Container>
       {/* 헤더 */}
@@ -102,12 +108,14 @@ function Chat2() {
 
       {/* 채팅 메시지 */}
       <ChatContainer>
-  {messages.map((msg) => (
-    <MessageWrapper key={msg.id} sender={msg.sender}>
+        {messages.map((msg) => (
+        <MessageWrapper key={msg.id} sender={msg.sender}>
       <Message sender={msg.sender}>
         {msg.text.split("\n").map((line, index) => (
           <span key={index}>{line}</span>
         ))}
+        {/* 장소 메시지라면 지도 이미지 표시 */}
+        {msg.isPlace && <MapImage src={msg.mapUrl} alt="지도 이미지" style={{ width: "100%", borderRadius: "8px" }} /> }
       </Message>
     </MessageWrapper>
   ))}
@@ -328,7 +336,24 @@ const Message = styled.div`
   /* ✅ 오른쪽 정렬 조정 */
   ${({ sender }) => sender === "me" && "margin-left: auto;"} 
   ${({ sender }) => sender === "me" && "margin-right: 0px;"} 
+
+  /* ✅ 장소 메시지일 경우 지도 이미지 포함 */
+  ${({ isPlace }) =>
+    isPlace &&
+    `
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  `}
 `;
+const MapImage = styled.img`
+  width: 100%;
+  max-width: 300px; 
+  border-radius: 8px;
+  margin-top: 8px;
+`;
+
 
 const MessageWrapper = styled.div`
   display: flex;
@@ -386,7 +411,7 @@ const RecommendationButton = styled.button`
   cursor: pointer;
 `;
 
-/* 📌 메시지 입력 */
+/*  메시지 입력 */
 const MessageInputContainer = styled.div`
   display: ${({ isOpen }) => (isOpen ? "none" : "flex")}; /* ✅ 모달이 열리면 숨김 */
   padding: 12px;
