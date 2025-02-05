@@ -5,6 +5,7 @@ import infoicon from "../../images/infoicon.svg";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import sendicon from "../../images/sendicon.svg";
+import PlaceModal from "./PlaceModal";
 
 
 function Chat2() {
@@ -13,8 +14,9 @@ function Chat2() {
     { id: 1, sender: "me", text: "안녕하세요\n내일 거래 가능 하신가요?" },
   ]);
   const [newMessage, setNewMessage] = useState("");
-  const [status, setStatus] = useState("판매중"); // ✅ 판매 상태 관리
-  const [showOptions, setShowOptions] = useState(false); // ✅ 드롭다운 표시 상태 관리
+  const [status, setStatus] = useState("판매중"); //  판매 상태 관리
+  const [showOptions, setShowOptions] = useState(false); // 드롭다운 표시 상태 관리
+  const [showModal, setShowModal] = useState(false); //  모달 상태 추가
 
   // 드롭다운 메뉴 토글
   const toggleDropdown = () => {
@@ -36,7 +38,28 @@ function Chat2() {
     }
   };
 
-  const handleNavigateToMeet = () => navigate("/buy");
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+  
+
+  const handleSendPlace = (place) => {
+    setMessages([
+      ...messages,
+      {
+        id: messages.length + 1,
+        sender: "me",
+        text: `📍 ${place.name}\n${place.distance}`,
+        isPlace: true,
+        mapUrl: place.mapUrl,
+      },
+    ]);
+    setShowModal(false);
+  };
 
   return (
     <Container>
@@ -97,22 +120,27 @@ function Chat2() {
           <img src={infoicon} alt="info icon" width="16" height="16" />
           <InfoText>AI에게 거래 장소를 추천받아 보세요</InfoText>
         </InfoContainer>
-        <RecommendationButton onClick={handleNavigateToMeet}>추천받기</RecommendationButton>
+        <RecommendationButton onClick={handleOpenModal}>추천받기</RecommendationButton>
+        <PlaceModal isOpen={showModal} onClose={handleCloseModal} onSend={handleSendPlace} />
       </RecommendationSection>
 
+      
+
       {/* 메시지 입력 */}
-      <MessageInputContainer>
-        <MessageInput
-          type="text"
-          placeholder="메시지를 입력하세요..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-        />
-        <SendButton onClick={handleSendMessage}>
-          <img src={sendicon} alt="전송" />
-        </SendButton>
-      </MessageInputContainer>
+      <MessageInputContainer isOpen={showModal}>
+  <MessageInput
+    type="text"
+    placeholder="메시지를 입력하세요..."
+    value={newMessage}
+    onChange={(e) => setNewMessage(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+  />
+  <SendButton onClick={handleSendMessage}>
+    <img src={sendicon} alt="전송" />
+  </SendButton>
+</MessageInputContainer>
+
+
     </Container>
   );
 }
@@ -360,7 +388,7 @@ const RecommendationButton = styled.button`
 
 /* 📌 메시지 입력 */
 const MessageInputContainer = styled.div`
-  display: flex;
+  display: ${({ isOpen }) => (isOpen ? "none" : "flex")}; /* ✅ 모달이 열리면 숨김 */
   padding: 12px;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -376,8 +404,8 @@ const MessageInputContainer = styled.div`
   padding: 16px 20px;
   background: rgb(255, 255, 255);
   font-size: 12px;
-  font-weight: 500;
-  z-index: 100; /* 다른 요소 위로 */
+  font-weight: 300;
+  z-index: 80; /* 다른 요소 위로 */
   border-radius: 28px;
   border: 2px solid #f7f7f7;
 `;
