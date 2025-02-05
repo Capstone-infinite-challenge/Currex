@@ -45,7 +45,7 @@ function MyPage() {
       {/* 버튼 섹션 */}
       <ButtonGrid>
         <Button>기부 내역</Button>
-        <Button>환전 내역</Button>
+        <Button onClick={() => navigate('/myexchange')} >환전 내역</Button>
         <Button onClick={() => navigate('/mysell')}>나의 판매</Button>
         <Button onClick={() => navigate('/calculator')}>외화 계산기</Button>
       </ButtonGrid>
@@ -116,13 +116,13 @@ const Container = styled.div`
 
 
 const Header = styled.div`
+  width: 100%;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 16px 0;
-  font-size: 18px;
-  font-weight: bold;
+  background: white;
 `;
 
 const BackButton = styled.img`
@@ -133,11 +133,12 @@ const BackButton = styled.img`
 `;
 
 const Title = styled.h1`
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   flex-grow: 1; 
  text-align:center;
 `;
+
 const ProfileSection = styled.div`
   display: flex;
   flex-direction: column;

@@ -5,6 +5,7 @@ function PlaceModal({ isOpen, onClose, onSend }) {
   const [mapLoaded, setMapLoaded] = useState(false);
   const latitude = 37.558514;
   const longitude = 126.946994;
+  const distance=100;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -69,9 +70,15 @@ function PlaceModal({ isOpen, onClose, onSend }) {
           나와 Olivia Gracia님의 추천 거래 장소는 <br></br><strong>이대역 3번 출구</strong>입니다.
         </Description>
         <MapContainer id="kakao-map">{!mapLoaded && <LoadingText>지도 로딩 중...</LoadingText>}</MapContainer>
-        <SendButton onClick={() => onSend({ name: "이대역 3번 출구", latitude, longitude })}>
-          전송하기
+        <SendButton onClick={() => onSend({
+            name: "이대역 3번 출구",
+            latitude,
+            longitude,
+            distance: 2.4 // 예제 거리값
+            })}>
+             전송하기
         </SendButton>
+
       </ModalContainer>
     //</Overlay>
   );
