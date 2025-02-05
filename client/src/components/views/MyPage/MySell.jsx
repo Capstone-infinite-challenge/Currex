@@ -229,22 +229,24 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
+const Header = styled.div`
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  backdrop-filter: blur(8px);
+  padding: 0 12px;
+`;
+
 const BackButton = styled.img`
   width: 20px;
   height: 20px;
   cursor: pointer;
-  margin-left:0px;
+  margin-left: 0px;
 `;
 
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  padding: 16px 0;
-  font-size: 18px;
-  font-weight: bold;
-`;
 
 const Title = styled.h1`
   font-size: 22px;

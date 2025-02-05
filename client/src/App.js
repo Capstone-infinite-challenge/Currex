@@ -10,6 +10,7 @@ import PostList from "../src/components/views/PostListPage/PostList";
 import PostDetail from "../src/components/views/PostListPage/PostDetail";
 import PostDetail2 from "../src/components/views/PostListPage/PostDetail2";
 import Chat from "../src/components/views/ChattingPage/Chat";
+import Chat2 from "../src/components/views/ChattingPage/Chat2";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout"; 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/sell/:sellId" element={<PostDetail2 />} />
             <Route path="/postdetail" element={<PostDetail />} />
             <Route exact path="/chat" element={<Chat />} />
+            <Route exact path="/chat2" element={<Chat2 />} />
             <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/login" element={<Login />} />
             <Route exact path="/auth/kakao/callback" element ={<Login />} />
