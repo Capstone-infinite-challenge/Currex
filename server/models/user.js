@@ -14,6 +14,22 @@ const userSchema = new Schema({
     nickname: {
         type: String
     },
+    address: {                      //내주소
+        type: String,
+        default: null   
+    },
+    tradeAddress:{                  //거래주소
+        type: String,
+        default: null
+    },
+    tradeAddress_latitude:{                  //거래주소 - 경도
+        type: String,
+        default: null
+    },
+    tradeAddress_longtitude:{                //거래주소 - 위도
+        type: String,
+        default: null
+    },
     profile_img:{
         type: String
     },
