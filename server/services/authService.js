@@ -92,5 +92,5 @@ async function loginOrSignupGoogleUser(googleUserInfo){
 
 export {
   loginOrSignupKakaoUser,
-  loginOrSignupGoogleUser,
+  loginOrSignupGoogleUser
 };

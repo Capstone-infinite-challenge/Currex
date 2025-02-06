@@ -10,6 +10,10 @@ import modelRoutes from "./routes/modelRoutes.js"; // ai 모델 추가함
 import connectToDatabase from "./configs/mongodb-connection.js";
 import Sell from "./models/sell.js";
 import authenticateToken from "./middleware/authMiddleware.js";
+import calculate from "./utils/calculate.js";
+import userRoutes from "./routes/userRoutes.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerOutput from "./swagger/swagger-output.json" assert { type: "json" };
 
 dotenv.config();
 
@@ -34,9 +38,6 @@ app.use(
   })
 );
 
-// 정적 파일 제공 (ai 업로드된 이미지 접근 가능하게)
-app.use("/uploads", express.static("uploads"));
-
 // 몽고디비 연결
 connectToDatabase();
 
@@ -47,14 +48,15 @@ let buyerInfo = null;
 app.use("/auth", authRoutes);
 app.use("/sell", authenticateToken, sellRoutes);
 app.use("/donation", donationRoutes);
+app.use("/user", authenticateToken, userRoutes);
 app.use("/api/model", modelRoutes); // YOLO 모델 API 추가
+app.use("/uploads", express.static("uploads"));   // 정적 파일 제공 (ai 업로드된 이미지 접근 가능하게)
 
-// 변수명
-//  currency       // 거래 통화 (jpy, usd)
-//  minAmount      // 최소 거래 금액 (외화 기준)
-//  maxAmount      // 최대 거래 금액 (외화 기준)
-//  exchangeRate   // 환율
-//  userLocation   // 거래 희망 위치
+//swaggerUI 설정
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOutput)); // http://localhost:5000/api-docs로 Swagger 페이지 접속 가능
+
+
+
 
 // 구매자의 외화 구매 조건 저장
 app.post("/buy", authenticateToken, (req, res) => {
@@ -105,7 +107,7 @@ app.get("/SellerMatch", authenticateToken, async (req, res) => {
 
     // 거리 계산 및 추가 정보 반환
     const sellersWithDistance = sells.map((seller) => {
-      const distance = calculateDistance(
+      const distance = calculate.calculateDistance(
         buyerInfo.latitude,
         buyerInfo.longitude,
         seller.latitude,
@@ -132,20 +134,6 @@ app.get("/SellerMatch", authenticateToken, async (req, res) => {
   }
 });
 
-// 거리 계산 함수 (위도, 경도로 거리 계산)
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // 지구의 반지름 (km)
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c; // 거리 반환 (km)
-}
 
 app.post("/SellerMatch/:name", authenticateToken, async (req, res) => {
   try {

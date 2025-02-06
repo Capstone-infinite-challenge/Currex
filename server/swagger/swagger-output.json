@@ -1,0 +1,626 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "CURREX API 명세",
+    "description": "CURREX 서비스의 다양한 API를 테스트합니다.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5000",
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/buy": {
+      "post": {
+        "tags": ["구매"],
+        "description": "구매자 정보 등록",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "example": "any"
+                },
+                "minAmount": {
+                  "example": "any"
+                },
+                "maxAmount": {
+                  "example": "any"
+                },
+                "userLocation": {
+                  "example": "any"
+                },
+                "latitude": {
+                  "example": "any"
+                },
+                "longitude": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/SellerMatch": {
+      "get": {
+        "tags": ["거래"],
+        "description": "추천 판매자",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/SellerMatch/{name}": {
+      "post": {
+        "tags": ["거래"],
+        "description": "추천 판매자",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "buyerLatitude": {
+                  "example": "any"
+                },
+                "buyerLongitude": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/kakao": {
+      "get": {
+        "tags": ["사용자 관리"],
+        "description": "카카오 로그인",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/kakao/callback": {
+      "get": {
+        "tags": ["사용자 관리"],
+        "description": "카카오 로그인 콜백",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/kakaologout": {
+      "post": {
+        "tags": ["사용자 관리"],
+        "description": "카카오 로그아웃",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "tags": ["사용자 관리"],
+        "description": "구글 로그인",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "tags": ["사용자 관리"],
+        "description": "구글 로그인",
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "리프레시 토큰 발급",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/sell/productRegi": {
+      "post": {
+        "tags": ["판매"],
+        "description": "판매 등록",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "currency": {
+                  "example": "any"
+                },
+                "amount": {
+                  "example": "any"
+                },
+                "sellerLocation": {
+                  "example": "any"
+                },
+                "latitude": {
+                  "example": "any"
+                },
+                "longitude": {
+                  "example": "any"
+                },
+                "content": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/sell/deleteSell/{sellId}": {
+      "delete": {
+        "tags": ["판매"],
+        "description": "판매 삭제",
+        "parameters": [
+          {
+            "name": "sellId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/sell/sellDescription/{sellId}": {
+      "get": {
+        "tags": ["판매"],
+        "description": "판매 상세",
+        "parameters": [
+          {
+            "name": "sellId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/sell/sellList": {
+      "get": {
+        "tags": ["판매"],
+        "description": "판매 목록",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/sell/sellSelect": {
+      "post": {
+        "tags": ["거래"],
+        "description": "구매자가 판매 선택",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "sellId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/donation/dRegi": {
+      "post": {
+        "tags": ["기부"],
+        "description": "기부 등록",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "company": {
+                  "example": "any"
+                },
+                "contact": {
+                  "example": "any"
+                },
+                "address": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/donation/total": {
+      "get": {
+        "tags": ["기부"],
+        "description": "기부 누적금액 계산",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/donation/rank": {
+      "get": {
+        "tags": ["기부"],
+        "description": "기부 랭킹",
+        "responses": {
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/model/predict": {
+      "post": {
+        "description": "인공지능 모델연결",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/user/mypage": {
+      "get": {
+        "tags": ["사용자"],
+        "description": "마이페이지",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/updateAddress": {
+      "patch": {
+        "tags": ["사용자"],
+        "description": "사용자 주소 업데이트",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/user/address": {
+      "put": {
+        "summary": "사용자 주소 정보 업데이트",
+        "tags": ["User"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "사용자 로그인 ID"
+          },
+          {
+            "name": "addr1",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "기본 주소"
+          },
+          {
+            "name": "addr2",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "거래용 주소 (선택사항)"
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "위도"
+          },
+          {
+            "name": "lon",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            },
+            "description": "경도"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "주소 업데이트 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "주소가 성공적으로 업데이트 되었습니다."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "유효성 검사 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "필수 파라미터가 누락되었습니다."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자 없음",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "사용자를 찾을 수 없습니다."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "서버 오류",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "주소 업데이트 도중 에러가 발생하였습니다."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
