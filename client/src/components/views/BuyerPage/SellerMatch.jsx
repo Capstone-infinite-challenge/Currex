@@ -150,7 +150,7 @@ function SellerMatch() {
                 <Currency>{sell.currency}</Currency>
                 <Amount>{sell.amount.toLocaleString()} {sell.currency}</Amount>
                 <Details>
-                  <Distance>📍 {sell.distance.toFixed(2)} km</Distance>
+                  <Distance>{sell.distance.toFixed(2)} km</Distance>
                   <Won>
                     {exchangeRates[sell.currency]
                       ? `${Math.round(sell.amount * exchangeRates[sell.currency]).toLocaleString()} 원`
@@ -308,6 +308,8 @@ const Distance = styled.div`
   color: #CA2F28;
   margin-bottom: 4px;
   margin-left:0;
+  font-size: 10px;
+  font-weight: 600;
 `;
 
 const Won = styled.div`
