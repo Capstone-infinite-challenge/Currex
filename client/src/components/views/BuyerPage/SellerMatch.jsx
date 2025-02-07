@@ -3,35 +3,35 @@ import styled from "styled-components";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import backarrow from "../../images/backarrow.svg";
-import api from "../../utils/api"; 
+import api from "../../utils/api";
 
 function SellerMatch() {
-  const [sells, setSells] = useState([]); 
+  const [sells, setSells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [exchangeRates, setExchangeRates] = useState({});
   const navigate = useNavigate();
+  const [districts, setDistricts] = useState({}); // 변환된 행정동 정보를 저장할 상태
 
-   /** 판매 데이터 가져오기 */
-   useEffect(() => {
+  /** ✅ 판매 데이터 불러오기 */
+  useEffect(() => {
     const fetchSells = async () => {
       try {
-        const response = await api.get("/SellerMatch");
+        const response = await api.get("/api/trade/SellerMatch", { withCredentials: true });
         console.log("백엔드 응답 데이터:", response.data);
 
-        if (response.data.sellersWithDistance?.length > 0) {
-          const sortedSells = response.data.sellersWithDistance
-            .filter((sell) => sell.distance)
-            .map((sell) => ({
-              ...sell,
-              distance: parseFloat(sell.distance.replace("km", "")) || 0,
-            }))
-            .sort((a, b) => a.distance - b.distance);
+        const sellersWithDistance = response.data.sellersWithDistance || [];
 
-          setSells(sortedSells);
-        } else {
-          console.warn("판매 데이터 없음");
-          setSells([]);
-        }
+        // 거리순 정렬
+        const sortedSells = sellersWithDistance
+          .filter((sell) => sell.distance)
+          .map((sell) => ({
+            ...sell,
+            distance: parseFloat(sell.distance.replace("km", "")) || 0,
+          }))
+          .sort((a, b) => a.distance - b.distance);
+
+        setSells(sortedSells);
       } catch (error) {
         console.error("판매 데이터 불러오기 오류:", error);
         setError("판매 목록을 불러올 수 없습니다.");
@@ -43,37 +43,91 @@ function SellerMatch() {
     fetchSells();
   }, []);
 
+  /** ✅ 실시간 환율 가져오기 */
   useEffect(() => {
-    console.log("sells 상태 업데이트:", sells);
-  }, [sells]); 
-
-  // 실시간 환율 가져오기
-    const [exchangeRates, setExchangeRates] = useState({}); // 환율 데이터를 저장할 상태
-  
-    useEffect(() => {
     const fetchExchangeRates = async () => {
-      const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))]; // 중복 제거
+      const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))];
       const rates = {};
-  
+
       try {
-        // 각 통화에 대한 환율 데이터를 비동기적으로 가져오기
         await Promise.all(
           uniqueCurrencies.map(async (currency) => {
             const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
-            rates[currency] = response.data.rates.KRW; // KRW에 대한 환율 저장
+            rates[currency] = response.data.rates.KRW;
           })
         );
-  
-        setExchangeRates(rates); // 가져온 환율 데이터 상태 업데이트
+        setExchangeRates(rates);
       } catch (error) {
-        console.error("환율 데이터를 불러오는 중 오류 발생:", error);
+        console.error("환율 데이터 불러오기 오류:", error);
       }
     };
-  
+
     if (sells.length > 0) {
       fetchExchangeRates();
     }
   }, [sells]);
+
+  // ✅ 도로명 주소 → 행정동 변환
+    useEffect(() => {
+      const fetchRegionNames = async () => {
+        const newDistricts = {}; // 변환된 주소를 저장할 객체
+    
+        await Promise.all(
+          sells.map(async (sell) => {
+            if (!sell.location) return;
+    
+            try {
+              // 도로명 주소 → 좌표 변환
+              const addressResponse = await axios.get(
+                `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
+                {
+                  headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+                }
+              );
+    
+              if (!addressResponse.data.documents.length) {
+                console.warn(`주소 검색 실패: ${sell.location}`);
+                return;
+              }
+    
+              const { x, y } = addressResponse.data.documents[0]; // 위도, 경도 값 가져오기
+    
+              // 좌표 → 행정동 변환
+              const regionResponse = await axios.get(
+                `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
+                {
+                  headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+                }
+              );
+    
+              if (!regionResponse.data.documents.length) {
+                console.warn(`⚠️ 행정동 변환 실패: ${sell.location} (x=${x}, y=${y})`);
+                return;
+              }
+    
+              // 'H' (행정동) 타입인 지역 정보 가져오기
+              const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
+    
+              if (regionInfo) {
+                newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
+                //console.log(`변환 완료: ${sell.location} → ${newDistricts[sell._id]}`);
+              } else {
+                console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
+              }
+            } catch (error) {
+              console.error("주소 변환 오류:", error);
+            }
+          })
+        );
+  
+        setDistricts(newDistricts);
+      };
+  
+      if (sells.length > 0) {
+        fetchRegionNames();
+      }
+    }, [sells]);
+
 
   return (
     <Container>
@@ -91,26 +145,21 @@ function SellerMatch() {
       ) : sells.length > 0 ? (
         <PostListContainer>
           {sells.map((sell) => (
-            <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
-              <ImageContainer>
-                {sell.images && sell.images.length > 0 ? (
-                  <PostImage src={sell.images[0]} alt="상품 이미지" />
-                ) : (
-                  <NoImage>이미지 없음</NoImage>
-                )}
-              </ImageContainer>
-
+            <Post key={sell._id}>
               <PostInfo>
                 <Currency>{sell.currency}</Currency>
                 <Amount>{sell.amount.toLocaleString()} {sell.currency}</Amount>
                 <Details>
-                  <Distance>📍 {sell.sellerLocation || "위치 정보 없음"}</Distance>
+                  <Distance>📍 {sell.distance.toFixed(2)} km</Distance>
                   <Won>
-            {exchangeRates[sell.currency]
-            ? `${Math.round(sell.amount * exchangeRates[sell.currency])} 원`
-            : "환율 정보 없음"}
-           </Won>
+                    {exchangeRates[sell.currency]
+                      ? `${Math.round(sell.amount * exchangeRates[sell.currency]).toLocaleString()} 원`
+                      : "환율 정보 없음"}
+                  </Won>
                 </Details>
+                <Location>
+          📍 {districts[sell._id] ? districts[sell._id] : sell.location ? sell.location : "위치 정보 없음"}
+          </Location>
               </PostInfo>
             </Post>
           ))}
@@ -124,7 +173,7 @@ function SellerMatch() {
       </ReRecommendButton>
     </Container>
   );
-} 
+}
 
 export default SellerMatch;
 
@@ -320,60 +369,7 @@ justify-content: center;
 border-radius: 8px;
 `;
 
-/*const handleChatClick = async (sellerName) => {
-  const buyerLatitude = buyerInfo.latitude;
-  const buyerLongitude = buyerInfo.longitude;
-
-  try {
-    const response = await axios.post(
-      `http://localhost:5000/SellerMatch/${sellerName}`,
-      {
-        buyerLatitude: buyerLatitude,
-        buyerLongitude: buyerLongitude
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    //좌표 -> 위치
-    const getAddressFromCoordinates = async (latitude, longitude) => {
-      try {
-        const response = await axios.get(
-          `https://dapi.kakao.com/v2/local/geo/coord2address.json`,
-          {
-            headers: {
-              Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}`,
-            },
-            params: {
-              x: longitude, // 경도
-              y: latitude,  // 위도
-              input_coord: "WGS84", // 좌표 체계
-            },
-          }
-        );
-    
-        if (response.data.documents.length > 0) {
-          const addressInfo = response.data.documents[0].address;
-          const roadAddressInfo = response.data.documents[0].road_address;
-    
-          // 주소 데이터
-          return {
-            address: addressInfo ? addressInfo.address_name : "주소 정보 없음",
-            roadAddress: roadAddressInfo
-              ? roadAddressInfo.address_name
-              : "도로명 주소 없음",
-          };
-        } else {
-          return { address: "주소 정보를 찾을 수 없습니다." };
-        }
-      } catch (error) {
-        console.error("좌표로 주소 변환 오류:", error);
-        throw error;
-      }
-    };
+/*
 
     //근처 편의점
     const fetchNearbyConvenienceStores = async (latitude, longitude) => {

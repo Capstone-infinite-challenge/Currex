@@ -89,7 +89,7 @@ function BuyMoney() {
   
         try {
           const requestData = { currency, minAmount, maxAmount, userLocation, latitude, longitude };
-          const response = await api.post("/api/buy", requestData);
+          const response = await api.post("/api/trade/buy", requestData);
           console.log("구매 요청 성공:", response.data);
           navigate("/SellerMatch");
         } catch (error) {
