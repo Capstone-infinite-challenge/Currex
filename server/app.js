@@ -3,17 +3,7 @@ import session from "express-session";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes.js";
-import sellRoutes from "./routes/sellRoutes.js";
-import donationRoutes from "./routes/donationRoutes.js";
-import modelRoutes from "./routes/modelRoutes.js"; // ai 모델 추가함
 import connectToDatabase from "./configs/mongodb-connection.js";
-import Sell from "./models/sell.js";
-import authenticateToken from "./middleware/authMiddleware.js";
-import calculate from "./utils/calculate.js";
-import userRoutes from "./routes/userRoutes.js";
-import swaggerUi from "swagger-ui-express";
-import swaggerOutput from "./swagger/swagger-output.json" assert { type: "json" };
 
 dotenv.config();
 
@@ -41,127 +31,10 @@ app.use(
 // 몽고디비 연결
 connectToDatabase();
 
-// 구매자 정보 저장용 변수
-let buyerInfo = null;
 
 // 라우터
-app.use("/auth", authRoutes);
-app.use("/sell", authenticateToken, sellRoutes);
-app.use("/donation", donationRoutes);
-app.use("/user", authenticateToken, userRoutes);
-app.use("/api/model", modelRoutes); // YOLO 모델 API 추가
-app.use("/uploads", express.static("uploads"));   // 정적 파일 제공 (ai 업로드된 이미지 접근 가능하게)
+app.use("/api", Routes);
 
-//swaggerUI 설정
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerOutput)); // http://localhost:5000/api-docs로 Swagger 페이지 접속 가능
-
-
-
-
-// 구매자의 외화 구매 조건 저장
-app.post("/buy", authenticateToken, (req, res) => {
-  try {
-    console.log("Request body:", req.body); // 제대로 값이 들어오는지 확인용
-    buyerInfo = {
-      currency: req.body.currency,
-      minAmount: req.body.minAmount,
-      maxAmount: req.body.maxAmount,
-      userLocation: req.body.userLocation,
-      latitude: req.body.latitude,
-      longitude: req.body.longitude,
-    };
-
-    // 데이터 유효성 검사
-    if (!buyerInfo.currency) {
-      return res.status(400).json({ error: "통화를 입력해주세요" });
-    } else if (!buyerInfo.minAmount) {
-      return res.status(400).json({ error: "최소 금액을 입력해주세요" });
-    } else if (!buyerInfo.maxAmount) {
-      return res.status(400).json({ error: "최대 금액을 입력해주세요" });
-    } else if (buyerInfo.minAmount > buyerInfo.maxAmount) {
-      return res
-        .status(400)
-        .json({ error: "최대 금액은 최소 금액보다 커야 합니다" });
-    }
-
-    console.log("저장된 구매자 정보:", buyerInfo);
-    res.status(201).json(buyerInfo);
-  } catch (error) {
-    console.error("에러 발생:", error);
-    res.status(500).json({ error: "서버 오류가 발생했습니다" });
-  }
-});
-
-//판매자 매칭
-app.get("/SellerMatch", authenticateToken, async (req, res) => {
-  // 구매자 정보를 기준으로 판매자 필터링
-  try {
-    //구매자 정보가 없는 경우
-    if (!buyerInfo) {
-      return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
-    }
-    const sells = await Sell.find({
-      currency: buyerInfo.currency,
-      amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
-    });
-
-    // 거리 계산 및 추가 정보 반환
-    const sellersWithDistance = sells.map((seller) => {
-      const distance = calculate.calculateDistance(
-        buyerInfo.latitude,
-        buyerInfo.longitude,
-        seller.latitude,
-        seller.longitude
-      );
-      return {
-        name: seller.name,
-        distance: `${distance.toFixed(2)} km`, // 거리 계산 결과
-        currency: seller.currency,
-        amount: seller.amount,
-      };
-    });
-
-    // 거리 순 정렬
-    sellersWithDistance.sort(
-      (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
-    );
-
-    console.log("필터링된 판매자 목록:", sellersWithDistance);
-    res.status(200).json({ sellersWithDistance, buyerInfo });
-  } catch (error) {
-    console.error("에러 발생:", error);
-    res.status(500).json({ error: "서버 오류가 발생했습니다." });
-  }
-});
-
-
-app.post("/SellerMatch/:name", authenticateToken, async (req, res) => {
-  try {
-    const sellerName = req.params.name;
-    const { buyerLatitude, buyerLongitude } = req.body;
-
-    const seller = await Sell.findOne({ name: sellerName });
-    if (!seller) {
-      return res.status(404).json({ error: "판매자를 찾을 수 없습니다." });
-    }
-
-    console.log(seller);
-
-    //중간위치 계산
-    const middleLatitude = (buyerLatitude + seller.latitude) / 2;
-    const middleLongitude = (buyerLongitude + seller.longitude) / 2;
-
-    console.log(`중간 위도: ${middleLatitude}, 중간 경도: ${middleLongitude}`);
-
-    return res.json({
-      middleLatitude,
-      middleLongitude,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
