@@ -169,4 +169,28 @@ router.post('/sellSelect', async(req, res) => {
 });
 
 
+//내 판매 목록
+router.get('/mySells', async(req, res) => {
+    const userId = req.user.id;
+    const mySells = await Sell.find({sellerId: userId});
+
+    if (!mySells || mySells.length === 0) {
+        return res.status(404).json({ message: '판매중인 상품이 없습니다.' });
+    }
+    try{
+        // 이미지 데이터를 Base64로 변환
+        const formattedmySells = mySells.map(sell => ({
+            ...sell.toObject(),
+            images: sell.images.map(image => 
+                `data:${image.contentType};base64,${image.data.toString('base64')}`
+            )
+        }));
+        res.status(200).json(formattedmySells);
+    } catch (error) {
+        console.error('Error fetching mySells:', error);
+        res.status(500).json({ message: "내 판매 목록을 불러오는 도중 에러가 발생하였습니다." });
+    }
+});
+
+
 export default router;
