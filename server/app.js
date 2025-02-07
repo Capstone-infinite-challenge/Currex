@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectToDatabase from "./configs/mongodb-connection.js";
+import Routes from "./routes/paths.js";
 
 dotenv.config();
 
