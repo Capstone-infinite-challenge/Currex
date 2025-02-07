@@ -140,7 +140,7 @@ function SellMoney() {
     
 
     try {
-      const response = await api.post("/sell/productRegi", formData);
+      const response = await api.post("/api/sell/productRegi", formData);
       console.log("판매 등록 성공:", response.data);
       alert("판매 등록이 완료되었습니다!");
       navigate("/list");

@@ -26,11 +26,11 @@ function Login() {
   }, [location, navigate]);
 
   const handleKakaoLogin = () => {
-    window.location.href = "http://localhost:5000/auth/kakao";
+    window.location.href = "http://localhost:5000/api/auth/kakao";
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = "http://localhost:5000/api/auth/google";
   };
 
   return (
