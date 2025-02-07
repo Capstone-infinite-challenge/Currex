@@ -28,29 +28,27 @@ const findUserInfo = async(userId) => {
   
 
 //사용자의 주소 업데이트
-const updateAddress = async(userId, addr1, addr2, lat, lon) => {
-    try{
-        const user = await User.findOne({loginId: userId});
+const updateAddress = async (userId, addr1, addr2, lat, lon) => {
+  try {
+    const user = await User.findOne({ loginId: userId });
 
-        if(addr1 !== user.address || !user.address){
-            await User.updateOne(
-              { loginId: userId },
-              { address: addr1 }
-            );
-        }else if((!addr2) || (addr2 !== user.tradeAddress) || (lat !== user.tradeAddress_latitude) || (lon !== user.tradeAddress_longtitude)){
-            await User.updateOne(
-              { loginId: userId },
-              { tradeAddress: addr2,
-                tradeAddress_latitude: lat,
-                tradeAddress_longtitude: lon
-              }
-            );        
-        }
-        return '주소가 성공적으로 업데이트 되었습니다.';
-    }catch{
-      throw new Error('주소 업데이트 도중 에러가 발생하였습니다.');
+    const updateFields = {};
+    if (addr1 !== user.address) updateFields.address = addr1;
+    if (addr2 !== user.tradeAddress) updateFields.tradeAddress = addr2;
+    if (lat !== user.tradeAddress_latitude) updateFields.tradeAddress_latitude = lat;
+    if (lon !== user.tradeAddress_longtitude) updateFields.tradeAddress_longtitude = lon;
+
+    if (Object.keys(updateFields).length > 0) {
+      await User.updateOne({ loginId: userId }, { $set: updateFields });
     }
+
+    return '주소가 성공적으로 업데이트 되었습니다.';
+  } catch (error) {
+    console.error(error);
+    throw new Error('주소 업데이트 도중 에러가 발생하였습니다.');
+  }
 };
+
 
 export {
     findUserInfo,

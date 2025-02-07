@@ -1,92 +1,132 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import backarrow from "../../images/backarrow.svg";
 import editicon from "../../images/editicon.svg";
+import api from "../../utils/api";
+import axios from "axios";
 
 function MyPage() {
   const navigate = useNavigate();
 
-  // 사용자 정보 상태 (API 연동 예정)
   const [userInfo, setUserInfo] = useState({
-    profileImg: "https://via.placeholder.com/80",
-    name: "김이화",
-    email: "kimewha@ewha.ac.kr",
+    profileImg: "",
+    nickname: "",
+    address: "",
+    tradeAddress: "",
   });
 
-  const [userAddress, setUserAddress] = useState("");
-  const [tradeAddress, setTradeAddress] = useState("");
   const [isEditing, setIsEditing] = useState(false);
 
-  // 다음 주소 검색 실행
-  const openKakaoPostcode = (setAddress) => {
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await api.get("/api/user/mypage", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserInfo({
+          profileImg: response.data.img,
+          nickname: response.data.name,
+          address: response.data.address,
+          tradeAddress: response.data.tradeAddress,
+        });
+      } catch (error) {
+        console.error("사용자 정보 가져오기 실패:", error);
+      }
+    };
+  
+    fetchUserInfo();
+  }, []);
+  
+
+  const handleSave = async () => {
+    try {
+      const { tradeAddress, address } = userInfo;
+  
+      // 위도, 경도 가져오기
+      const geoResponse = await axios.get(
+        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(tradeAddress)}`,
+        {
+          headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+        }
+      );
+  
+      const { x: lon, y: lat } = geoResponse.data.documents[0];
+  
+      // 서버로 데이터 전송
+      await api.put("/api/user/changeAddress", {
+        addr1: address,
+        addr2: tradeAddress,
+        lat: lat,
+        lon: lon,
+      });
+  
+      alert("주소가 성공적으로 저장되었습니다.");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("주소 저장 실패:", error);
+    }
+  };
+  
+
+  const openKakaoPostcode = (field) => {
     new window.daum.Postcode({
       oncomplete: (data) => {
-        setAddress(data.address);
+        setUserInfo((prev) => ({ ...prev, [field]: data.address }));
       },
     }).open();
   };
 
   return (
     <Container>
-      {/* 헤더 */}
       <Header>
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
         <Title>마이페이지</Title>
       </Header>
 
-      {/* 프로필 섹션 */}
       <ProfileSection>
         <ProfileImage src={userInfo.profileImg} alt="프로필 사진" />
-        <UserName>{userInfo.name}</UserName>
+        <UserName>{userInfo.nickname}</UserName>
       </ProfileSection>
 
-      {/* 버튼 섹션 */}
       <ButtonGrid>
         <Button>기부 내역</Button>
-        <Button onClick={() => navigate('/myexchange')} >환전 내역</Button>
+        <Button onClick={() => navigate('/myexchange')}>환전 내역</Button>
         <Button onClick={() => navigate('/mysell')}>나의 판매</Button>
         <Button onClick={() => navigate('/calculator')}>외화 계산기</Button>
       </ButtonGrid>
 
-      {/* 구분선 및 정보 섹션 */}
       <Divider />
       <InfoHeader>
         <InfoTitle>나의 정보</InfoTitle>
-        <EditButton onClick={() => setIsEditing(!isEditing)} isEditing={isEditing}>
+        <EditButton onClick={() => isEditing ? handleSave() : setIsEditing(true)} isEditing={isEditing}>
           {isEditing ? "확인" : "수정하기"}
           {!isEditing && <EditIcon src={editicon} alt="수정 아이콘" />}
         </EditButton>
       </InfoHeader>
-      
+
       <InfoSection>
         <InfoItem>
-          <Label>이름</Label>
-          <DisabledInput value={userInfo.name} readOnly disabled />
-        </InfoItem>
-        <InfoItem>
-          <Label>이메일</Label>
-          <DisabledInput value={userInfo.email} readOnly disabled />
+          <Label>닉네임</Label>
+          <DisabledInput value={userInfo.nickname} readOnly disabled />
         </InfoItem>
         <InfoItem>
           <Label>내 주소</Label>
           <Input
             type="text"
-            value={userAddress}
+            value={userInfo.address}
             readOnly={!isEditing}
-            disabled={!isEditing}
-            onClick={() => isEditing && openKakaoPostcode(setUserAddress)}
+            onClick={() => isEditing && openKakaoPostcode("address")}
           />
         </InfoItem>
         <InfoItem>
           <Label>거래 주소</Label>
           <Input
             type="text"
-            value={tradeAddress}
+            value={userInfo.tradeAddress}
             readOnly={!isEditing}
-            disabled={!isEditing}
-            onClick={() => isEditing && openKakaoPostcode(setTradeAddress)}
+            onClick={() => isEditing && openKakaoPostcode("tradeAddress")}
           />
         </InfoItem>
       </InfoSection>
@@ -95,6 +135,7 @@ function MyPage() {
 }
 
 export default MyPage;
+
 
 // 스타일 정의
 const Container = styled.div`

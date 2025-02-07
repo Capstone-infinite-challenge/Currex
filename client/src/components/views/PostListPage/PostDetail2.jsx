@@ -72,7 +72,7 @@ function PostDetail2() {
   
     const fetchPost = async () => {
       try {
-        const response = await api.get(`/sell/sellDescription/${sellId}`); 
+        const response = await api.get(`/api/sell/sellDescription/${sellId}`); 
         setSell(response.data);
       } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);

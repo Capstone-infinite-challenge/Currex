@@ -41,7 +41,7 @@ function PostList() {
           return;
         }
 
-        const response = await api.get("/sell/sellList", { 
+        const response = await api.get("/api/sell/sellList", { 
           withCredentials: true, // 쿠키 전달 설정
         });
     
