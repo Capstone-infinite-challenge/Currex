@@ -1,6 +1,6 @@
 import { Router } from "express";
-import Sell from "./models/sell.js";
-import calculate from "./utils/calculate.js";
+import Sell from "../models/sell.js";
+import calculate from "../utils/calculate.js";
 
 const router = Router();
 
