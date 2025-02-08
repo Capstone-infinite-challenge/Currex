@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // React Router 사용
+
+import BackArrow from "../../images/backarrow.svg"; // SVG 아이콘 불러오기
 
 const Detect = () => {
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [currencyData, setCurrencyData] = useState(null);
@@ -77,7 +81,16 @@ const Detect = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>카메라로 화폐 감지</h2>
+      {/* 이전 버튼 & 타이틀 */}
+      <div style={styles.header}>
+        <img
+          src={BackArrow}
+          alt="뒤로 가기"
+          style={styles.backButton}
+          onClick={() => navigate(-1)} // 이전 페이지로 이동
+        />
+        <h2 style={styles.title}>카메라로 화폐 감지</h2>
+      </div>
 
       {/* 카메라 화면 */}
       <div style={{ ...styles.cameraContainer, height: `${cameraHeight}px` }}>
@@ -91,7 +104,7 @@ const Detect = () => {
         style={{ display: "none" }}
       ></canvas>
 
-      {/* 감지 버튼 */}
+      {/* 🔍 감지 버튼 */}
       <div style={styles.buttonContainer}>
         <button
           style={styles.detectButton}
@@ -102,7 +115,7 @@ const Detect = () => {
         </button>
       </div>
 
-      {/* 감지된 결과 팝업 */}
+      {/* 🔍 감지된 결과 팝업 */}
       {showPopup && currencyData && (
         <div style={styles.popup}>
           <h3 style={styles.popupTitle}>화폐 정보</h3>
@@ -141,10 +154,27 @@ const styles = {
     padding: "20px",
     position: "relative",
   },
+  header: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+    gap: "10px",
+    paddingBottom: "30px",
+  },
+  backButton: {
+    width: "24px",
+    height: "24px",
+    cursor: "pointer",
+    position: "absolute",
+    left: "5px",
+  },
   title: {
     fontSize: "22px",
     fontWeight: "bold",
-    marginBottom: "10px",
+    margin: 0,
+    flex: 1,
+    textAlign: "center",
   },
   cameraContainer: {
     width: "100%",
