@@ -11,9 +11,10 @@ function SellerMatch() {
   const [error, setError] = useState(null);
   const [exchangeRates, setExchangeRates] = useState({});
   const navigate = useNavigate();
-  const [districts, setDistricts] = useState({}); // 변환된 행정동 정보를 저장할 상태
+  const [districts, setDistricts] = useState({});
 
-  /** 판매 데이터 불러오기 */
+  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+
   useEffect(() => {
     const fetchSells = async () => {
       try {
@@ -22,14 +23,15 @@ function SellerMatch() {
 
         const sellersWithDistance = response.data.sellersWithDistance || [];
 
-        // 거리순 정렬
-        const sortedSells = sellersWithDistance
-          .filter((sell) => sell.distance)
-          .map((sell) => ({
-            ...sell,
-            distance: parseFloat(sell.distance.replace("km", "")) || 0,
-          }))
-          .sort((a, b) => a.distance - b.distance);
+        // ✅ 본인 판매글 제외
+        const filteredSells = sellersWithDistance.filter(
+          (sell) => sell.sellerId !== currentUserId
+        );
+
+        // ✅ 거리순 정렬 (parseFloat로 변환)
+        const sortedSells = filteredSells.sort((a, b) => {
+          return parseFloat(a.distance) - parseFloat(b.distance);
+        });
 
         setSells(sortedSells);
       } catch (error) {
@@ -43,7 +45,6 @@ function SellerMatch() {
     fetchSells();
   }, []);
 
-  /** 실시간 환율 가져오기 */
   useEffect(() => {
     const fetchExchangeRates = async () => {
       const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))];
@@ -67,67 +68,51 @@ function SellerMatch() {
     }
   }, [sells]);
 
-  // 도로명 주소 → 행정동 변환
-    useEffect(() => {
-      const fetchRegionNames = async () => {
-        const newDistricts = {}; // 변환된 주소를 저장할 객체
-    
-        await Promise.all(
-          sells.map(async (sell) => {
-            if (!sell.location) return;
-    
-            try {
-              // 도로명 주소 → 좌표 변환
-              const addressResponse = await axios.get(
-                `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
-                {
-                  headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
-                }
-              );
-    
-              if (!addressResponse.data.documents.length) {
-                console.warn(`주소 검색 실패: ${sell.location}`);
-                return;
-              }
-    
-              const { x, y } = addressResponse.data.documents[0]; // 위도, 경도 값 가져오기
-    
-              // 좌표 → 행정동 변환
-              const regionResponse = await axios.get(
-                `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
-                {
-                  headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
-                }
-              );
-    
-              if (!regionResponse.data.documents.length) {
-                console.warn(`⚠️ 행정동 변환 실패: ${sell.location} (x=${x}, y=${y})`);
-                return;
-              }
-    
-              // 'H' (행정동) 타입인 지역 정보 가져오기
-              const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
-    
-              if (regionInfo) {
-                newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
-                //console.log(`변환 완료: ${sell.location} → ${newDistricts[sell._id]}`);
-              } else {
-                console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
-              }
-            } catch (error) {
-              console.error("주소 변환 오류:", error);
-            }
-          })
-        );
-  
-        setDistricts(newDistricts);
-      };
-  
-      if (sells.length > 0) {
-        fetchRegionNames();
-      }
-    }, [sells]);
+  useEffect(() => {
+    const fetchRegionNames = async () => {
+      const newDistricts = {};
 
+      await Promise.all(
+        sells.map(async (sell) => {
+          if (!sell.location) return;
+
+          try {
+            const addressResponse = await axios.get(
+              `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
+              {
+                headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+              }
+            );
+
+            if (!addressResponse.data.documents.length) return;
+
+            const { x, y } = addressResponse.data.documents[0];
+
+            const regionResponse = await axios.get(
+              `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
+              {
+                headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+              }
+            );
+
+            const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
+
+            if (regionInfo) {
+              newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
+            }
+          } catch (error) {
+            console.error("주소 변환 오류:", error);
+          }
+        })
+      );
+
+      setDistricts(newDistricts);
+    };
+
+    if (sells.length > 0) {
+      fetchRegionNames();
+    }
+  }, [sells]);
 
   return (
     <Container>
@@ -146,11 +131,19 @@ function SellerMatch() {
         <PostListContainer>
           {sells.map((sell) => (
             <Post key={sell._id}>
+              <ImageContainer>
+                {sell.images && sell.images.length > 0 ? (
+                  <PostImage src={sell.images[0]} alt="상품 이미지" />
+                ) : (
+                  <NoImage>이미지 없음</NoImage>
+                )}
+              </ImageContainer>
+
               <PostInfo>
                 <Currency>{sell.currency}</Currency>
                 <Amount>{sell.amount.toLocaleString()} {sell.currency}</Amount>
                 <Details>
-                  <Distance>{sell.distance.toFixed(2)} km</Distance>
+                  <Distance>{parseFloat(sell.distance).toFixed(2)} km</Distance>
                   <Won>
                     {exchangeRates[sell.currency]
                       ? `${Math.round(sell.amount * exchangeRates[sell.currency]).toLocaleString()} 원`
@@ -158,8 +151,8 @@ function SellerMatch() {
                   </Won>
                 </Details>
                 <Location>
-          📍 {districts[sell._id] ? districts[sell._id] : sell.location ? sell.location : "위치 정보 없음"}
-          </Location>
+                  📍 {districts[sell._id] ? districts[sell._id] : sell.location || "위치 정보 없음"}
+                </Location>
               </PostInfo>
             </Post>
           ))}
@@ -176,6 +169,7 @@ function SellerMatch() {
 }
 
 export default SellerMatch;
+
 
 // 📌 스타일 정의
 const Container = styled.div`
