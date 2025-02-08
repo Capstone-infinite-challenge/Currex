@@ -1,6 +1,6 @@
 import { Router } from "express";
 import Sell from "../models/sell.js";
-import calculate from "../utils/calculate.js";
+import calculateDistance from "../utils/calculate.js";
 
 const router = Router();
 
@@ -34,6 +34,8 @@ router.post("/buy", (req, res) => {
         .json({ error: "최대 금액은 최소 금액보다 커야 합니다" });
     }
 
+    req.session.buyerInfo = buyerInfo;
+
     console.log("저장된 구매자 정보:", buyerInfo);
     res.status(201).json(buyerInfo);
   } catch (error) {
@@ -45,6 +47,7 @@ router.post("/buy", (req, res) => {
 //판매자 매칭
 router.get("/SellerMatch", async (req, res) => {
   // 구매자 정보를 기준으로 판매자 필터링
+  const buyerInfo = req.session.buyerInfo; 
   try {
     //구매자 정보가 없는 경우
     if (!buyerInfo) {
@@ -57,7 +60,7 @@ router.get("/SellerMatch", async (req, res) => {
 
     // 거리 계산 및 추가 정보 반환
     const sellersWithDistance = sells.map((seller) => {
-      const distance = calculate.calculateDistance(
+      const distance = calculateDistance(
         buyerInfo.latitude,
         buyerInfo.longitude,
         seller.latitude,

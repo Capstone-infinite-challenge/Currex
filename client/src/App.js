@@ -36,7 +36,7 @@ function App() {
             <Route exact path="/chat" element={<Chat />} />
             <Route exact path="/chat2" element={<Chat2 />} />
             <Route exact path="/chatlist" element={<ChatList />} />
-            <Route exact path="/login" element={<Login />} />
+            <Route exact path="/" element={<Login />} />
             <Route exact path="/auth/kakao/callback" element ={<Login />} />
             <Route exact path="/mypage" element={<MyPage />} />
             <Route exact path="/mysell" element={<MySell />} />

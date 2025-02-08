@@ -41,7 +41,7 @@ function PostList() {
           return;
         }
 
-        const response = await api.get("/sell/sellList", { 
+        const response = await api.get("/api/sell/sellList", { 
           withCredentials: true, // 쿠키 전달 설정
         });
     
@@ -181,7 +181,7 @@ useEffect(() => {
 
           if (regionInfo) {
             newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
-            console.log(`변환 완료: ${sell.location} → ${newDistricts[sell._id]}`);
+            //console.log(`변환 완료: ${sell.location} → ${newDistricts[sell._id]}`);
           } else {
             console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
           }
