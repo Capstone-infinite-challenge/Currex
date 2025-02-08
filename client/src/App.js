@@ -13,11 +13,12 @@ import Chat from "../src/components/views/ChattingPage/Chat";
 import Chat2 from "../src/components/views/ChattingPage/Chat2";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
-import Layout from "./components/views/Layout/Layout"; 
-import KakaoMap from "./components/utils/KakaoMap"; 
+import Layout from "./components/views/Layout/Layout";
+import KakaoMap from "./components/utils/KakaoMap";
 import MyPage from "./components/views/MyPage/MyPage";
 import MySell from "./components/views/MyPage/MySell";
 import MyExchange from "./components/views/MyPage/MyExchange";
+import Detect from "./components/views/ModelPage/Detect";
 
 function App() {
   return (
@@ -37,10 +38,11 @@ function App() {
             <Route exact path="/chat2" element={<Chat2 />} />
             <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/" element={<Login />} />
-            <Route exact path="/auth/kakao/callback" element ={<Login />} />
+            <Route exact path="/auth/kakao/callback" element={<Login />} />
             <Route exact path="/mypage" element={<MyPage />} />
             <Route exact path="/mysell" element={<MySell />} />
-            <Route exact path="/myexchange" element={<MyExchange/>} />
+            <Route exact path="/myexchange" element={<MyExchange />} />
+            <Route exact path="/detect" element={<Detect />} />
           </Routes>
         </Layout>
       </BrowserRouter>
