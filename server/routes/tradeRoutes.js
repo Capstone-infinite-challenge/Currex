@@ -48,6 +48,7 @@ router.post("/buy", (req, res) => {
 router.get("/SellerMatch", async (req, res) => {
   // 구매자 정보를 기준으로 판매자 필터링
   const buyerInfo = req.session.buyerInfo; 
+  const currentUserId = req.user.id;  // 현재 로그인한 사용자의 ID
   try {
     //구매자 정보가 없는 경우
     if (!buyerInfo) {
@@ -56,10 +57,14 @@ router.get("/SellerMatch", async (req, res) => {
     const sells = await Sell.find({
       currency: buyerInfo.currency,
       amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
+      status: '판매중'  // 판매 중인 상품만 필터링
     });
 
+    // 본인의 판매글 제외 (판매자 ID로 비교)
+    const filteredSells = sells.filter(sell => sell.sellerId !== currentUserId);
+
     // 거리 계산 및 추가 정보 반환
-    const sellersWithDistance = sells.map((seller) => {
+    const sellersWithDistance = filteredSells.map((seller) => {
       const distance = calculateDistance(
         buyerInfo.latitude,
         buyerInfo.longitude,
@@ -68,9 +73,13 @@ router.get("/SellerMatch", async (req, res) => {
       );
       return {
         name: seller.name,
-        distance: `${distance.toFixed(2)} km`, // 거리 계산 결과
+        distance: distance,
         currency: seller.currency,
         amount: seller.amount,
+        location: seller.location,
+        images: seller.images.map(image =>
+          `data:${image.contentType};base64,${image.data.toString('base64')}`
+        ),
       };
     });
 
