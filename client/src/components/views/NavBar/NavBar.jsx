@@ -24,24 +24,54 @@ function NavBar() {
 
   return (
     <Container>
-      <NavItem isActive={active === "list"} onClick={() => handleClick("list", "/list")}>
-        <NavIcon src={active === "list" ? homeiconActive : homeicon} alt="목록" />
+      <NavItem
+        isActive={active === "list"}
+        onClick={() => handleClick("list", "/list")}
+      >
+        <NavIcon
+          src={active === "list" ? homeiconActive : homeicon}
+          alt="목록"
+        />
         <NavText isActive={active === "list"}>목록</NavText>
       </NavItem>
-      <NavItem isActive={active === "donate"} onClick={() => handleClick("donate", "/donate")}>
-        <NavIcon src={active === "donate" ? donateiconActive : donateicon} alt="기부하기" />
+      <NavItem
+        isActive={active === "donate"}
+        onClick={() => handleClick("donate", "/donate")}
+      >
+        <NavIcon
+          src={active === "donate" ? donateiconActive : donateicon}
+          alt="기부하기"
+        />
         <NavText isActive={active === "donate"}>기부하기</NavText>
       </NavItem>
-      <NavItem isActive={active === "camera"} onClick={() => handleClick("camera", "/camera")}>
-        <NavIcon src={active === "camera" ? cameraiconActive : cameraicon} alt="카메라" />
+      <NavItem
+        isActive={active === "camera"}
+        onClick={() => handleClick("camera", "/detect")}
+      >
+        <NavIcon
+          src={active === "camera" ? cameraiconActive : cameraicon}
+          alt="카메라"
+        />
         <NavText isActive={active === "camera"}>카메라</NavText>
       </NavItem>
-      <NavItem isActive={active === "chat"} onClick={() => handleClick("chatlist", "/chatlist")}>
-        <NavIcon src={active === "chat" ? chaticonActive : chaticon} alt="채팅하기" />
+      <NavItem
+        isActive={active === "chat"}
+        onClick={() => handleClick("chatlist", "/chatlist")}
+      >
+        <NavIcon
+          src={active === "chat" ? chaticonActive : chaticon}
+          alt="채팅하기"
+        />
         <NavText isActive={active === "chat"}>채팅하기</NavText>
       </NavItem>
-      <NavItem isActive={active === "mypage"} onClick={() => handleClick("mypage", "/mypage")}>
-        <NavIcon src={active === "mypage" ? usericonActive : usericon} alt="내 정보" />
+      <NavItem
+        isActive={active === "mypage"}
+        onClick={() => handleClick("mypage", "/mypage")}
+      >
+        <NavIcon
+          src={active === "mypage" ? usericonActive : usericon}
+          alt="내 정보"
+        />
         <NavText isActive={active === "mypage"}>내 정보</NavText>
       </NavItem>
     </Container>

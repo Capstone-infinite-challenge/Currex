@@ -30,5 +30,5 @@ router.post("/predict", upload.single("file"), async (req, res) => {
   res.json(prediction);
 });
 
-// ✅ ESM 방식으로 내보내기 (`export default` 사용)
+// ESM 방식으로 내보내기 (`export default` 사용)
 export default router;
