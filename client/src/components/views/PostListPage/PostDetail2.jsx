@@ -1,32 +1,40 @@
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import backarrowwhite from "../../images/backarrow-white.svg";
 import moredetail from "../../images/moredetails.svg";
-import Slider from "react-slick"; // react-slick 사용을 위해 import
 import axios from "axios";
 import api from "../../utils/api";
-import "slick-carousel/slick/slick.css"; // react-slick 스타일
-import "slick-carousel/slick/slick-theme.css"; // react-slick 테마 스타일
 
-//세진아 이거 읽어바바
-//이거는 PostDetail2 컴포넌트임 (피그마와 동일한 스타일 적용)
-//PostDetail1은 css 거의 안함, 이미지 슬라이더 구현 안함. -> 정상적으로 사진 잘 보임 (이미지 1개)
-//현재 app.js에서 상세정보 페이지 들어가는 라우터 "/sell/:sellId" 는 PostDetail2에다 연결해놓음
-//현재 PostDetail2는 이미지 슬라이더가 제대로 구현이 안된 상태. 이미지를 불러오지 못함
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/pagination";
+import { Pagination } from "swiper/modules";
+import { createGlobalStyle } from "styled-components";
+
+const GlobalStyle = createGlobalStyle`
+  .swiper-pagination-bullet {
+    background-color: black !important; /* 기본 점박이 빨간색 */
+    opacity: 1;
+  }
+
+  .swiper-pagination-bullet-active {
+    background-color: red !important; /* 활성화된 점박이 검정색 */
+    opacity: 1;
+  }
+`;
 
 function PostDetail2() {
-  const { sellId } = useParams(); // URL에서 sellId 가져오기
+  const { sellId } = useParams();
   const navigate = useNavigate();
   const [sell, setSell] = useState({});
   const [exchangeRate, setExchangeRate] = useState(null);
-  const [latitude, setLatitude] = useState(37.5665); //이거는 나중에 바꿔야됨 일단 서울시청 기준 위도 경도도
+  const [latitude, setLatitude] = useState(37.5665);
   const [longitude, setLongitude] = useState(126.978);
   const [showMenu, setShowMenu] = useState(false);
 
   const toggleMenu = () => {
-    setShowMenu((prevState) => !prevState); // 메뉴 열기/닫기 토글
+    setShowMenu((prevState) => !prevState);
   };
 
   const handleEdit = () => {
@@ -39,31 +47,6 @@ function PostDetail2() {
     setShowMenu(false);
   };
 
-  // 이미지 슬라이더 설정
-  const settings = {
-    dots: true, // 하단 점 표시
-    infinite: true, // 무한 슬라이드
-    speed: 500, // 슬라이드 전환 속도
-    slidesToShow: 1, // 한 번에 하나의 이미지만 보여줌
-    slidesToScroll: 1, // 한 번에 한 장씩 슬라이드
-    arrows: false, // 좌우 화살표 숨기기
-    customPaging: function (i) {
-      return (
-        <div
-          style={{
-            width: "10px",
-            height: "10px",
-            borderRadius: "50%",
-            backgroundColor: "black", // 슬라이드 버튼 색상
-          }}
-        ></div>
-      );
-    },
-  };
-
-  console.log("이미지 경로 확인:", sell?.images); // 이미지 경로 확인
-  console.log("슬라이더 설정:", settings); // 슬라이더 설정 확인
-
   useEffect(() => {
     if (!sellId) {
       console.error("sellId가 undefined입니다.");
@@ -73,11 +56,7 @@ function PostDetail2() {
     const fetchPost = async () => {
       try {
         const response = await api.get(`/api/sell/sellDescription/${sellId}`);
-        console.log("서버에서 받은 데이터:", response.data); // 응답 데이터 확인
-        if (!response.data || !response.data.images) {
-          console.error("이미지 데이터가 없습니다.");
-        }
-
+        console.log("서버에서 받은 데이터:", response.data);
         setSell(response.data || {});
       } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);
@@ -157,99 +136,103 @@ function PostDetail2() {
   }
 
   return (
-    //이 부분이 문제 구간.....
-    <Container>
-      <ImageBackground>
-        {sell ? (
-          sell.images && sell.images.length > 0 ? (
-            <Slider {...settings}>
+    <>
+      <GlobalStyle />
+      <Container>
+        <ImageBackground>
+          {sell?.images && sell.images.length > 0 ? (
+            <Swiper
+              modules={[Pagination]}
+              pagination={{
+                clickable: true,
+              }}
+              spaceBetween={10}
+              slidesPerView={1}
+              loop={true}
+            >
               {sell.images.map((image, index) => (
-                <div key={index}>
-                  <MainImage src={image} alt={`상품 이미지 ${index + 1}`} />
-                </div>
+                <SwiperSlide key={index}>
+                  <MainImage
+                    src={image}
+                    alt={`상품 이미지 ${index + 1}`}
+                    onError={(e) => (e.target.src = "/fallback-image.png")}
+                  />
+                </SwiperSlide>
               ))}
-            </Slider>
+            </Swiper>
           ) : (
             <NoImage>이미지 없음</NoImage>
-          )
-        ) : (
-          <LoadingMessage>이미지를 불러오는 중...</LoadingMessage> //여기까지 슬라이더 (문제 구간)
-        )}
-        <TopBar>
-          <BackButton
-            onClick={() => window.history.back()}
-            src={backarrowwhite}
-            alt="뒤로가기"
-          />
-          <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
-        </TopBar>
+          )}
 
-        {showMenu && (
-          <Menu>
-            <MenuItem onClick={handleEdit}>수정</MenuItem>
-            <MenuItem onClick={handleDelete}>삭제</MenuItem>
-          </Menu>
-        )}
-      </ImageBackground>
+          <TopBar>
+            <BackButton
+              onClick={() => window.history.back()}
+              src={backarrowwhite}
+              alt="뒤로가기"
+            />
+            <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
+          </TopBar>
+          {showMenu && (
+            <Menu>
+              <MenuItem onClick={handleEdit}>수정</MenuItem>
+              <MenuItem onClick={handleDelete}>삭제</MenuItem>
+            </Menu>
+          )}
+        </ImageBackground>
 
-      <Content>
-        <TopInfo>
-          <CurrencyTag>{sell.currency}</CurrencyTag>
-          <UserInfo>
-            <UserImage src="https://via.placeholder.com/40" alt="사용자" />
-            <UserName>{sell.sellerName || "익명 판매자"}</UserName>
-          </UserInfo>
-        </TopInfo>
-
-        <Price>${sell.amount.toLocaleString()}</Price>
-
-        <InfoSection>
-          <InfoTitle>거래 위치</InfoTitle>
-          <InfoValue>{sell.location || "위치 정보 없음"}</InfoValue>
-        </InfoSection>
-
-        <InfoSection>
-          <InfoTitle>환율</InfoTitle>
-          <InfoValue>
-            {exchangeRate
-              ? `100 ${sell.currency} / ${exchangeRate.toFixed(2)} 원`
-              : "환율 정보 없음"}
-          </InfoValue>
-        </InfoSection>
-
-        <Description>{sell.content || "설명 없음"}</Description>
-
-        <LocationInfo>
-          <LocationTitle>거래 희망 장소</LocationTitle>
-          <LocationAddress>{sell.location}</LocationAddress>
-        </LocationInfo>
-
-        <MapContainer
-          id="kakao-map"
-          style={{ width: "100%", height: "250px" }}
-        ></MapContainer>
-
-        <ButtonContainer>
-          <KRWContainer>
-            <KRWLabel>원화</KRWLabel>
-            <KRWAmount>
+        <Content>
+          <TopInfo>
+            <CurrencyTag>{sell.currency}</CurrencyTag>
+            <UserInfo>
+              <UserImage src="https://via.placeholder.com/40" alt="사용자" />
+              <UserName>{sell.sellerName || "익명 판매자"}</UserName>
+            </UserInfo>
+          </TopInfo>
+          <Price>${sell.amount?.toLocaleString()}</Price>
+          <InfoSection>
+            <InfoTitle>거래 위치</InfoTitle>
+            <InfoValue>{sell.location || "위치 정보 없음"}</InfoValue>
+          </InfoSection>
+          <InfoSection>
+            <InfoTitle>환율</InfoTitle>
+            <InfoValue>
               {exchangeRate
-                ? `${Math.round(
-                    sell.amount * exchangeRate
-                  ).toLocaleString()} 원`
+                ? `100 ${sell.currency} / ${exchangeRate.toFixed(2)} 원`
                 : "환율 정보 없음"}
-            </KRWAmount>
-          </KRWContainer>
-          <InquiryButton>문의하기</InquiryButton>
-        </ButtonContainer>
-      </Content>
-    </Container>
+            </InfoValue>
+          </InfoSection>
+          <Description>{sell.content || "설명 없음"}</Description>
+          <LocationInfo>
+            <LocationTitle>거래 희망 장소</LocationTitle>
+            <LocationAddress>{sell.location}</LocationAddress>
+          </LocationInfo>
+
+          <MapContainer
+            id="kakao-map"
+            style={{ width: "100%", height: "250px" }}
+          ></MapContainer>
+
+          <ButtonContainer>
+            <KRWContainer>
+              <KRWLabel>원화</KRWLabel>
+              <KRWAmount>
+                {exchangeRate
+                  ? `${Math.round(
+                      sell.amount * exchangeRate
+                    ).toLocaleString()} 원`
+                  : "환율 정보 없음"}
+              </KRWAmount>
+            </KRWContainer>
+            <InquiryButton>문의하기</InquiryButton>
+          </ButtonContainer>
+        </Content>
+      </Container>
+    </>
   );
 }
 
 export default PostDetail2;
 
-// 스타일 정의
 const Container = styled.div`
   width: 100%;
   height: 100vh;
@@ -260,29 +243,14 @@ const Container = styled.div`
 const ImageBackground = styled.div`
   position: relative;
   width: 100%;
-  height: 350px;;
+  height: 350px;
   background-color: #f0f0f0;
+`;
 
-  .slick-dots {
-    position: absolute;
-    top: 320px; 
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .slick-dots li button:before {
-    color: black; 
-  }
-
-  .slick-dots li.slick-active button:before {
-    color: grey; 
-  }
-
-  .image-slide {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* 이미지를 컨테이너 크기에 맞게 자르기 
-  }
+const MainImage = styled.img`
+  width: 100%;
+  height: 350px;
+  object-fit: cover;
 `;
 
 const NoImage = styled.div`
@@ -294,12 +262,6 @@ const NoImage = styled.div`
   color: #999;
 `;
 
-const MainImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
 const TopBar = styled.div`
   position: absolute;
   top: 10px;
@@ -307,6 +269,7 @@ const TopBar = styled.div`
   right: 10px;
   display: flex;
   justify-content: space-between;
+  z-index: 10; /* Swiper보다 위에 배치 */
 `;
 
 const BackButton = styled.img`
@@ -392,8 +355,31 @@ const InfoValue = styled.span`
   margin-right: 0;
 `;
 
-const MapContainer = styled.div`
+const LocationInfo = styled.div`
   margin-top: 20px;
+  padding: 10px;
+  border-radius: 10px;
+  margin-left: -10px;
+`;
+
+const LocationTitle = styled.h3`
+  font-size: 17px;
+  font-weight: bold;
+  color: #333;
+  margin-left: 0;
+`;
+
+const LocationAddress = styled.p`
+  font-size: 13px;
+  color: #898d99;
+  margin-top: 5px;
+  margin-left: 0;
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
 `;
 
 const Description = styled.p`
@@ -402,6 +388,39 @@ const Description = styled.p`
   color: #666;
 `;
 
+const Menu = styled.div`
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+`;
+
+const MenuItem = styled.div`
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+const ButtonContainer = styled.div`
+  position: fixed;
+  bottom: 0px; /* 화면 하단 20px 위 
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%;
+  background: white;
+  padding: 10px;
+  z-index: 10; /* 다른 요소들 위에 표시 
+`;
 const KRWContainer = styled.div`
   margin-top: 20px;
   padding: 15px;
@@ -442,62 +461,6 @@ const InquiryButton = styled.button`
   border-top: 1px solid #eee;
 `;
 
-const Menu = styled.div`
-  position: absolute;
-  top: 40px;
-  right: 10px;
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  z-index: 10;
-`;
-
-const MenuItem = styled.div`
-  padding: 10px;
-  font-size: 14px;
-  cursor: pointer;
-  &:hover {
-    background-color: #f5f5f5;
-  }
-`;
-const ButtonContainer = styled.div`
-  position: fixed;
-  bottom: 0px; /* 화면 하단 20px 위 
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 90%;
-  background: white;
-  padding: 10px;
-  z-index: 10; /* 다른 요소들 위에 표시 
-`;
-
-const LocationInfo = styled.div`
+const MapContainer = styled.div`
   margin-top: 20px;
-  padding: 10px;
-  border-radius: 10px;
-  margin-left: -10px;
-`;
-
-const LocationTitle = styled.h3`
-  font-size: 17px;
-  font-weight: bold;
-  color: #333;
-  margin-left: 0;
-`;
-
-const LocationAddress = styled.p`
-  font-size: 13px;
-  color: #898d99;
-  margin-top: 5px;
-  margin-left: 0;
-`;
-
-const LoadingMessage = styled.div`
-  text-align: center;
-  margin-top: 20px;
-  color: #666;
 `;
