@@ -6,8 +6,8 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
-import equalicon from "../../images/equalicon.svg"
-import KakaoMap from "../..//utils/KakaoMap"; 
+import equalicon from "../../images/equalicon.svg";
+import KakaoMap from "../..//utils/KakaoMap";
 import api from "../../utils/api";
 
 function SellMoney() {
@@ -20,7 +20,6 @@ function SellMoney() {
   const [content, setContent] = useState(""); // 내용 입력
   const [latitude, setLatitude] = useState(null); // 위도
   const [longitude, setLongitude] = useState(null); // 경도
-
 
   const maxImageCount = 5; // 최대 업로드 가능 이미지 수
   const navigate = useNavigate();
@@ -43,30 +42,31 @@ function SellMoney() {
       setKRWAmount("");
     }
   }, [amount, exchangeRate]);
-  
 
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
       oncomplete: async (data) => {
         const fullAddress = data.address; // 선택된 주소
         setUserLocation(fullAddress); // 주소 업데이트
-  
+
         try {
           // Kakao Local API 호출 시 Authorization 헤더 추가
-          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(fullAddress)}`;
+          const geocodeUrl = `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+            fullAddress
+          )}`;
           const kakaoApiKey = process.env.REACT_APP_KAKAO_API_KEY;
-  
+
           if (!kakaoApiKey) {
             console.error(" Kakao API Key가 설정되지 않았습니다!");
             return;
           }
-  
+
           const response = await axios.get(geocodeUrl, {
             headers: {
               Authorization: `KakaoAK ${kakaoApiKey}`, //  Authorization 헤더 확인
             },
           });
-  
+
           const { documents } = response.data;
           if (documents.length > 0) {
             const { x, y } = documents[0]; // x: 경도, y: 위도
@@ -83,16 +83,15 @@ function SellMoney() {
       },
     }).open();
   };
-  
 
-    /** 이미지 업로드 핸들러 */
-    const handleImageUpload = (event) => {
-      const files = Array.from(event.target.files);
-      if (uploadedImages.length + files.length > maxImageCount) {
-        return alert(`최대 ${maxImageCount}장까지 업로드할 수 있습니다.`);
-      }
-      setUploadedImages((prevImages) => [...prevImages, ...files]);
-    };
+  /** 이미지 업로드 핸들러 */
+  const handleImageUpload = (event) => {
+    const files = Array.from(event.target.files);
+    if (uploadedImages.length + files.length > maxImageCount) {
+      return alert(`최대 ${maxImageCount}장까지 업로드할 수 있습니다.`);
+    }
+    setUploadedImages((prevImages) => [...prevImages, ...files]);
+  };
 
   const handleCurrencyChange = (e) => {
     setCurrency(e.target.value); // 통화 변경
@@ -104,16 +103,17 @@ function SellMoney() {
       return;
     }
 
-  const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+    const accessToken =
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("accessToken");
 
-  console.log("현재 저장된 accessToken:", accessToken); // 로그 추가
+    console.log("현재 저장된 accessToken:", accessToken); // 로그 추가
 
-  if (!accessToken) {
-  alert("로그인이 필요합니다.");
-  navigate("/login"); // 로그인 페이지로 리디렉션
-}
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      navigate("/login"); // 로그인 페이지로 리디렉션
+    }
 
-  
     const formData = new FormData();
     formData.append("currency", currency);
     formData.append("amount", amount);
@@ -122,10 +122,11 @@ function SellMoney() {
     formData.append("longitude", longitude);
     formData.append("content", content);
     formData.append("name", "판매글");
-    formData.append("KRWAmount", KRWAmount);  
+    formData.append("KRWAmount", KRWAmount);
 
-    uploadedImages.forEach((image) => {
+    uploadedImages.forEach((image, index) => {
       formData.append("images", image);
+      console.log(`업로드 이미지 ${index}:`, image);
     });
 
     console.log("전송할 데이터 확인:", {
@@ -135,9 +136,8 @@ function SellMoney() {
       latitude,
       longitude,
       content,
-      uploadedImages
+      uploadedImages,
     });
-    
 
     try {
       const response = await api.post("/api/sell/productRegi", formData);
@@ -153,19 +153,32 @@ function SellMoney() {
   return (
     <Container>
       <Header>
-        <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
+        <BackButton
+          src={backarrow}
+          alt="뒤로가기"
+          onClick={() => navigate(-1)}
+        />
       </Header>
 
       <TitleContainer>
-        <Title>외화를 얼마나<br />판매하고 싶으신가요?</Title>
-        <ExchangeRateText>1 {currency} = {exchangeRate.toLocaleString()} 원</ExchangeRateText>
+        <Title>
+          외화를 얼마나
+          <br />
+          판매하고 싶으신가요?
+        </Title>
+        <ExchangeRateText>
+          1 {currency} = {exchangeRate.toLocaleString()} 원
+        </ExchangeRateText>
       </TitleContainer>
 
       <Form>
-      <Label>
+        <Label>
           거래 희망 금액
           <CurrencyInputWrapper>
-            <CurrencyDropdown value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            <CurrencyDropdown
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            >
               <option value="USD">USD</option>
               <option value="JPY">JPY</option>
               <option value="EUR">EUR</option>
@@ -185,9 +198,12 @@ function SellMoney() {
             <Suffix>{currency}</Suffix>
           </CurrencyInputWrapper>
         </Label>
-        
+
         <Note>
-          잠깐! 총액을 모른다면? <CalculatorLink onClick={() => navigate("/calculator")}>외화계산기 이용</CalculatorLink>
+          잠깐! 총액을 모른다면?{" "}
+          <CalculatorLink onClick={() => navigate("/calculator")}>
+            외화계산기 이용
+          </CalculatorLink>
         </Note>
 
         <Label>
@@ -199,21 +215,26 @@ function SellMoney() {
           </InputContainer>
         </Label>
 
-
         <Label>
           거래 위치
           <LocationWrapper>
-            <WideInput type="text" placeholder="주소 입력" value={userLocation} readOnly />
+            <WideInput
+              type="text"
+              placeholder="주소 입력"
+              value={userLocation}
+              readOnly
+            />
             <LocationButton onClick={openKakaoPostcode}>
               <SearchIcon src={searchicon} alt="주소 검색" />
             </LocationButton>
           </LocationWrapper>
         </Label>
-        
 
         <Label>
           <ImageSection>
-            <ImageLabel>사진 ({maxImageCount - uploadedImages.length}장 남음)</ImageLabel>
+            <ImageLabel>
+              사진 ({maxImageCount - uploadedImages.length}장 남음)
+            </ImageLabel>
             <ImageUploadWrapper>
               <UploadButton htmlFor="imageUpload">
                 <UploadIcon src={pictureicon} alt="사진 업로드" />
@@ -226,7 +247,11 @@ function SellMoney() {
                 onChange={handleImageUpload}
               />
               {uploadedImages.map((image, index) => (
-                <ImagePreview key={index} src={URL.createObjectURL(image)} alt={`업로드된 이미지 ${index + 1}`} />
+                <ImagePreview
+                  key={index}
+                  src={URL.createObjectURL(image)}
+                  alt={`업로드된 이미지 ${index + 1}`}
+                />
               ))}
             </ImageUploadWrapper>
           </ImageSection>
@@ -242,7 +267,6 @@ function SellMoney() {
         </Label>
 
         <SubmitButton onClick={handleSubmit}>판매 등록</SubmitButton>
-
       </Form>
     </Container>
   );
@@ -258,7 +282,7 @@ const Container = styled.div`
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
   border-radius: 32px;
   overflow: hidden;
-  font-family: 'Pretendard', sans-serif;
+  font-family: "Pretendard", sans-serif;
 `;
 
 const Header = styled.div`
@@ -296,14 +320,13 @@ const CurrencyInputWrapper = styled.div`
   border-radius: 8px;
   padding: 8px;
   gap: 8px;
-  width:123%;
+  width: 123%;
 `;
-
 
 const DropdownIcon = styled.img`
   position: absolute;
-  margin-left:45px;
-  margin-top:10px;
+  margin-left: 45px;
+  margin-top: 10px;
   transform: translateY(-50%);
   width: 12px;
   height: 12px;
@@ -323,14 +346,14 @@ const Title = styled.h1`
   font-size: 24px;
   font-weight: 700;
   line-height: 36px;
-  color: #1F2024;
+  color: #1f2024;
 `;
 
 const ExchangeRateText = styled.p`
   font-size: 13px;
   font-weight: 300;
   line-height: 20px;
-  color: #898D99;
+  color: #898d99;
 `;
 
 const Form = styled.div`
@@ -344,7 +367,7 @@ const Form = styled.div`
 const Label = styled.label`
   font-size: 11px;
   font-weight: 400;
-  color: #8EA0AC;
+  color: #8ea0ac;
   line-height: 12px;
   display: flex;
   flex-direction: column;
@@ -361,7 +384,7 @@ const CurrencyAmountWrapper = styled.div`
 const InputContainer = styled.div`
   position: relative;
   width: 100%;
-  margin-left:20px;
+  margin-left: 20px;
 `;
 
 const Input = styled.input`
@@ -371,17 +394,17 @@ const Input = styled.input`
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
-  margin-left:10px;
+  margin-left: 10px;
 
   &:focus {
     outline: none;
-    border: 1px solid #CA2F28;
+    border: 1px solid #ca2f28;
   }
 `;
 
 const Suffix = styled.span`
   position: absolute;
-  left:310px;
+  left: 310px;
   top: 30%;
   transform: translateY(-50%);
   font-size: 14px;
@@ -390,7 +413,7 @@ const Suffix = styled.span`
 
 const KRWSuffix = styled.span`
   position: absolute;
-  left:270px;
+  left: 270px;
   top: 44%;
   transform: translateY(-50%);
   font-size: 14px;
@@ -405,7 +428,7 @@ const EqualIcon = styled.img`
   width: 16px;
   height: 16px;
   color: #8ea0ac;
-  margin-left:10px;
+  margin-left: 10px;
 `;
 
 const Note = styled.p`
@@ -417,10 +440,10 @@ const Note = styled.p`
 `;
 
 const CalculatorLink = styled.span`
-  color: #CA2F28;
+  color: #ca2f28;
   font-weight: 700;
   cursor: pointer;
-  margin-left:160px;
+  margin-left: 160px;
 `;
 
 const LocationWrapper = styled.div`
@@ -432,23 +455,23 @@ const LocationWrapper = styled.div`
 
 const WideInput = styled.input`
   width: 200%;
-  padding: 11px; 
+  padding: 11px;
   font-size: 14px;
   border: 1px solid #ccc;
-  border-radius: 8px; 
+  border-radius: 8px;
   box-sizing: border-box;
-  margin-top: 0px; 
-  margin-left:0px;
+  margin-top: 0px;
+  margin-left: 0px;
 
   ::placeholder {
     font-size: 14px;
-    color: #888; 
-    transition: color 0.3s ease; 
+    color: #888;
+    transition: color 0.3s ease;
   }
 
   &:focus {
     outline: none;
-    border: 1px solid #CA2F28;
+    border: 1px solid #ca2f28;
   }
 `;
 
@@ -472,21 +495,21 @@ const ImageSection = styled.div`
 const ImageLabel = styled.span`
   font-size: 12px;
   font-weight: 400;
-  color: #8EA0AC;
-  margin-left:0px;
+  color: #8ea0ac;
+  margin-left: 0px;
 `;
 
 const ImageUploadWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left:0px;
+  margin-left: 0px;
 `;
 
 const UploadButton = styled.label`
   width: 52px;
   height: 52px;
-  background: #F7F7F7;
+  background: #f7f7f7;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -522,14 +545,14 @@ const Textarea = styled.textarea`
 
   &:focus {
     outline: none;
-    border: 1px solid #CA2F28;
+    border: 1px solid #ca2f28;
   }
 `;
 
 const SubmitButton = styled.button`
   width: 100%;
   height: 48px;
-  background: #CA2F28;
+  background: #ca2f28;
   color: white;
   font-size: 14px;
   font-weight: 700;

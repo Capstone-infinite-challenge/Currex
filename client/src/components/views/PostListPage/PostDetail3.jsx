@@ -19,7 +19,7 @@ import "slick-carousel/slick/slick-theme.css"; // react-slick 테마 스타일
 function PostDetail2() {
   const { sellId } = useParams(); // URL에서 sellId 가져오기
   const navigate = useNavigate();
-  const [sell, setSell] = useState({});
+  const [sell, setSell] = useState(null);
   const [exchangeRate, setExchangeRate] = useState(null);
   const [latitude, setLatitude] = useState(37.5665); //이거는 나중에 바꿔야됨 일단 서울시청 기준 위도 경도도
   const [longitude, setLongitude] = useState(126.978);
@@ -61,7 +61,7 @@ function PostDetail2() {
     },
   };
 
-  console.log("이미지 경로 확인:", sell?.images); // 이미지 경로 확인
+  console.log("이미지 경로 확인:", sell.images); // 이미지 경로 확인
   console.log("슬라이더 설정:", settings); // 슬라이더 설정 확인
 
   useEffect(() => {
@@ -74,11 +74,10 @@ function PostDetail2() {
       try {
         const response = await api.get(`/api/sell/sellDescription/${sellId}`);
         console.log("서버에서 받은 데이터:", response.data); // 응답 데이터 확인
-        if (!response.data || !response.data.images) {
-          console.error("이미지 데이터가 없습니다.");
+        if (!response.data.images) {
+          console.error("이미지 데이터가 없으니까 백엔드 문제일 가능성 있음");
         }
-
-        setSell(response.data || {});
+        setSell(response.data);
       } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);
         if (error.response?.status === 401) {
@@ -152,7 +151,7 @@ function PostDetail2() {
     document.body.appendChild(script);
   }, [latitude, longitude]);
 
-  if (!sell || Object.keys(sell).length === 0) {
+  if (!sell) {
     return <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>;
   }
 
