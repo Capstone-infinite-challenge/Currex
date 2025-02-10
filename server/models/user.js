@@ -26,7 +26,7 @@ const userSchema = new Schema({
         type: String,
         default: null
     },
-    tradeAddress_longtitude:{                //거래주소 - 위도
+    tradeAddress_longitude:{                //거래주소 - 위도
         type: String,
         default: null
     },

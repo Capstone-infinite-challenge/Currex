@@ -17,7 +17,9 @@ const findUserInfo = async(userId) => {
         name: user.nickname, 
         img: user.profile_img, 
         address: user.address, 
-        tradeAddress: user.tradeAddress 
+        tradeAddress: user.tradeAddress,
+        latitude: user.tradeAddress_latitude,
+        longitude: user.tradeAddress_longitude 
       };
   
       return userInfo;
