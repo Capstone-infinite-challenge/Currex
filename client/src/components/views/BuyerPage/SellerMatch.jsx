@@ -45,6 +45,7 @@ function SellerMatch() {
     fetchSells();
   }, []);
 
+  //실시간 환율율
   useEffect(() => {
     const fetchExchangeRates = async () => {
       const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))];
@@ -68,53 +69,71 @@ function SellerMatch() {
     }
   }, [sells]);
 
-  useEffect(() => {
-    const fetchRegionNames = async () => {
-      const newDistricts = {};
+  //도로명 -> 동 변환환
+    // 도로명 -> 동 변환
+useEffect(() => {
+  const fetchRegionNames = async () => {
+    const newDistricts = {}; // 변환된 주소를 저장할 객체
 
-      await Promise.all(
-        sells.map(async (sell) => {
-          if (!sell.location) return;
+    await Promise.all(
+      sells.map(async (sell) => {
+        if (!sell.location) return;
 
-          try {
-            const addressResponse = await axios.get(
-              `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
-              {
-                headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
-              }
-            );
-
-            if (!addressResponse.data.documents.length) return;
-
-            const { x, y } = addressResponse.data.documents[0];
-
-            const regionResponse = await axios.get(
-              `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
-              {
-                headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
-              }
-            );
-
-            const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
-
-            if (regionInfo) {
-              newDistricts[sell._id] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
+        try {
+          // 도로명 주소 → 좌표 변환
+          const addressResponse = await axios.get(
+            `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(sell.location)}`,
+            {
+              headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
             }
-          } catch (error) {
-            console.error("주소 변환 오류:", error);
+          );
+
+          if (!addressResponse.data.documents.length) {
+            console.warn(`주소 검색 실패: ${sell.location}`);
+            return;
           }
-        })
-      );
 
-      setDistricts(newDistricts);
-    };
+          const { x, y } = addressResponse.data.documents[0]; // 위도, 경도 값 가져오기
 
-    if (sells.length > 0) {
-      fetchRegionNames();
-    }
-  }, [sells]);
+          // 좌표 → 행정동 변환
+          const regionResponse = await axios.get(
+            `https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${x}&y=${y}`,
+            {
+              headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+            }
+          );
 
-  return (
+          if (!regionResponse.data.documents.length) {
+            console.warn(`⚠️ 행정동 변환 실패: ${sell.location} (x=${x}, y=${y})`);
+            return;
+          }
+
+          // 'H' (행정동) 타입인 지역 정보 가져오기
+          const regionInfo = regionResponse.data.documents.find((doc) => doc.region_type === "H");
+
+          if (regionInfo) {
+            newDistricts[sell.location] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
+            console.log(`변환 완료: ${sell.location} → ${newDistricts[sell.location]}`);
+          } else {
+            console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
+          }
+        } catch (error) {
+          console.error("주소 변환 오류:", error);
+        }
+      })
+    );
+
+    setDistricts(newDistricts);
+  };
+
+  if (sells.length > 0) {
+    fetchRegionNames();
+  }
+}, [sells]);
+
+
+
+    return(
     <Container>
       <Header>
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
@@ -151,7 +170,7 @@ function SellerMatch() {
                   </Won>
                 </Details>
                 <Location>
-                  📍 {districts[sell._id] ? districts[sell._id] : sell.location || "위치 정보 없음"}
+                📍 {districts[sell.location] || sell.location || "위치 정보 없음"}
                 </Location>
               </PostInfo>
             </Post>

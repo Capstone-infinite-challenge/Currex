@@ -104,7 +104,7 @@ const Detect = () => {
         style={{ display: "none" }}
       ></canvas>
 
-      {/* 🔍 감지 버튼 */}
+      {/* 감지 버튼 */}
       <div style={styles.buttonContainer}>
         <button
           style={styles.detectButton}
@@ -115,7 +115,7 @@ const Detect = () => {
         </button>
       </div>
 
-      {/* 🔍 감지된 결과 팝업 */}
+      {/* 감지된 결과 팝업 */}
       {showPopup && currencyData && (
         <div style={styles.popup}>
           <h3 style={styles.popupTitle}>화폐 정보</h3>
