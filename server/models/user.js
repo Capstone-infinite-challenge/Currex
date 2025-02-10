@@ -38,7 +38,11 @@ const userSchema = new Schema({
     },
     refreshTokenExpiresAt: {        //리프레시 토큰 만료시간
         type: Date,             
-    }
+    },
+    sells: [{                                //sell과 연결
+        type: Schema.Types.ObjectId, 
+        ref: 'Sell' 
+    }]
 }, {timestamps: true});
 
 

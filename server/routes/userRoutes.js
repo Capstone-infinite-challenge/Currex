@@ -1,4 +1,4 @@
-import { findUserInfo, updateAddress } from '../services/userService.js';
+import userService from '../services/userService.js';
 import { Router } from 'express';
 import authenticateToken from '../middleware/authMiddleware.js';
 
@@ -10,7 +10,7 @@ router.get('/mypage', authenticateToken, async (req, res) => {
         const userId = req.user?.id; 
         if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
-        const userInfo = await findUserInfo(userId);
+        const userInfo = await userService.findUserInfo(userId);
         res.status(200).json(userInfo); 
     } catch (error) {
         console.error('Error fetching user info:', error);
@@ -24,7 +24,7 @@ router.put('/changeAddress', authenticateToken, async (req, res) => {
         const { addr1, addr2, lat, lon } = req.body;
         const userId = req.user.id;
 
-        const updatedUserInfo = await updateAddress(userId, addr1, addr2, lat, lon);
+        const updatedUserInfo = await userService.updateAddress(userId, addr1, addr2, lat, lon);
         res.status(200).json({ message: updatedUserInfo }); 
     } catch (error) {
         console.error('Error updating address:', error);

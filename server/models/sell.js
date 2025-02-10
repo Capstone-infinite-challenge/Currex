@@ -5,14 +5,15 @@ function arrayLimit(val) {
     return val.length > 0;  // 배열의 길이가 1 이상인지 확인
 }
 
-
+//User와 1:N
 const sellSchema = new Schema({   //스키마 객체 생성
     name: {                     //판매자 닉네임
         type: String,
         required: true, //필수 필드
     },
     sellerId: {                 //판매자 아이디
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref: 'User',
         required: true,
     },
     currency: {
