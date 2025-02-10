@@ -8,7 +8,6 @@ import SellerMatch from "../src/components/views/BuyerPage/SellerMatch";
 import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
 import PostDetail from "../src/components/views/PostListPage/PostDetail";
-import PostDetail2 from "../src/components/views/PostListPage/PostDetail2";
 import Chat from "../src/components/views/ChattingPage/Chat";
 import Chat2 from "../src/components/views/ChattingPage/Chat2";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
@@ -32,8 +31,7 @@ function App() {
             <Route exact path="/calculator" element={<Calculator />} />
             <Route exact path="/sell" element={<SellMoney />} />
             <Route exact path="/list" element={<PostList />} />
-            <Route path="/sell/:sellId" element={<PostDetail2 />} />
-            <Route path="/postdetail" element={<PostDetail />} />
+            <Route path="/sell/:sellId" element={<PostDetail />} />
             <Route exact path="/chat" element={<Chat />} />
             <Route exact path="/chat2" element={<Chat2 />} />
             <Route exact path="/chatlist" element={<ChatList />} />
