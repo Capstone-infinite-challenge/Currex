@@ -37,15 +37,22 @@ function PostDetail() {
     setShowMenu((prevState) => !prevState);
   };
 
-  const handleEdit = () => {
-    alert("수정");
-    setShowMenu(false);
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");  
+    if (!confirmDelete) return;
+  
+    try {
+      const response = await api.delete(`/api/sell/deleteSell/${sellId}`);  //  DELETE API 호출
+      alert("삭제가 완료되었습니다."); 
+      navigate("/list");  
+    } catch (error) {
+      console.error("삭제 실패:", error);
+      alert("삭제에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setShowMenu(false);  // 메뉴 닫기
+    }
   };
-
-  const handleDelete = () => {
-    alert("삭제");
-    setShowMenu(false);
-  };
+  
 
   useEffect(() => {
     if (!sellId) {
@@ -168,7 +175,6 @@ function PostDetail() {
           </TopBar>
           {showMenu && (
             <Menu>
-              <MenuItem onClick={handleEdit}>수정</MenuItem>
               <MenuItem onClick={handleDelete}>삭제</MenuItem>
             </Menu>
           )}
