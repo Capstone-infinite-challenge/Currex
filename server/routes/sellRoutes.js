@@ -3,6 +3,9 @@ import multer from 'multer'; // 파일 업로드 미들웨어
 import Sell from '../models/sell.js';
 import sellService from '../services/sellService.js';
 import userService from '../services/userService.js';
+import User from '../models/user.js';
+import calculateDistance from '../utils/calculate.js';
+
 
 // Multer 설정: 파일 메모리 저장
 const upload = multer({ storage: multer.memoryStorage() });
@@ -53,14 +56,16 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
         } else if(!sellInfo.images){
             return res.status(400).json({error: "사진을 등록해주세요"});
         }
-
         
         //데이터베이스에 sell 정보 저장하기
         const newSell = new Sell(sellInfo);
         await newSell.save();
 
         //user에도 sell정보 연결
-
+        await User.findByIdAndUpdate(
+            seller.id,
+            { $push: {sells: newSell._id}}
+        );
 
         res.status(201).json({ message: "판매 등록이 완료되었습니다", sell: newSell });
     }catch(error){
@@ -128,9 +133,12 @@ router.get('/sellList', async (req, res) => {
             return res.status(404).json({ message: '판매중인 상품이 없습니다.' });
         }
 
+        const myInfo = await userService.findUserInfo(req.user.id);
+
         // 이미지 데이터를 Base64로 변환
         const formattedSellList = sellList.map(sell => ({
             ...sell.toObject(), // Mongoose 객체를 JSON으로 변환
+            distance: calculateDistance(myInfo.latitude, myInfo.longitude, sell.latitude, sell.longitude),
             images: sell.images.map(image => 
                 `data:${image.contentType};base64,${image.data.toString('base64')}`
             )
