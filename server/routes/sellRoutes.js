@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer'; // 파일 업로드 미들웨어
 import Sell from '../models/sell.js';
+import sellService from '../services/sellService.js';
+import userService from '../services/userService.js';
 
 // Multer 설정: 파일 메모리 저장
 const upload = multer({ storage: multer.memoryStorage() });
@@ -11,22 +13,18 @@ const router = Router();
 //판매 등록 페이지
 router.post("/productRegi", upload.array('images', 5), async(req, res) => {
     
-    //점검용
-    console.log("요청 도착: 판매 등록 API");
-    console.log("Authorization Header:", req.headers.authorization);
-    console.log("Cookies:", req.cookies);
-    
     try{
         //로그인 정보 가져오기
         if(!req.user){
             return res.status(401).json({error: "로그인이 필요합니다."});
         }
 
-        console.log(req.user);
+        //seller 정보 찾기
+        const seller = await userService.findUserInfo(req.user.id);
 
         //사용자 정보 할당
         const sellInfo = {
-            sellerId: req.user.id,            //사용자 id
+            sellerId: seller.id,                //판매자 id (loginId 아님 _id)
             name: req.user.nickname,            //사용자 닉네임
             currency: req.body.currency,
             amount: req.body.amount,
@@ -61,6 +59,9 @@ router.post("/productRegi", upload.array('images', 5), async(req, res) => {
         const newSell = new Sell(sellInfo);
         await newSell.save();
 
+        //user에도 sell정보 연결
+
+
         res.status(201).json({ message: "판매 등록이 완료되었습니다", sell: newSell });
     }catch(error){
         console.error("에러 발생:", error);
@@ -90,25 +91,26 @@ router.delete('/deleteSell/:sellId', async(req, res) => {
 // 판매자 화면 페이지 - 각 판매 데이터 상세
 router.get('/sellDescription/:sellId', async (req, res) => {
     try {
-        console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
+        // console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
         const sell = await Sell.findById(req.params.sellId);
         
         if (!sell) {
             console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
             return res.status(404).json({ message: 'Sell not found' });
         }
+        
+        const userProfile = await sellService.findSellerInfo(sell.sellerId);      //판매자 프로필사진 추가
 
-        console.log(sell);
         const reformatSell = sell => ({
             ...sell.toObject(),
+            profile_img : userProfile.profile_img,
             images: sell.images.map(image =>
                 `data:${image.contentType};base64,${image.data.toString('base64')}`
             )
         });
         const reformattedSell = reformatSell(sell);
-        console.log(reformattedSell);
+        console.log(reformattedSell);   //점검용
 
-        //res.json(sell);
         res.json(reformattedSell);
     } catch (error) {
         console.error("판매 정보 불러오기 실패:", error);

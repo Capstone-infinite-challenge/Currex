@@ -1,6 +1,6 @@
 import User from '../models/user.js';
 
-//사용자 찾아서 사용자 정보(닉네임, 프로필사진, 내주소, 거래주소) 반환
+//사용자 로그인 아이디로 찾아서 사용자 정보(닉네임, 프로필사진, 내주소, 거래주소) 반환
 const findUserInfo = async(userId) => {
     if(!userId){
       throw new Error("사용자를 찾을 수 없습니다.");
@@ -13,6 +13,7 @@ const findUserInfo = async(userId) => {
       }
       
       const userInfo = {
+        id: user._id,
         name: user.nickname, 
         img: user.profile_img, 
         address: user.address, 
@@ -50,7 +51,7 @@ const updateAddress = async (userId, addr1, addr2, lat, lon) => {
 };
 
 
-export {
+export default{
     findUserInfo,
     updateAddress
-}
+};
