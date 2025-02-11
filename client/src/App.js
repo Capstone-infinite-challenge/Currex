@@ -19,6 +19,7 @@ import MySell from "./components/views/MyPage/MySell";
 import MyExchange from "./components/views/MyPage/MyExchange";
 import Detect from "./components/views/ModelPage/Detect";
 import Donate from "./components/views/DonatePage/Donate";
+import DonateInfo from "./components/views/DonatePage/DonateInfo";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route exact path="/myexchange" element={<MyExchange />} />
             <Route exact path="/detect" element={<Detect />} />
             <Route exact path="/donate" element={<Donate />} />
+            <Route path="/donateinfo" element={<DonateInfo />} />
           </Routes>
         </Layout>
       </BrowserRouter>

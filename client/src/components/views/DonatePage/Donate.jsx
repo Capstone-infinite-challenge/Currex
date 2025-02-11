@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import noticealarm from "../../images/noticealarm.svg";
@@ -11,6 +12,7 @@ function Donate() {
   const toggleRanking = () => {
     setIsOpen(!isOpen);
   };
+  const navigate = useNavigate();
 
   return (
     <Container>
@@ -29,7 +31,7 @@ function Donate() {
         </DonationHeaderWrapper>
 
         <ButtonContainer>
-          <InfoButton>
+          <InfoButton onClick={() => navigate("/donateinfo")}>
             <InfoIcon src={infoicon} alt="기부 절차 안내" />
             기부 절차 안내
           </InfoButton>
