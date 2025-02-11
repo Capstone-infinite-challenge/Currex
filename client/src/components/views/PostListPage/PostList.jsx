@@ -112,15 +112,21 @@ useEffect(() => {
     });
   }
 
-  // 정렬 적용
-  if (selectedSort === "latest") {
+
+   // 거리순 및 최신순 정렬 적용
+   if (selectedSort === "latest") {
     filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // 최신순
   } else if (selectedSort === "distance") {
-    filtered.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance)); // 거리순
+    filtered.sort((a, b) => {
+      const distanceA = parseFloat(a.distance);
+      const distanceB = parseFloat(b.distance);
+      return (isNaN(distanceA) ? Infinity : distanceA) - (isNaN(distanceB) ? Infinity : distanceB);
+    });
   }
 
   setFilteredSells(filtered);
 }, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
+
 
 //국가 필터
   const handleCountryChange = (currency) => {
