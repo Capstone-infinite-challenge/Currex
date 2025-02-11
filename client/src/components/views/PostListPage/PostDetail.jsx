@@ -9,7 +9,8 @@ import api from "../../utils/api";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Pagination } from "swiper";
+//import { Pagination } from "swiper";
+import { Pagination } from "swiper/modules";
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
@@ -38,34 +39,33 @@ function PostDetail() {
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");  
+    const confirmDelete = window.confirm("게시글을 삭제하시겠습니까?");
     if (!confirmDelete) return;
-  
+
     try {
-      const response = await api.delete(`/api/sell/deleteSell/${sellId}`);  //  DELETE API 호출
-      alert("삭제가 완료되었습니다."); 
-      navigate("/list");  
+      const response = await api.delete(`/api/sell/deleteSell/${sellId}`); //  DELETE API 호출
+      alert("삭제가 완료되었습니다.");
+      navigate("/list");
     } catch (error) {
       console.error("삭제 실패:", error);
       alert("삭제에 실패했습니다. 다시 시도해주세요.");
     } finally {
-      setShowMenu(false);  // 메뉴 닫기
+      setShowMenu(false); // 메뉴 닫기
     }
   };
-  
 
   useEffect(() => {
     if (!sellId) {
       console.error("sellId가 undefined입니다.");
       return;
     }
-  
+
     const fetchPost = async () => {
       try {
         const response = await api.get(`/api/sell/sellDescription/${sellId}`);
         console.log("서버에서 받은 데이터:", response.data);
         setSell(response.data || {});
-        
+
         // 판매 정보에서 좌표를 바로 설정
         setLatitude(response.data.latitude);
         setLongitude(response.data.longitude);
@@ -79,7 +79,7 @@ function PostDetail() {
         }
       }
     };
-  
+
     fetchPost();
   }, [sellId, navigate]);
 
@@ -87,7 +87,9 @@ function PostDetail() {
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
-        const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${sell.currency}`);
+        const response = await axios.get(
+          `https://api.exchangerate-api.com/v4/latest/${sell.currency}`
+        );
         setExchangeRates((prevRates) => ({
           ...prevRates,
           [sell.currency]: response.data.rates.KRW,
@@ -96,21 +98,20 @@ function PostDetail() {
         console.error("환율 데이터 불러오기 오류:", error);
       }
     };
-  
+
     if (sell.currency) {
       fetchExchangeRates();
     }
   }, [sell]);
-  
-  
 
   //판매자 거래 희망 장소 카맵에 마커로 띄우기
   useEffect(() => {
-    if (latitude && longitude) {  // 좌표가 있을 때만 지도 로드
+    if (latitude && longitude) {
+      // 좌표가 있을 때만 지도 로드
       const script = document.createElement("script");
       script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.REACT_APP_KAKAOMAP_KEY}&autoload=false`;
       script.async = true;
-  
+
       script.onload = () => {
         window.kakao.maps.load(() => {
           const container = document.getElementById("kakao-map");
@@ -118,7 +119,7 @@ function PostDetail() {
             center: new window.kakao.maps.LatLng(latitude, longitude),
             level: 3,
           };
-  
+
           const map = new window.kakao.maps.Map(container, options);
           new window.kakao.maps.Marker({
             position: new window.kakao.maps.LatLng(latitude, longitude),
@@ -126,11 +127,10 @@ function PostDetail() {
           });
         });
       };
-  
+
       document.body.appendChild(script);
     }
   }, [latitude, longitude]);
-  
 
   if (!sell || Object.keys(sell).length === 0) {
     return <LoadingMessage>데이터를 불러오는 중...</LoadingMessage>;
@@ -184,10 +184,10 @@ function PostDetail() {
           <TopInfo>
             <CurrencyTag>{sell.currency}</CurrencyTag>
             <UserInfo>
-            <UserImage
-              src={sell.profile_img || "https://via.placeholder.com/40"} 
-              alt="판매자 프로필"
-            />
+              <UserImage
+                src={sell.profile_img || "https://via.placeholder.com/40"}
+                alt="판매자 프로필"
+              />
               <UserName>{sell.name || "익명 판매자"}</UserName>
             </UserInfo>
           </TopInfo>
@@ -200,10 +200,11 @@ function PostDetail() {
             <InfoTitle>환율</InfoTitle>
             <InfoValue>
               {exchangeRates[sell.currency]
-              ? `100 ${sell.currency} / ${exchangeRates[sell.currency].toFixed(2)} 원`
-              : "환율 정보 없음"}
+                ? `100 ${sell.currency} / ${exchangeRates[
+                    sell.currency
+                  ].toFixed(2)} 원`
+                : "환율 정보 없음"}
             </InfoValue>
-
           </InfoSection>
           <Description>{sell.content || "설명 없음"}</Description>
           <LocationInfo>
@@ -221,9 +222,11 @@ function PostDetail() {
               <KRWLabel>원화</KRWLabel>
               <KRWAmount>
                 {exchangeRates[sell.currency]
-                ? `${Math.round(sell.amount * exchangeRates[sell.currency]).toLocaleString()} 원`
-                : "환율 정보 없음"}
-                </KRWAmount>
+                  ? `${Math.round(
+                      sell.amount * exchangeRates[sell.currency]
+                    ).toLocaleString()} 원`
+                  : "환율 정보 없음"}
+              </KRWAmount>
             </KRWContainer>
             <InquiryButton>문의하기</InquiryButton>
           </ButtonContainer>
@@ -263,7 +266,6 @@ const NoImage = styled.div`
   justify-content: center;
   color: #999;
 `;
-
 
 const TopBar = styled.div`
   position: absolute;
@@ -351,7 +353,7 @@ const InfoSection = styled.div`
 
 const InfoTitle = styled.span`
   font-size: 14px;
-  color: #1F2024;
+  color: #1f2024;
   margin-left: 0;
 `;
 
@@ -468,7 +470,7 @@ const InquiryButton = styled.button`
   cursor: pointer;
   align-self: flex-end;
   border-top: 1px solid #eee;
-  margin-right:0;
+  margin-right: 0;
 `;
 
 const MapContainer = styled.div`
