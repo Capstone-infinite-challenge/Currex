@@ -1,11 +1,17 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import noticealarm from "../../images/noticealarm.svg";
 import postmail from "../../images/postmail.svg";
 import coffeecup from "../../images/coffeecup.svg";
+import downarrow from "../../images/downarrow.svg";
 
 function Donate() {
+  const [isOpen, setIsOpen] = useState(true);
+  const toggleRanking = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <Container>
       <Header>
@@ -40,29 +46,33 @@ function Donate() {
       </Banner>
 
       <RankingSection>
-        <RankingHeader>
+        {/* 제목 & 접기 버튼 */}
+        <RankingHeader onClick={toggleRanking}>
           <RankingTitle>기부 랭킹</RankingTitle>
-          <RankingDate>2024년 11월 27일 16:33:41 기준</RankingDate>
+          <DownArrowIcon src={downarrow} alt="토글" isOpen={isOpen} />
         </RankingHeader>
+        <RankingDate>2024년 11월 27일 16:33:41 기준</RankingDate>
 
-        <RankingList>
-          {[...Array(9)].map((_, index) => (
-            <RankingItem key={index}>
-              <RankingNumber>{index + 1}</RankingNumber>
-              <CompanyName>
-                {index % 3 === 0
-                  ? "삼성전자"
-                  : index % 3 === 1
-                  ? "현대자동차"
-                  : "당근마켓"}
-              </CompanyName>
-              <UserName>{index % 2 === 0 ? "김*화" : "박*진"}</UserName>
-              <DonationAmountRanking>
-                {index % 3 === 0 ? "350,000원" : "270,000원"}
-              </DonationAmountRanking>
-            </RankingItem>
-          ))}
-        </RankingList>
+        {isOpen && (
+          <RankingList>
+            {[...Array(10)].map((_, index) => (
+              <RankingItem key={index}>
+                <RankingNumber top3={index < 3}>{index + 1}</RankingNumber>
+                <CompanyName>
+                  {index % 3 === 0
+                    ? "삼성전자"
+                    : index % 3 === 1
+                    ? "현대자동차"
+                    : "당근마켓"}
+                </CompanyName>
+                <UserName>{index % 2 === 0 ? "김*화" : "박*진"}</UserName>
+                <RankAmount>
+                  {index % 3 === 0 ? "350,000원" : "270,000원"}
+                </RankAmount>
+              </RankingItem>
+            ))}
+          </RankingList>
+        )}
       </RankingSection>
     </Container>
   );
@@ -90,12 +100,14 @@ const Title = styled.h2`
   font-size: 20px;
   font-weight: 700;
   line-height: 24px;
+  margin-left: 3px;
 `;
 
 const AlarmIcon = styled.img`
   width: 24px;
   height: 24px;
   cursor: pointer;
+  margin-right: 3px;
 `;
 
 const DonationBox = styled.div`
@@ -115,26 +127,27 @@ const DonationHeaderWrapper = styled.div`
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  gap: 12px;
+  gap: 110px;
   align-self: stretch;
 `;
 
 const DonationHeader = styled.div`
   display: flex;
   flex-direction: column;
+  margin-left: 10px;
 `;
 
 const DonationYear = styled.span`
   color: #e1e1e1;
   font-family: Pretendard;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 500;
 `;
 
 const DonationAmount = styled.h1`
   color: #fff;
   font-family: Pretendard;
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 700;
   line-height: 32px;
 `;
@@ -150,12 +163,14 @@ const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
   width: 100%;
+  gap: 12px;
 `;
 
 const InfoButton = styled.button`
   display: flex;
   width: 163px;
-  padding: 12px 36px;
+  height: 60px;
+  padding: 12px 21px;
   justify-content: center;
   align-items: center;
   gap: 4px;
@@ -163,7 +178,7 @@ const InfoButton = styled.button`
   border: 1px solid rgba(241, 241, 241, 0.08);
   background: rgba(255, 255, 255, 0.12);
   color: white;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
 `;
@@ -177,7 +192,8 @@ const InfoIcon = styled.img`
 const DonateButton = styled.button`
   display: flex;
   width: 123px;
-  padding: 12px 36px;
+  height: 60px;
+  padding: 12px 21px;
   justify-content: center;
   align-items: center;
   gap: 10px;
@@ -188,7 +204,6 @@ const DonateButton = styled.button`
   font-weight: bold;
   cursor: pointer;
 `;
-
 const Banner = styled.div`
   display: flex;
   align-items: center;
@@ -208,10 +223,11 @@ const BannerText = styled.span`
   width: 190px;
   color: #fff;
   font-family: Pretendard;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 12px;
   letter-spacing: -0.3px;
+  margin-bottom: 8px;
 `;
 
 const BannerTextBold = styled.span`
@@ -220,7 +236,8 @@ const BannerTextBold = styled.span`
   font-size: 16px;
   font-weight: 600;
   line-height: 24px;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.1px;
+  margin-left: 0px;
 `;
 
 const CoffeeIcon = styled.img`
@@ -229,59 +246,79 @@ const CoffeeIcon = styled.img`
   flex-shrink: 0;
 `;
 
+/* 랭킹 */
 const RankingSection = styled.div`
   margin-top: 16px;
+  align-items: left;
 `;
 
 const RankingHeader = styled.div`
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  gap: 190px;
 `;
 
 const RankingTitle = styled.h3`
   color: #1f2024;
-  font-family: Pretendard;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
+  margin-left: 5px;
+`;
+
+const DownArrowIcon = styled.img`
+  width: 20px;
+  height: 20px;
+  transform: ${({ isOpen }) => (isOpen ? "rotate(0deg)" : "rotate(180deg)")};
+  transition: transform 0.3s ease;
+  margin-right: 2px;
 `;
 
 const RankingDate = styled.span`
   color: #c8c8c8;
-  font-family: Pretendard;
   font-size: 12px;
   font-weight: 400;
 `;
 
+/* 리스트 */
 const RankingList = styled.ul`
   margin-top: 16px;
+  margin-right: 3px;
 `;
 
 const RankingItem = styled.li`
   display: flex;
-  justify-content: space-between;
-  padding: 12px;
+  align-items: center;
+  padding: 10px;
   border-bottom: 1px solid #f1f1f1;
 `;
 
 const RankingNumber = styled.span`
-  color: #ca2f28;
-  font-family: Pretendard;
-  font-size: 14px;
+  color: ${({ top3 }) => (top3 ? "#CA2F28" : "#1F2024")};
   font-weight: 900;
-  text-align: center;
+  text-align: left;
+  min-width: 40px; /* 숫자 너비 고정 */
+  margin-right: 5px;
 `;
 
 const CompanyName = styled.span`
+  flex: 1.8;
   font-size: 16px;
   font-weight: 500;
 `;
 
 const UserName = styled.span`
+  flex: 1;
   font-size: 16px;
   color: #888;
+  text-align: center;
 `;
 
-const DonationAmountRanking = styled.span`
+const RankAmount = styled.span`
+  flex: 1.5;
   font-size: 16px;
   font-weight: bold;
+  text-align: right;
+  color: #1f2024;
 `;
