@@ -34,6 +34,10 @@ function PostDetail() {
   const [longitude, setLongitude] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
 
+  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 로그인된 사용자 ID 확인
+
+
   const toggleMenu = () => {
     setShowMenu((prevState) => !prevState);
   };
@@ -171,14 +175,16 @@ function PostDetail() {
               src={backarrowwhite}
               alt="뒤로가기"
             />
+          {sell.sellerId === currentUserId && (
             <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
-          </TopBar>
-          {showMenu && (
-            <Menu>
-              <MenuItem onClick={handleDelete}>삭제</MenuItem>
-            </Menu>
           )}
-        </ImageBackground>
+        </TopBar>
+        {sell.sellerId === currentUserId && showMenu && (
+          <Menu>
+            <MenuItem onClick={handleDelete}>삭제</MenuItem>
+          </Menu>
+        )}
+      </ImageBackground>
 
         <Content>
           <TopInfo>
@@ -326,8 +332,8 @@ const UserInfo = styled.div`
 `;
 
 const UserImage = styled.img`
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   margin-right: 10px;
 `;
