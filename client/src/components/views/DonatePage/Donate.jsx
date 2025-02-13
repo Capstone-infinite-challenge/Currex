@@ -287,6 +287,7 @@ const RankingDate = styled.span`
 const RankingList = styled.ul`
   margin-top: 16px;
   margin-right: 3px;
+  margin-left: -12px;
 `;
 
 const RankingItem = styled.li`
