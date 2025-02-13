@@ -38,7 +38,7 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
     const token = jwt.generateToken({ id: user.loginId, nickname: user.nickname });
 
     console.log("로그인 성공, 발급된 토큰:", token);
-    return { user, token, refreshToken: user.refreshToken };
+    return { userId: user._id, user, token, refreshToken: user.refreshToken };
 
   } catch (error) {
     console.error('상세 오류:', error.stack);

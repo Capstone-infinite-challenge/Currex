@@ -13,12 +13,12 @@ function Login() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const accessToken = urlParams.get("token"); 
-    const loginId = urlParams.get("loginId");
-    const nickname = urlParams.get("nickname");
+    const userId = urlParams.get("userId");
 
     if (accessToken) {
         console.log("프론트에서 받은 accessToken:", accessToken);
         sessionStorage.setItem("accessToken", accessToken);
+        sessionStorage.setItem("userId", userId);  
         navigate("/list"); 
     } else {
         console.log("accessToken 없음, 로그인 필요");
