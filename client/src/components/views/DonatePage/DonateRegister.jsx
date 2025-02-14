@@ -6,7 +6,6 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
-import equalicon from "../../images/equalicon.svg";
 import KakaoMap from "../..//utils/KakaoMap";
 import api from "../../utils/api";
 
@@ -162,18 +161,22 @@ function DonateRegister() {
 
       <TitleContainer>
         <Title>
-          외화를 얼마나
+          감사합니다.
           <br />
-          판매하고 싶으신가요?
+          기부 정보를 알려주세요.
         </Title>
         <ExchangeRateText>
-          1 {currency} = {exchangeRate.toLocaleString()} 원
+          * 한국에서는 기부금에 대해 세금 혜택을 적용합니다.
+          <br />
+          10만원 이하의 기부금은 100% 소득공제가 적용되며,
+          <br />
+          10만원을 초과하는 금액에 대해서는 소득에 따라 공제율이 달라집니다.
         </ExchangeRateText>
       </TitleContainer>
 
       <Form>
         <Label>
-          거래 희망 금액
+          기부 금액
           <CurrencyInputWrapper>
             <CurrencyDropdown
               value={currency}
@@ -191,7 +194,7 @@ function DonateRegister() {
             <DropdownIcon src={dropdown} alt="드롭다운 아이콘" />
             <AmountInput
               type="number"
-              placeholder="금액 입력"
+              placeholder="기부하시는 금액을 입력해 주세요"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
@@ -207,20 +210,25 @@ function DonateRegister() {
         </Note>
 
         <Label>
-          원화 환산 금액
-          <EqualIcon src={equalicon} alt="= 아이콘" />
+          기부자 이름
           <InputContainer>
-            <Input type="text" readOnly value={KRWAmount} />
-            <KRWSuffix>KRW</KRWSuffix>
+            <Input type="text" placeholder="성" />
           </InputContainer>
         </Label>
 
         <Label>
-          거래 위치
+          연락처
+          <InputContainer>
+            <Input type="number" placeholder="연락처를 알려주세요" />
+          </InputContainer>
+        </Label>
+
+        <Label>
+          기부자 주소
           <LocationWrapper>
             <WideInput
               type="text"
-              placeholder="주소 입력"
+              placeholder="기부자 주소를 알려주세요"
               value={userLocation}
               readOnly
             />
@@ -233,7 +241,7 @@ function DonateRegister() {
         <Label>
           <ImageSection>
             <ImageLabel>
-              사진 ({maxImageCount - uploadedImages.length}장 남음)
+              기부물 사진 ({maxImageCount - uploadedImages.length}장 남음)
             </ImageLabel>
             <ImageUploadWrapper>
               <UploadButton htmlFor="imageUpload">
@@ -254,19 +262,13 @@ function DonateRegister() {
                 />
               ))}
             </ImageUploadWrapper>
+            <ImageInfo>
+              기부 금액과 포장이 잘보이도록 사진을 업로드해 주세요.
+            </ImageInfo>
           </ImageSection>
         </Label>
 
-        <Label>
-          내용
-          <Textarea
-            placeholder="내용을 입력하세요."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-        </Label>
-
-        <SubmitButton onClick={handleSubmit}>판매 등록</SubmitButton>
+        <SubmitButton onClick={handleSubmit}>기부 등록</SubmitButton>
       </Form>
     </Container>
   );
@@ -334,7 +336,7 @@ const DropdownIcon = styled.img`
 
 const AmountInput = styled.input`
   border: none;
-  font-size: 14px;
+  font-size: 12px;
   flex: 2;
 `;
 
@@ -350,10 +352,11 @@ const Title = styled.h1`
 `;
 
 const ExchangeRateText = styled.p`
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 300;
   line-height: 20px;
   color: #898d99;
+  margin-top: 5px;
 `;
 
 const Form = styled.div`
@@ -384,13 +387,12 @@ const CurrencyAmountWrapper = styled.div`
 const InputContainer = styled.div`
   position: relative;
   width: 100%;
-  margin-left: 20px;
 `;
 
 const Input = styled.input`
   width: 125%;
   padding: 11px;
-  font-size: 14px;
+  font-size: 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
@@ -404,9 +406,7 @@ const Input = styled.input`
 
 const Suffix = styled.span`
   position: absolute;
-  left: 310px;
-  top: 30%;
-  transform: translateY(-50%);
+  left: 280px;
   font-size: 14px;
   color: #888;
 `;
@@ -418,17 +418,6 @@ const KRWSuffix = styled.span`
   transform: translateY(-50%);
   font-size: 14px;
   color: #888;
-`;
-
-const EqualIcon = styled.img`
-  position: absolute;
-  left: 10px;
-  top: 46%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: #8ea0ac;
-  margin-left: 10px;
 `;
 
 const Note = styled.p`
@@ -450,13 +439,13 @@ const LocationWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 140%;
+  width: 135%;
 `;
 
 const WideInput = styled.input`
   width: 200%;
   padding: 11px;
-  font-size: 14px;
+  font-size: 12px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
@@ -478,7 +467,6 @@ const WideInput = styled.input`
 const LocationButton = styled.button`
   background: none;
   border: none;
-  cursor: pointer;
 `;
 
 const SearchIcon = styled.img`
@@ -504,6 +492,11 @@ const ImageUploadWrapper = styled.div`
   align-items: center;
   gap: 8px;
   margin-left: 0px;
+`;
+
+const ImageInfo = styled.div`
+  display: flex;
+  margin-top: 5px;
 `;
 
 const UploadButton = styled.label`
