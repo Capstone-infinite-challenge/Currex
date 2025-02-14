@@ -35,7 +35,9 @@ function Donate() {
             <InfoIcon src={infoicon} alt="기부 절차 안내" />
             기부 절차 안내
           </InfoButton>
-          <DonateButton>기부하기</DonateButton>
+          <DonateButton onClick={() => navigate("/donateregister")}>
+            기부하기
+          </DonateButton>
         </ButtonContainer>
       </DonationBox>
 

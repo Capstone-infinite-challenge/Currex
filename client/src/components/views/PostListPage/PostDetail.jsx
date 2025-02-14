@@ -9,8 +9,8 @@ import api from "../../utils/api";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-import { Pagination } from "swiper";
-//import { Pagination } from "swiper/modules";
+//import { Pagination } from "swiper";
+import { Pagination } from "swiper/modules";
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
