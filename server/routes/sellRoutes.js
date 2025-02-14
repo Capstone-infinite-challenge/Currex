@@ -221,4 +221,14 @@ router.get("/mySells", async (req, res) => {
   }
 });
 
+//판매자가 판매 상태 변환
+router.patch("/:sellId/status", async(req, res) => {
+  try{
+    const sell = await Sell.findByIdAndUpdate(req.params.sellId, { status: req.body.status }, { new: true});
+    res.json(sell);
+  }catch(error){
+    res.status(500).json({message: "Error updating sell status"});
+  }
+});
+
 export default router;
