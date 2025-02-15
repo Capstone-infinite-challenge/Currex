@@ -26,8 +26,8 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
 
     //사용자 정보 할당
     const sellInfo = {
-      sellerId: seller.id, //판매자 id (loginId 아님 _id)
-      name: req.user.nickname, //사용자 닉네임
+      sellerId: seller.id, 
+      name: req.user ? req.user.nickname : "판매자",  
       currency: req.body.currency,
       amount: req.body.amount,
       location: req.body.sellerLocation,
@@ -37,8 +37,8 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
       images: [],
     };
 
-    //파일 저장하기
-    if (req.files && req.files.length > 0) {
+     //파일 저장하기
+     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         sellInfo.images.push({
           data: file.buffer,
@@ -76,7 +76,6 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
 router.delete("/deleteSell/:sellId", async (req, res) => {
   try {
     const sell = await Sell.findById(req.params.sellId);
-
     if (!sell) {
       console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
       return res.status(404).json({ message: "Sell not found" });
@@ -88,26 +87,21 @@ router.delete("/deleteSell/:sellId", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 // 판매자 화면 페이지 - 각 판매 데이터 상세
 router.get("/sellDescription/:sellId", async (req, res) => {
   try {
     // console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
     const sell = await Sell.findById(req.params.sellId);
-
     if (!sell) {
       console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
       return res.status(404).json({ message: "Sell not found" });
     }
-
     const userProfile = await sellService.findSellerInfo(sell.sellerId); //판매자 프로필사진 추가
-
     // userProfile이 없을 경우 기본값 설정
     const profileImage =
       userProfile && userProfile.profile_img
         ? userProfile.profile_img
         : "https://via.placeholder.com/40"; // 기본 이미지
-
     const reformatSell = (sell) => ({
       ...sell.toObject(),
       profile_img: profileImage, //기본 이미지 설정
@@ -118,13 +112,13 @@ router.get("/sellDescription/:sellId", async (req, res) => {
     });
     const reformattedSell = reformatSell(sell);
     console.log(reformattedSell); //점검용
-
     res.json(reformattedSell);
   } catch (error) {
     console.error("판매 정보 불러오기 실패:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // 전체 판매 목록 페이지
 router.get("/sellList", async (req, res) => {
@@ -169,7 +163,6 @@ router.post("/sellSelect", async (req, res) => {
 
     console.log("로그인한 사용자 ID:", buyerId);
     console.log("MongoDB ObjectId 변환 가능 여부:", mongoose.Types.ObjectId.isValid(buyerId));
-
     if (!sellId) {
       return res
         .status(400)
@@ -199,6 +192,8 @@ router.post("/sellSelect", async (req, res) => {
     res.status(500).json({ message: "판매 항목 업데이트 중 오류 발생" });
   }
 });
+
+
 
 //내 판매 목록
 router.get("/mySells", async (req, res) => {

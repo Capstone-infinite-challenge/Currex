@@ -61,8 +61,9 @@ router.get("/SellerMatch", async (req, res) => {
     });
 
     // 본인의 판매글 제외 (판매자 ID로 비교)
-    const filteredSells = sells.filter(sell => sell.sellerId !== currentUserId);
+    const filteredSells = sells.filter(sell => String(sell.sellerId) !== String(currentUserId));
 
+    
     // 거리 계산 및 추가 정보 반환
     const sellersWithDistance = filteredSells.map((seller) => {
       const distance = calculateDistance(
@@ -72,6 +73,8 @@ router.get("/SellerMatch", async (req, res) => {
         seller.longitude
       );
       return {
+        _id: seller._id, 
+        sellerId: seller.sellerId,
         name: seller.name,
         distance: distance,
         currency: seller.currency,

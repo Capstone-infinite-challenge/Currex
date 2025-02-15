@@ -20,19 +20,21 @@ function SellerMatch() {
       try {
         const response = await api.get("/api/trade/SellerMatch", { withCredentials: true });
         console.log("백엔드 응답 데이터:", response.data);
-
+  
         const sellersWithDistance = response.data.sellersWithDistance || [];
-
-        // ✅ 본인 판매글 제외
-        const filteredSells = sellersWithDistance.filter(
-          (sell) => sell.sellerId !== currentUserId
-        );
-
-        // ✅ 거리순 정렬 (parseFloat로 변환)
-        const sortedSells = filteredSells.sort((a, b) => {
-          return parseFloat(a.distance) - parseFloat(b.distance);
+  
+        console.log("현재 로그인한 사용자 ID:", currentUserId);
+        sellersWithDistance.forEach((sell, index) => {
         });
-
+  
+        // 본인 판매글 제외 (String 변환 후 비교)
+        const filteredSells = sellersWithDistance.filter(
+          (sell) => String(sell.sellerId) !== String(currentUserId)
+        );
+  
+        // 거리순 정렬
+        const sortedSells = filteredSells.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+  
         setSells(sortedSells);
       } catch (error) {
         console.error("판매 데이터 불러오기 오류:", error);
@@ -41,11 +43,12 @@ function SellerMatch() {
         setLoading(false);
       }
     };
-
+  
     fetchSells();
   }, []);
+  
 
-  //실시간 환율율
+  //실시간 환율
   useEffect(() => {
     const fetchExchangeRates = async () => {
       const uniqueCurrencies = [...new Set(sells.map((sell) => sell.currency))];
@@ -113,7 +116,6 @@ useEffect(() => {
 
           if (regionInfo) {
             newDistricts[sell.location] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
-            console.log(`변환 완료: ${sell.location} → ${newDistricts[sell.location]}`);
           } else {
             console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
           }
@@ -149,7 +151,7 @@ useEffect(() => {
       ) : sells.length > 0 ? (
         <PostListContainer>
           {sells.map((sell) => (
-            <Post key={sell._id}>
+            <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
               <ImageContainer>
                 {sell.images && sell.images.length > 0 ? (
                   <PostImage src={sell.images[0]} alt="상품 이미지" />
