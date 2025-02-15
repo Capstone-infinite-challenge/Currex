@@ -89,12 +89,8 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
 
     fetchPost();
   }, [sellId, navigate]);
-  console.log("🟢 현재 로그인한 사용자 ID (localStorage/sessionStorage에서 가져옴):", currentUserId);
-  console.log("🟠 현재 게시글 판매자 ID:", sell.sellerId);
   
   const isMyPost = sell.sellerId?.toString() === currentUserId?.toString();
-
-
 
   const handleInquiryClick = async () => {
     if (isMyPost) return;

@@ -16,22 +16,18 @@ const router = Router();
 //판매 등록 페이지
 router.post("/productRegi", upload.array("images", 5), async (req, res) => {
   try {
-    // ✅ req.user가 없으면 프론트에서 받은 sellerId 사용
-    const sellerId = req.user ? req.user.id : req.body.sellerId;
-    if (!sellerId) {
+    //로그인 정보 가져오기
+    if (!req.user) {
       return res.status(401).json({ error: "로그인이 필요합니다." });
     }
 
-    // ✅ 판매자 정보 찾기
-    const seller = await userService.findUserInfo(sellerId);
-    if (!seller) {
-      return res.status(400).json({ error: "판매자 정보를 찾을 수 없습니다." });
-    }
+    //seller 정보 찾기
+    const seller = await userService.findUserInfo(req.user.id);
 
-    // ✅ 사용자 정보 할당
+    //사용자 정보 할당
     const sellInfo = {
-      sellerId: seller.id, // 판매자 ID (_id)
-      name: req.user ? req.user.nickname : "판매자", // ✅ 닉네임이 없을 경우 기본값 설정
+      sellerId: seller.id, 
+      name: req.user ? req.user.nickname : "판매자",  
       currency: req.body.currency,
       amount: req.body.amount,
       location: req.body.sellerLocation,
@@ -41,8 +37,8 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
       images: [],
     };
 
-    // ✅ 파일 저장하기
-    if (req.files && req.files.length > 0) {
+     //파일 저장하기
+     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         sellInfo.images.push({
           data: file.buffer,
@@ -51,83 +47,31 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
       });
     }
 
-    // ✅ 데이터 유효성 검사
+    // 데이터 유효성 검사
     if (!sellInfo.currency) {
       return res.status(400).json({ error: "통화를 입력해주세요" });
     } else if (!sellInfo.amount) {
       return res.status(400).json({ error: "금액을 입력해주세요" });
-    } else if (sellInfo.images.length === 0) { // ✅ 이미지 배열이 비었을 경우 체크
+    } else if (!sellInfo.images) {
       return res.status(400).json({ error: "사진을 등록해주세요" });
     }
 
-    // ✅ 데이터베이스에 sell 정보 저장
+    //데이터베이스에 sell 정보 저장하기
     const newSell = new Sell(sellInfo);
     await newSell.save();
 
-    // ✅ user에도 sell 정보 연결
+    //user에도 sell정보 연결
     await User.findByIdAndUpdate(seller.id, { $push: { sells: newSell._id } });
 
-    res.status(201).json({ message: "판매 등록이 완료되었습니다", sell: newSell });
+    res
+      .status(201)
+      .json({ message: "판매 등록이 완료되었습니다", sell: newSell });
   } catch (error) {
     console.error("에러 발생:", error);
-    res.status(500).json({ error: "서버 오류가 발생했습니다." });
+    res.status(500).json({ error: "서버 오류가 발생했습니다" });
   }
 });
 
-
-//판매 삭제
-router.delete("/deleteSell/:sellId", async (req, res) => {
-  try {
-    const sell = await Sell.findById(req.params.sellId);
-
-    if (!sell) {
-      console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
-      return res.status(404).json({ message: "Sell not found" });
-    }
-    await Sell.findByIdAndDelete(req.params.sellId);
-    res.status(200).json({ message: "Sell deleted successfully" });
-  } catch (error) {
-    console.error("판매 삭제 중 에러 발생", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// 판매자 화면 페이지 - 각 판매 데이터 상세
-router.get("/sellDescription/:sellId", async (req, res) => {
-  try {
-    // console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
-    const sell = await Sell.findById(req.params.sellId);
-
-    if (!sell) {
-      console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
-      return res.status(404).json({ message: "Sell not found" });
-    }
-
-    const userProfile = await sellService.findSellerInfo(sell.sellerId); //판매자 프로필사진 추가
-
-    // userProfile이 없을 경우 기본값 설정
-    const profileImage =
-      userProfile && userProfile.profile_img
-        ? userProfile.profile_img
-        : "https://via.placeholder.com/40"; // 기본 이미지
-
-    const reformatSell = (sell) => ({
-      ...sell.toObject(),
-      profile_img: profileImage, //기본 이미지 설정
-      images: sell.images.map(
-        (image) =>
-          `data:${image.contentType};base64,${image.data.toString("base64")}`
-      ),
-    });
-    const reformattedSell = reformatSell(sell);
-    console.log(reformattedSell); //점검용
-
-    res.json(reformattedSell);
-  } catch (error) {
-    console.error("판매 정보 불러오기 실패:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
 // 전체 판매 목록 페이지
 router.get("/sellList", async (req, res) => {
@@ -172,7 +116,6 @@ router.post("/sellSelect", async (req, res) => {
 
     console.log("로그인한 사용자 ID:", buyerId);
     console.log("MongoDB ObjectId 변환 가능 여부:", mongoose.Types.ObjectId.isValid(buyerId));
-
     if (!sellId) {
       return res
         .status(400)
@@ -202,6 +145,8 @@ router.post("/sellSelect", async (req, res) => {
     res.status(500).json({ message: "판매 항목 업데이트 중 오류 발생" });
   }
 });
+
+
 
 //내 판매 목록
 router.get("/mySells", async (req, res) => {
