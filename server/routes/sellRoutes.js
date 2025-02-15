@@ -72,6 +72,53 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
   }
 });
 
+//판매 삭제
+router.delete("/deleteSell/:sellId", async (req, res) => {
+  try {
+    const sell = await Sell.findById(req.params.sellId);
+    if (!sell) {
+      console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
+      return res.status(404).json({ message: "Sell not found" });
+    }
+    await Sell.findByIdAndDelete(req.params.sellId);
+    res.status(200).json({ message: "Sell deleted successfully" });
+  } catch (error) {
+    console.error("판매 삭제 중 에러 발생", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+// 판매자 화면 페이지 - 각 판매 데이터 상세
+router.get("/sellDescription/:sellId", async (req, res) => {
+  try {
+    // console.log("요청된 sellId:", req.params.sellId);  // sellId 확인용 로그
+    const sell = await Sell.findById(req.params.sellId);
+    if (!sell) {
+      console.log("데이터베이스에서 찾을 수 없음:", req.params.sellId);
+      return res.status(404).json({ message: "Sell not found" });
+    }
+    const userProfile = await sellService.findSellerInfo(sell.sellerId); //판매자 프로필사진 추가
+    // userProfile이 없을 경우 기본값 설정
+    const profileImage =
+      userProfile && userProfile.profile_img
+        ? userProfile.profile_img
+        : "https://via.placeholder.com/40"; // 기본 이미지
+    const reformatSell = (sell) => ({
+      ...sell.toObject(),
+      profile_img: profileImage, //기본 이미지 설정
+      images: sell.images.map(
+        (image) =>
+          `data:${image.contentType};base64,${image.data.toString("base64")}`
+      ),
+    });
+    const reformattedSell = reformatSell(sell);
+    console.log(reformattedSell); //점검용
+    res.json(reformattedSell);
+  } catch (error) {
+    console.error("판매 정보 불러오기 실패:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // 전체 판매 목록 페이지
 router.get("/sellList", async (req, res) => {
