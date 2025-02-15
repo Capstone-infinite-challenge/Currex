@@ -27,6 +27,7 @@ const GlobalStyle = createGlobalStyle`
 
 function PostDetail() {
   const { sellId } = useParams();
+  console.log("🟢 URL 파라미터에서 가져온 sellId:", sellId);
   const navigate = useNavigate();
   const [sell, setSell] = useState({});
   const [exchangeRates, setExchangeRates] = useState({});
@@ -57,6 +58,7 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
       setShowMenu(false); // 메뉴 닫기
     }
   };
+  
 
   useEffect(() => {
     if (!sellId) {
@@ -86,6 +88,39 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
 
     fetchPost();
   }, [sellId, navigate]);
+
+  const isMyPost = sell.sellerId === currentUserId;
+
+
+  const handleInquiryClick = async () => {
+    if (isMyPost) return;
+
+    console.log("요청 보낼 sellId:", sellId);  
+    console.log("ObjectId 유효성 검사:", /^[0-9a-fA-F]{24}$/.test(sellId));
+
+    if (!sellId) {
+        alert("잘못된 요청: sellId가 없습니다.");
+        return;
+    }
+
+    if (!/^[0-9a-fA-F]{24}$/.test(sellId)) {
+        alert("잘못된 요청: 유효한 MongoDB ObjectId가 아닙니다.");
+        return;
+    }
+
+    try {
+        const response = await api.post("/api/sell/sellSelect", { sellId });
+        console.log("채팅방 생성 성공:", response.data);
+        const chatRoomId = response.data.chatRoomId;
+        navigate(`/chat/${chatRoomId}`);
+    } catch (error) {
+        console.error("채팅 시작 실패:", error.response?.data || error.message);
+        alert("채팅을 시작하는 중 오류가 발생했습니다.");
+    }
+};
+
+  
+  
 
   //  실시간 환율 가져오기
   useEffect(() => {
@@ -234,7 +269,14 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
                   : "환율 정보 없음"}
               </KRWAmount>
             </KRWContainer>
-            <InquiryButton>문의하기</InquiryButton>
+            <InquiryButton 
+               disabled={sell.sellerId === currentUserId} 
+              onClick={handleInquiryClick}
+              style={sell.sellerId === currentUserId ? { backgroundColor: "#ccc", cursor: "not-allowed" } : {}}
+              >
+            문의하기
+            </InquiryButton>
+
           </ButtonContainer>
         </Content>
       </Container>

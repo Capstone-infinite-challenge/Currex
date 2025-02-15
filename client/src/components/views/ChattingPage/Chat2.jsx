@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import io from "socket.io-client";
+import api from "../../utils/api";
 import infoicon from "../../images/infoicon.svg";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import sendicon from "../../images/sendicon.svg";
 import PlaceModal from "./PlaceModal";
 
+const socket = io("http://localhost:5000", { withCredentials: true });
 
 function Chat2() {
+  const { chatRoomId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([
     { id: 1, sender: "me", text: "안녕하세요\n내일 거래 가능 하신가요?" },
@@ -31,13 +35,32 @@ function Chat2() {
     setShowOptions(false);
   };
 
+  
+  useEffect(() => {
+    socket.emit("joinRoom", { chatRoomId });
+
+    socket.on("receiveMessage", (msg) => {
+      setMessages((prev) => [...prev, msg]);
+    });
+
+    return () => {
+      socket.off("receiveMessage");
+    };
+  }, [chatRoomId]);
+
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      setMessages([...messages, { id: messages.length + 1, sender: "me", text: newMessage }]);
+      const messageData = {
+        chatRoomId,
+        senderId: localStorage.getItem("userId") || sessionStorage.getItem("userId"),
+        text: newMessage,
+      };
+
+      socket.emit("sendMessage", messageData);
+      setMessages((prev) => [...prev, messageData]);
       setNewMessage("");
     }
   };
-
   const handleOpenModal = () => {
     setShowModal(true);
   };

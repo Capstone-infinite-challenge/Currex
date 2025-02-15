@@ -5,6 +5,8 @@ import sellService from "../services/sellService.js";
 import userService from "../services/userService.js";
 import User from "../models/user.js";
 import calculateDistance from "../utils/calculate.js";
+import mongoose from "mongoose";
+
 
 // Multer 설정: 파일 메모리 저장
 const upload = multer({ storage: multer.memoryStorage() });
@@ -164,6 +166,9 @@ router.post("/sellSelect", async (req, res) => {
   try {
     const { sellId } = req.body;
     const buyerId = req.user.id; //로그인 한 사용자
+
+    console.log("로그인한 사용자 ID:", buyerId);
+    console.log("MongoDB ObjectId 변환 가능 여부:", mongoose.Types.ObjectId.isValid(buyerId));
 
     if (!sellId) {
       return res
