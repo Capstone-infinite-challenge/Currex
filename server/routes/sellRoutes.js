@@ -16,18 +16,22 @@ const router = Router();
 //판매 등록 페이지
 router.post("/productRegi", upload.array("images", 5), async (req, res) => {
   try {
-    //로그인 정보 가져오기
-    if (!req.user) {
+    // ✅ req.user가 없으면 프론트에서 받은 sellerId 사용
+    const sellerId = req.user ? req.user.id : req.body.sellerId;
+    if (!sellerId) {
       return res.status(401).json({ error: "로그인이 필요합니다." });
     }
 
-    //seller 정보 찾기
-    const seller = await userService.findUserInfo(req.user.id);
+    // ✅ 판매자 정보 찾기
+    const seller = await userService.findUserInfo(sellerId);
+    if (!seller) {
+      return res.status(400).json({ error: "판매자 정보를 찾을 수 없습니다." });
+    }
 
-    //사용자 정보 할당
+    // ✅ 사용자 정보 할당
     const sellInfo = {
-      sellerId: seller.id, //판매자 id (loginId 아님 _id)
-      name: req.user.nickname, //사용자 닉네임
+      sellerId: seller.id, // 판매자 ID (_id)
+      name: req.user ? req.user.nickname : "판매자", // ✅ 닉네임이 없을 경우 기본값 설정
       currency: req.body.currency,
       amount: req.body.amount,
       location: req.body.sellerLocation,
@@ -37,7 +41,7 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
       images: [],
     };
 
-    //파일 저장하기
+    // ✅ 파일 저장하기
     if (req.files && req.files.length > 0) {
       req.files.forEach((file) => {
         sellInfo.images.push({
@@ -47,30 +51,29 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
       });
     }
 
-    // 데이터 유효성 검사
+    // ✅ 데이터 유효성 검사
     if (!sellInfo.currency) {
       return res.status(400).json({ error: "통화를 입력해주세요" });
     } else if (!sellInfo.amount) {
       return res.status(400).json({ error: "금액을 입력해주세요" });
-    } else if (!sellInfo.images) {
+    } else if (sellInfo.images.length === 0) { // ✅ 이미지 배열이 비었을 경우 체크
       return res.status(400).json({ error: "사진을 등록해주세요" });
     }
 
-    //데이터베이스에 sell 정보 저장하기
+    // ✅ 데이터베이스에 sell 정보 저장
     const newSell = new Sell(sellInfo);
     await newSell.save();
 
-    //user에도 sell정보 연결
+    // ✅ user에도 sell 정보 연결
     await User.findByIdAndUpdate(seller.id, { $push: { sells: newSell._id } });
 
-    res
-      .status(201)
-      .json({ message: "판매 등록이 완료되었습니다", sell: newSell });
+    res.status(201).json({ message: "판매 등록이 완료되었습니다", sell: newSell });
   } catch (error) {
     console.error("에러 발생:", error);
-    res.status(500).json({ error: "서버 오류가 발생했습니다" });
+    res.status(500).json({ error: "서버 오류가 발생했습니다." });
   }
 });
+
 
 //판매 삭제
 router.delete("/deleteSell/:sellId", async (req, res) => {

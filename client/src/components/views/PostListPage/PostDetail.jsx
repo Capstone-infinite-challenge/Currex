@@ -10,7 +10,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
 //import { Pagination } from "swiper";
-import { Pagination } from "swiper/modules";
+import { Pagination } from "swiper";
 import { createGlobalStyle } from "styled-components";
 
 const GlobalStyle = createGlobalStyle`
@@ -27,13 +27,14 @@ const GlobalStyle = createGlobalStyle`
 
 function PostDetail() {
   const { sellId } = useParams();
-  console.log("🟢 URL 파라미터에서 가져온 sellId:", sellId);
   const navigate = useNavigate();
   const [sell, setSell] = useState({});
   const [exchangeRates, setExchangeRates] = useState({});
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
+
+  
 
   const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 로그인된 사용자 ID 확인
@@ -88,8 +89,11 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
 
     fetchPost();
   }, [sellId, navigate]);
+  console.log("🟢 현재 로그인한 사용자 ID (localStorage/sessionStorage에서 가져옴):", currentUserId);
+  console.log("🟠 현재 게시글 판매자 ID:", sell.sellerId);
+  
+  const isMyPost = sell.sellerId?.toString() === currentUserId?.toString();
 
-  const isMyPost = sell.sellerId === currentUserId;
 
 
   const handleInquiryClick = async () => {

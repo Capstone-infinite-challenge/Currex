@@ -113,7 +113,6 @@ useEffect(() => {
 
           if (regionInfo) {
             newDistricts[sell.location] = `${regionInfo.region_2depth_name} ${regionInfo.region_3depth_name}`;
-            console.log(`변환 완료: ${sell.location} → ${newDistricts[sell.location]}`);
           } else {
             console.warn(`행정동 정보 없음: ${sell.location} (x=${x}, y=${y})`);
           }
@@ -149,7 +148,7 @@ useEffect(() => {
       ) : sells.length > 0 ? (
         <PostListContainer>
           {sells.map((sell) => (
-            <Post key={sell._id}>
+            <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
               <ImageContainer>
                 {sell.images && sell.images.length > 0 ? (
                   <PostImage src={sell.images[0]} alt="상품 이미지" />

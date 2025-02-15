@@ -77,6 +77,38 @@ function MyPage() {
       },
     }).open();
   };
+  
+  //로그아웃
+  const handleLogout = async () => {
+    try {
+      console.log("🚪 로그아웃 중...");
+      const token = localStorage.getItem("accessToken");
+  
+      if (token) {
+        await api.post("/api/auth/logout", {}, {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        });
+      }
+  
+      // ✅ 모든 저장소 클리어
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+  
+      alert("로그아웃되었습니다.");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+      alert("로그아웃 중 오류가 발생했습니다.");
+    }
+  };
+  
+
 
   return (
     <Container>
@@ -130,6 +162,9 @@ function MyPage() {
           />
         </InfoItem>
       </InfoSection>
+      <LogoutSection>
+        <LogoutButton onClick={handleLogout} >로그아웃</LogoutButton>
+     </LogoutSection>
     </Container>
   );
 }
@@ -306,5 +341,27 @@ const Input = styled.input`
   &:focus {
     outline: none;
     border: 1px solid #CA2F28;
+  }
+`;
+
+const LogoutSection = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+`;
+
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: #ca2f28;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+  transition: 0.3s;
+  
+  &:hover {
+    color: #a92521;
   }
 `;

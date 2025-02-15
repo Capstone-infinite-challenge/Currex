@@ -204,6 +204,38 @@ router.get('/google/callback', async(req, res) => {
   }
 });
 
+//구글 로그아웃
+
+router.post('/googlelogout', async (req, res) => {
+  try {
+    const accessToken = req.headers.authorization?.split(' ')[1];
+    if (accessToken) {
+      // 구글 로그아웃 API 호출
+      await axios.post('https://accounts.google.com/o/oauth2/revoke', null, {
+        params: { token: accessToken }
+      });
+
+      // 토큰 블랙리스트 추가 (선택적)
+      blacklist.add(accessToken);
+    }
+
+    // 쿠키 제거
+    res.clearCookie('token');
+
+    res.status(200).json({ 
+      success: true, 
+      message: '구글 로그아웃 처리가 완료되었습니다.' 
+    });
+  } catch (error) {
+    console.error('구글 로그아웃 에러:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '구글 로그아웃 처리 중 오류가 발생했습니다.' 
+    });
+  }
+});
+
+
 
 //refreshToken을 통한 새 accessToken발급
 router.post('/refresh', refreshTokenMiddleware);

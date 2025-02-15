@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import logo from "../../images/currexlogo.png";
@@ -9,29 +9,58 @@ import api from "../../utils/api";
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [currentUserId, setCurrentUserId] = useState(null); 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const accessToken = urlParams.get("token"); 
     const userId = urlParams.get("userId");
 
-    if (accessToken) {
-        console.log("프론트에서 받은 accessToken:", accessToken);
-        sessionStorage.setItem("accessToken", accessToken);
-        sessionStorage.setItem("userId", userId);  
-        navigate("/list"); 
+    if (accessToken && userId) {
+      
+      sessionStorage.setItem("accessToken", accessToken); // 세션스토리지에 저장 (브라우저 닫으면 삭제)
+      sessionStorage.setItem("userId", userId);
+      setCurrentUserId(userId); 
+      navigate("/list"); 
     } else {
-        console.log("accessToken 없음, 로그인 필요");
+      console.log("accessToken 없음, 로그인 필요");
     }
   }, [location, navigate]);
 
+  const clearStorageBeforeLogin = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+  };
+  
+  // 로그인 버튼을 눌렀을 때 실행
+  const handleGoogleLogin = () => {
+    clearStorageBeforeLogin();
+    window.location.href = "http://localhost:5000/api/auth/google";
+  };
+  
   const handleKakaoLogin = () => {
+    clearStorageBeforeLogin();
     window.location.href = "http://localhost:5000/api/auth/kakao";
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/api/auth/google";
-  };
+  //다른 탭에서도 로그인 변경 적용
+  useEffect(() => {
+    const updateUserId = () => {
+      const storedUserId = sessionStorage.getItem("userId");
+      setCurrentUserId(storedUserId);
+    };
+
+    window.addEventListener("storage", updateUserId);
+
+    return () => {
+      window.removeEventListener("storage", updateUserId);
+    };
+  }, []);
+
 
   return (
     <Container>
