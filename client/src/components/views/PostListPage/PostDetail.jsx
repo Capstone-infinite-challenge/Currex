@@ -9,7 +9,6 @@ import api from "../../utils/api";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/pagination";
-//import { Pagination } from "swiper";
 import { Pagination } from "swiper";
 import { createGlobalStyle } from "styled-components";
 
@@ -34,11 +33,9 @@ function PostDetail() {
   const [longitude, setLongitude] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
 
-  
-
-  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
-console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 로그인된 사용자 ID 확인
-
+  const currentUserId =
+    localStorage.getItem("userId") || sessionStorage.getItem("userId");
+  console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 로그인된 사용자 ID 확인
 
   const toggleMenu = () => {
     setShowMenu((prevState) => !prevState);
@@ -59,7 +56,6 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
       setShowMenu(false); // 메뉴 닫기
     }
   };
-  
 
   useEffect(() => {
     if (!sellId) {
@@ -89,38 +85,35 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
 
     fetchPost();
   }, [sellId, navigate]);
-  
+
   const isMyPost = sell.sellerId?.toString() === currentUserId?.toString();
 
   const handleInquiryClick = async () => {
     if (isMyPost) return;
 
-    console.log("요청 보낼 sellId:", sellId);  
+    console.log("요청 보낼 sellId:", sellId);
     console.log("ObjectId 유효성 검사:", /^[0-9a-fA-F]{24}$/.test(sellId));
 
     if (!sellId) {
-        alert("잘못된 요청: sellId가 없습니다.");
-        return;
+      alert("잘못된 요청: sellId가 없습니다.");
+      return;
     }
 
     if (!/^[0-9a-fA-F]{24}$/.test(sellId)) {
-        alert("잘못된 요청: 유효한 MongoDB ObjectId가 아닙니다.");
-        return;
+      alert("잘못된 요청: 유효한 MongoDB ObjectId가 아닙니다.");
+      return;
     }
 
     try {
-        const response = await api.post("/api/sell/sellSelect", { sellId });
-        console.log("채팅방 생성 성공:", response.data);
-        const chatRoomId = response.data.chatRoomId;
-        navigate(`/chat/${chatRoomId}`);
+      const response = await api.post("/api/sell/sellSelect", { sellId });
+      console.log("채팅방 생성 성공:", response.data);
+      const chatRoomId = response.data.chatRoomId;
+      navigate(`/chat/${chatRoomId}`);
     } catch (error) {
-        console.error("채팅 시작 실패:", error.response?.data || error.message);
-        alert("채팅을 시작하는 중 오류가 발생했습니다.");
+      console.error("채팅 시작 실패:", error.response?.data || error.message);
+      alert("채팅을 시작하는 중 오류가 발생했습니다.");
     }
-};
-
-  
-  
+  };
 
   //  실시간 환율 가져오기
   useEffect(() => {
@@ -210,16 +203,16 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
               src={backarrowwhite}
               alt="뒤로가기"
             />
-          {sell.sellerId === currentUserId && (
-            <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
+            {sell.sellerId === currentUserId && (
+              <MenuButton onClick={toggleMenu} src={moredetail} alt="더보기" />
+            )}
+          </TopBar>
+          {sell.sellerId === currentUserId && showMenu && (
+            <Menu>
+              <MenuItem onClick={handleDelete}>삭제</MenuItem>
+            </Menu>
           )}
-        </TopBar>
-        {sell.sellerId === currentUserId && showMenu && (
-          <Menu>
-            <MenuItem onClick={handleDelete}>삭제</MenuItem>
-          </Menu>
-        )}
-      </ImageBackground>
+        </ImageBackground>
 
         <Content>
           <TopInfo>
@@ -269,14 +262,17 @@ console.log("현재 로그인한 사용자 ID:", currentUserId); // ✅ 현재 �
                   : "환율 정보 없음"}
               </KRWAmount>
             </KRWContainer>
-            <InquiryButton 
-               disabled={sell.sellerId === currentUserId} 
+            <InquiryButton
+              disabled={sell.sellerId === currentUserId}
               onClick={handleInquiryClick}
-              style={sell.sellerId === currentUserId ? { backgroundColor: "#ccc", cursor: "not-allowed" } : {}}
-              >
-            문의하기
+              style={
+                sell.sellerId === currentUserId
+                  ? { backgroundColor: "#ccc", cursor: "not-allowed" }
+                  : {}
+              }
+            >
+              문의하기
             </InquiryButton>
-
           </ButtonContainer>
         </Content>
       </Container>
