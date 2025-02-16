@@ -211,9 +211,10 @@ function DonateRegister() {
 
         <Label>
           기부자 이름
-          <InputContainer>
-            <Input type="text" placeholder="성" />
-          </InputContainer>
+          <InputRow>
+            <Input type="text" placeholder="성"  />
+            <Input type="text" placeholder="이름" />
+          </InputRow>
         </Label>
 
         <Label>
@@ -402,6 +403,11 @@ const Input = styled.input`
     outline: none;
     border: 1px solid #ca2f28;
   }
+`;
+
+const InputRow = styled.div`
+  display: flex;
+  gap: 10px; /* 성, 이름 입력칸 사이 간격 */
 `;
 
 const Suffix = styled.span`
