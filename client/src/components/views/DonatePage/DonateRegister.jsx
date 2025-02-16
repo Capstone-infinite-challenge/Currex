@@ -212,15 +212,15 @@ function DonateRegister() {
         <Label>
           기부자 이름
           <InputRow>
-            <Input type="text" placeholder="성"  />
-            <Input type="text" placeholder="이름" />
+            <StyledInput type="text" placeholder="성" />
+            <StyledInput type="text" placeholder="이름" />
           </InputRow>
         </Label>
 
         <Label>
           연락처
           <InputContainer>
-            <Input type="number" placeholder="연락처를 알려주세요" />
+            <StyledInput type="number" placeholder="연락처를 알려주세요" />
           </InputContainer>
         </Label>
 
@@ -321,7 +321,7 @@ const CurrencyInputWrapper = styled.div`
   align-items: center;
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 8px;
+  padding: 7px;
   gap: 8px;
   width: 123%;
 `;
@@ -402,6 +402,21 @@ const Input = styled.input`
   &:focus {
     outline: none;
     border: 1px solid #ca2f28;
+  }
+`;
+
+const StyledInput = styled.input`
+  flex: 1;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  width: 100%;
+
+  &:focus {
+    border-color: #ca2f28;
+    outline: none;
   }
 `;
 
@@ -530,22 +545,6 @@ const ImagePreview = styled.img`
   height: 52px;
   border-radius: 8px;
   object-fit: cover;
-`;
-
-const Textarea = styled.textarea`
-  width: 180%;
-  height: 100px;
-  padding: 11px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  resize: none;
-
-  &:focus {
-    outline: none;
-    border: 1px solid #ca2f28;
-  }
 `;
 
 const SubmitButton = styled.button`
