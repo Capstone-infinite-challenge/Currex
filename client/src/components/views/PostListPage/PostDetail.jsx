@@ -5,6 +5,7 @@ import backarrowwhite from "../../images/backarrow-white.svg";
 import moredetail from "../../images/moredetails.svg";
 import axios from "axios";
 import api from "../../utils/api";
+import socket from "../../../socket";
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
@@ -106,9 +107,13 @@ function PostDetail() {
     }
 
     try {
-      const response = await api.post("/api/sell/sellSelect", { sellId });
+      const response = await api.post("/api/chat/sellSelect", { sellId });
       console.log("채팅방 생성 성공:", response.data);
       const chatRoomId = response.data.chatRoomId;
+
+      // 소켓으로 채팅방 참가 요청 보내기
+      socket.emit("joinRoom", { chatRoomId });
+
       navigate(`/chat/${chatRoomId}`);
     } catch (error) {
       console.error("채팅 시작 실패:", error.response?.data || error.message);

@@ -13,9 +13,14 @@ const initializeSocket = (server) => {
         console.log('A user connected');
 
         //소켓 이벤트 핸들러
-        socket.on('joinRoom', ({sellId}) => {
-            socket.join(sellId);
-            console.log(`User joined room ${sellId}`);
+
+        socket.on("updateChat", (data) => {
+            console.log("📢 채팅방 알림:", data.message);
+        })
+
+        socket.on('joinRoom', ({chatRoomId}) => {
+            socket.join(chatRoomId);
+            console.log(`유저가 ${chatRoomId} 채팅방에 입장했습니다.`);
         });
 
         socket.on('sendMessage', (msg) => {
