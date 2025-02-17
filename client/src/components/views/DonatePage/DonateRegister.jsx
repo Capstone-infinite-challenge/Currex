@@ -114,30 +114,23 @@ function DonateRegister() {
     }
 
     const formData = new FormData();
-    formData.append("currency", currency);
-    formData.append("amount", amount);
-    formData.append("sellerLocation", userLocation);
-    formData.append("latitude", latitude);
-    formData.append("longitude", longitude);
-    formData.append("content", content);
-    formData.append("name", "판매글");
-    formData.append("KRWAmount", KRWAmount);
+    //formData.append("name", `${firstName} ${lastName}`); // 성 + 이름 합치기
+    formData.append("company", "기부자 회사명"); // 회사 (프론트엔드에 추가 필요)
+    formData.append("contact", "기부자 연락처"); // 연락처
+    formData.append("address", userLocation); // 주소
 
     uploadedImages.forEach((image, index) => {
       formData.append("images", image);
       console.log(`업로드 이미지 ${index}:`, image);
     });
-
+    /*
     console.log("전송할 데이터 확인:", {
-      currency,
-      amount,
-      sellerLocation: userLocation,
-      latitude,
-      longitude,
-      content,
-      uploadedImages,
+      name,
+      company,
+      contact,
+      address,
     });
-
+*/
     try {
       const response = await api.post("/api/donation/dRegi", formData);
       console.log("기부 등록 성공:", response.data);
