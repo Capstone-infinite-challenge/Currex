@@ -155,6 +155,8 @@ function MySell() {
              ) : (
              <NoImage>이미지 없음</NoImage>
             )}
+            {sell.status === "거래중" && <ReservedLabel color="#0BB770">거래중</ReservedLabel>}
+            {sell.status === "거래완료" && <ReservedLabel color="black">거래완료</ReservedLabel>}
           </ImageContainer>
 
               <PostInfo>
@@ -274,13 +276,14 @@ const PostImage = styled.img`
 
 const ReservedLabel = styled.div`
   position: absolute;
-  bottom: 10px;
-  left: 7px;
-  background: #0BB770;
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 4px;
+  bottom: 8px;
+  left: 6px;
+  background: ${({ color }) => color};
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
   border-radius: 4px;
+  font-weight:200px;
 `;
 
 const PostInfo = styled.div`
