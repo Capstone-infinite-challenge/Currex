@@ -91,7 +91,27 @@ function PostList() {
   }
 }, [sells]);
 
-//필터터
+// 정렬 함수 (정렬된 배열을 반환)
+const sortSells = (sells, sortType) => {
+  let sorted = [...sells];
+
+  if (sortType === "latest") {
+    sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sortType === "distance") {
+    sorted.sort((a, b) => {
+      const distanceA = parseFloat(a.distance);
+      const distanceB = parseFloat(b.distance);
+
+      if (isNaN(distanceA)) return 1;
+      if (isNaN(distanceB)) return -1;
+
+      return distanceA - distanceB;
+    });
+  }
+
+  return sorted;
+};
+
 useEffect(() => {
   let filtered = sells;
 
@@ -115,18 +135,23 @@ useEffect(() => {
 
    // 거리순 및 최신순 정렬 적용
    if (selectedSort === "latest") {
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // 최신순
+    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   } else if (selectedSort === "distance") {
     filtered.sort((a, b) => {
       const distanceA = parseFloat(a.distance);
       const distanceB = parseFloat(b.distance);
-      return (isNaN(distanceA) ? Infinity : distanceA) - (isNaN(distanceB) ? Infinity : distanceB);
+
+      // ✅ NaN 방지: distance가 없으면 무한대로 설정
+      if (isNaN(distanceA)) return 1;
+      if (isNaN(distanceB)) return -1;
+
+      return distanceA - distanceB;
     });
   }
 
+  console.log("정렬된 데이터:", filtered); // ✅ 디버깅용 로그
   setFilteredSells(filtered);
 }, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
-
 
 //국가 필터
   const handleCountryChange = (currency) => {
