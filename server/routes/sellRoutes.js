@@ -5,7 +5,6 @@ import sellService from "../services/sellService.js";
 import userService from "../services/userService.js";
 import User from "../models/user.js";
 import calculateDistance from "../utils/calculate.js";
-import mongoose from "mongoose";
 
 
 // Multer 설정: 파일 메모리 저장
@@ -154,45 +153,6 @@ router.get("/sellList", async (req, res) => {
       .json({ message: "판매자 목록을 불러오는 도중 에러가 발생하였습니다." });
   }
 });
-
-//구매자가 판매 항목을 선택
-router.post("/sellSelect", async (req, res) => {
-  try {
-    const { sellId } = req.body;
-    const buyerId = req.user.id; //로그인 한 사용자
-
-    console.log("로그인한 사용자 ID:", buyerId);
-    console.log("MongoDB ObjectId 변환 가능 여부:", mongoose.Types.ObjectId.isValid(buyerId));
-    if (!sellId) {
-      return res
-        .status(400)
-        .json({ message: "판매 ID와 구매자 ID가 필요합니다." });
-    }
-
-    const updateSell = await Sell.findByIdAndUpdate(
-      sellId,
-      {
-        buyer: buyerId,
-        status: "거래중",
-      },
-      { new: true }
-    );
-
-    if (!updateSell) {
-      return res
-        .status(400)
-        .json({ message: "해당 판매 항목을 찾을 수 없습니다." });
-    }
-    res.status(200).json({
-      message: "판매 항목이 성공적으로 업데이트되었습니다.",
-      updatedSell: updateSell,
-    });
-  } catch (error) {
-    console.log("판매 선택 중 오류 발생", error);
-    res.status(500).json({ message: "판매 항목 업데이트 중 오류 발생" });
-  }
-});
-
 
 
 //내 판매 목록
