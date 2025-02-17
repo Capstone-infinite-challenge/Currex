@@ -9,7 +9,6 @@ import SellMoney from "../src/components/views/SellerPage/SellMoney";
 import PostList from "../src/components/views/PostListPage/PostList";
 import PostDetail from "../src/components/views/PostListPage/PostDetail";
 import Chat from "../src/components/views/ChattingPage/Chat";
-import Chat2 from "../src/components/views/ChattingPage/Chat2";
 import ChatList from "../src/components/views/ChattingPage/ChatList";
 import Login from "../src/components/views/LoginPage/Login";
 import Layout from "./components/views/Layout/Layout";
@@ -35,8 +34,7 @@ function App() {
             <Route exact path="/sell" element={<SellMoney />} />
             <Route exact path="/list" element={<PostList />} />
             <Route path="/sell/:sellId" element={<PostDetail />} />
-            <Route exact path="/chat" element={<Chat />} />
-            <Route exact path="/chat2" element={<Chat2 />} />
+            <Route exact path="/chat/:chatRoomId" element={<Chat />} />
             <Route exact path="/chatlist" element={<ChatList />} />
             <Route exact path="/" element={<Login />} />
             <Route exact path="/auth/kakao/callback" element={<Login />} />
