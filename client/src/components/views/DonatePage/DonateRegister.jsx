@@ -139,12 +139,12 @@ function DonateRegister() {
     });
 
     try {
-      const response = await api.post("/api/sell/productRegi", formData);
-      console.log("판매 등록 성공:", response.data);
-      alert("판매 등록이 완료되었습니다!");
+      const response = await api.post("/api/donation/dRegi", formData);
+      console.log("기부 등록 성공:", response.data);
+      alert("기부 등록이 완료되었습니다!");
       navigate("/list");
     } catch (error) {
-      console.error("판매 등록 오류:", error);
+      console.error("기부 등록 오류:", error);
       alert(error.response?.data?.error || "서버 오류 발생");
     }
   };
