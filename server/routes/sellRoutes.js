@@ -122,7 +122,7 @@ router.get("/sellDescription/:sellId", async (req, res) => {
 // 전체 판매 목록 페이지
 router.get("/sellList", async (req, res) => {
   try {
-    const sellList = await Sell.find({ status: "판매중" });
+    const sellList = await Sell.find({ });
 
     if (!sellList || sellList.length === 0) {
       return res.status(404).json({ message: "판매중인 상품이 없습니다." });
