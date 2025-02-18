@@ -315,12 +315,14 @@ useEffect(() => {
     {filteredSells.map((sell) => (  // 필터링된 데이터 사용
           <Post key={sell._id} onClick={() => navigate(`/sell/${sell._id}`)}>
           <ImageContainer>
-            {sell.images && sell.images.length > 0 ? (
-           <PostImage src={sell.images[0]} alt="상품 이미지" />
-             ) : (
-             <NoImage>이미지 없음</NoImage>
-            )}
-          </ImageContainer>
+                {sell.images && sell.images.length > 0 ? (
+                  <PostImage src={sell.images[0]} alt="상품 이미지" />
+                ) : (
+                  <NoImage>이미지 없음</NoImage>
+                )}
+                {sell.status === "거래중" && <ReservedLabel color="#0BB770">거래중</ReservedLabel>}
+                {sell.status === "거래완료" && <ReservedLabel color="black">거래완료</ReservedLabel>}
+              </ImageContainer>
 
           <PostInfo>
           <Currency>{sell.currency}</Currency>
@@ -567,13 +569,14 @@ const PostImage = styled.img`
 
 const ReservedLabel = styled.div`
   position: absolute;
-  bottom: 10px;
-  left: 7px;
-  background: #0BB770;
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 4px;
+  bottom: 8px;
+  left: 6px;
+  background: ${({ color }) => color};
+  color: white;
+  font-size: 10px;
+  padding: 4px 8px;
   border-radius: 4px;
+  font-weight:200px;
 `;
 
 const PostInfo = styled.div`
