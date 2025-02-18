@@ -59,7 +59,6 @@ export default (io) => {
       res.status(200).json({
         message: "성공적으로 구매 요청이 완료되었습니다.",
         chatRoomId: sellId,
-        //updatedSell: updateSell,
         sellDescription
       });
     } catch (error) {
