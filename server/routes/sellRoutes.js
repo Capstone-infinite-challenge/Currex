@@ -158,7 +158,11 @@ router.get("/sellList", async (req, res) => {
 //내 판매 목록
 router.get("/mySells", async (req, res) => {
   const userId = req.user.id;
-  const mySells = await Sell.find({ sellerId: userId });
+
+  //userId objectId로 변경
+  const sellerId = (await userService.findUserInfo(userId)).id;
+
+  const mySells = await Sell.find({ sellerId: sellerId });
 
   if (!mySells || mySells.length === 0) {
     return res.status(404).json({ message: "판매중인 상품이 없습니다." });
