@@ -86,7 +86,7 @@ function DonateRegister() {
     formData.append("address", address); // 주소
 
     uploadedImages.forEach((image, index) => {
-      formData.append("images", image);
+      formData.append("donationImages", image);
       console.log(`업로드 이미지 ${index}:`, image);
     });
 
@@ -98,7 +98,12 @@ function DonateRegister() {
     });
 
     try {
-      const response = await api.post("/donation/dRegi", formData);
+      const response = await api.post("api/donation/dRegi", formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       console.log("기부 등록 성공:", response.data);
       alert("기부 등록이 완료되었습니다!");
       navigate("/list");
