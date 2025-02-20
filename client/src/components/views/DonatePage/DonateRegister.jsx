@@ -6,47 +6,26 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import searchicon from "../../images/searchicon.svg";
 import pictureicon from "../../images/pictureicon.svg";
-import KakaoMap from "../..//utils/KakaoMap";
 import api from "../../utils/api";
 
 function DonateRegister() {
   const [currency, setCurrency] = useState("USD"); // 기본 선택된 통화
-  const [exchangeRate, setExchangeRate] = useState(0); // 환율 기본값 설정
   const [amount, setAmount] = useState(""); // 거래 희망 금액
-  const [KRWAmount, setKRWAmount] = useState(""); // 환산된 원화 금액
-  const [userLocation, setUserLocation] = useState(""); // 거래 희망 위치
+  const [address, setAddress] = useState(""); // 거래 희망 위치
   const [uploadedImages, setUploadedImages] = useState([]); // 업로드된 이미지
-  const [content, setContent] = useState(""); // 내용 입력
-  const [latitude, setLatitude] = useState(null); // 위도
-  const [longitude, setLongitude] = useState(null); // 경도
-
+  const [firstName, setFirstName] = useState(""); // 성
+  const [lastName, setLastName] = useState(""); // 이름
+  const [contact, setContact] = useState(""); // 연락처
+  const [company, setCompany] = useState(""); // 연락처
   const maxImageCount = 5; // 최대 업로드 가능 이미지 수
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (currency) {
-      fetch(`https://api.exchangerate-api.com/v4/latest/${currency}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setExchangeRate(data.rates.KRW || 0); // 환율 데이터 업데이트
-        })
-        .catch((error) => console.error("환율 API 호출 실패:", error));
-    }
-  }, [currency]);
-
-  useEffect(() => {
-    if (amount && exchangeRate) {
-      setKRWAmount(Math.floor(amount * exchangeRate)); // 소수점 제거
-    } else {
-      setKRWAmount("");
-    }
-  }, [amount, exchangeRate]);
-
+  /*주소 검색 */
   const openKakaoPostcode = () => {
     new window.daum.Postcode({
       oncomplete: async (data) => {
         const fullAddress = data.address; // 선택된 주소
-        setUserLocation(fullAddress); // 주소 업데이트
+        setAddress(fullAddress); // 주소 업데이트
 
         try {
           // Kakao Local API 호출 시 Authorization 헤더 추가
@@ -65,16 +44,6 @@ function DonateRegister() {
               Authorization: `KakaoAK ${kakaoApiKey}`, //  Authorization 헤더 확인
             },
           });
-
-          const { documents } = response.data;
-          if (documents.length > 0) {
-            const { x, y } = documents[0]; // x: 경도, y: 위도
-            setLongitude(parseFloat(x));
-            setLatitude(parseFloat(y));
-            console.log("위치 정보 확인 - 위도:", y, "경도:", x);
-          } else {
-            alert("위치 정보를 찾을 수 없습니다.");
-          }
         } catch (error) {
           console.error("주소 변환 중 오류 발생:", error);
           alert("주소 변환에 실패했습니다.");
@@ -83,7 +52,7 @@ function DonateRegister() {
     }).open();
   };
 
-  /** 이미지 업로드 핸들러 */
+  /*이미지 업로드 */
   const handleImageUpload = (event) => {
     const files = Array.from(event.target.files);
     if (uploadedImages.length + files.length > maxImageCount) {
@@ -92,12 +61,9 @@ function DonateRegister() {
     setUploadedImages((prevImages) => [...prevImages, ...files]);
   };
 
-  const handleCurrencyChange = (e) => {
-    setCurrency(e.target.value); // 통화 변경
-  };
-
+  /*기부 등록 */
   const handleSubmit = async () => {
-    if (!latitude || !longitude || !amount || !userLocation) {
+    if (!firstName || !lastName || !contact || !address || !company) {
       alert("모든 필드를 입력해주세요.");
       return;
     }
@@ -114,25 +80,31 @@ function DonateRegister() {
     }
 
     const formData = new FormData();
-    //formData.append("name", `${firstName} ${lastName}`); // 성 + 이름 합치기
-    formData.append("company", "기부자 회사명"); // 회사 (프론트엔드에 추가 필요)
-    formData.append("contact", "기부자 연락처"); // 연락처
-    formData.append("address", userLocation); // 주소
+    formData.append("name", `${firstName} ${lastName}`); // 성 + 이름 합치기
+    formData.append("company", company); // 회사
+    formData.append("contact", contact); // 연락처
+    formData.append("address", address); // 주소
 
     uploadedImages.forEach((image, index) => {
-      formData.append("images", image);
+      formData.append("donationImages", image);
       console.log(`업로드 이미지 ${index}:`, image);
     });
-    /*
+
     console.log("전송할 데이터 확인:", {
-      name,
+      name: `${firstName} ${lastName}`,
       company,
       contact,
       address,
+      uploadedImages,
     });
-*/
+
     try {
-      const response = await api.post("/api/donation/dRegi", formData);
+      const response = await api.post("api/donation/dRegi", formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
       console.log("기부 등록 성공:", response.data);
       alert("기부 등록이 완료되었습니다!");
       navigate("/list");
@@ -205,15 +177,42 @@ function DonateRegister() {
         <Label>
           기부자 이름
           <InputRow>
-            <StyledInput type="text" placeholder="성" />
-            <StyledInput type="text" placeholder="이름" />
+            <StyledInput
+              type="text"
+              placeholder="성"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
+            <StyledInput
+              type="text"
+              placeholder="이름"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </InputRow>
         </Label>
 
         <Label>
           연락처
           <InputContainer>
-            <StyledInput type="number" placeholder="연락처를 알려주세요" />
+            <StyledInput
+              type="text"
+              placeholder="연락처를 알려주세요"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+            />
+          </InputContainer>
+        </Label>
+
+        <Label>
+          회사
+          <InputContainer>
+            <StyledInput
+              type="text"
+              placeholder="회사 이름을 알려주세요"
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+            />
           </InputContainer>
         </Label>
 
@@ -222,8 +221,8 @@ function DonateRegister() {
           <LocationWrapper>
             <WideInput
               type="text"
-              placeholder="기부자 주소를 알려주세요"
-              value={userLocation}
+              placeholder="주소를 입력해주세요"
+              value={address}
               readOnly
             />
             <LocationButton onClick={openKakaoPostcode}>
@@ -272,7 +271,7 @@ export default DonateRegister;
 
 const Container = styled.div`
   width: 375px;
-  height: 812px;
+  min-height: 100vh;
   position: relative;
   background: #ffffff;
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
@@ -372,30 +371,9 @@ const Label = styled.label`
   margin-left: 0px;
 `;
 
-const CurrencyAmountWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
 const InputContainer = styled.div`
   position: relative;
   width: 100%;
-`;
-
-const Input = styled.input`
-  width: 125%;
-  padding: 11px;
-  font-size: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-sizing: border-box;
-  margin-left: 10px;
-
-  &:focus {
-    outline: none;
-    border: 1px solid #ca2f28;
-  }
 `;
 
 const StyledInput = styled.input`
@@ -425,15 +403,6 @@ const Suffix = styled.span`
   color: #888;
 `;
 
-const KRWSuffix = styled.span`
-  position: absolute;
-  left: 270px;
-  top: 44%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  color: #888;
-`;
-
 const Note = styled.p`
   font-size: 11px;
   font-weight: 500;
@@ -446,7 +415,7 @@ const CalculatorLink = styled.span`
   color: #ca2f28;
   font-weight: 700;
   cursor: pointer;
-  margin-left: 160px;
+  margin-left: 130px;
 `;
 
 const LocationWrapper = styled.div`

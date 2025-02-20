@@ -46,7 +46,8 @@ export default (io) => {
       const sellDescription = {
         buyerImg: buyerImg,
         currency: sellInfo.currency,
-        amount: sellInfo.amount
+        amount: sellInfo.amount,
+        sellImg: sellInfo.images[0] ? `data:${sellInfo.images[0].contentType};base64,${sellInfo.images[0].data.toString("base64")}` : null
       }
 
       // 소켓을 이용해 구매자에게 채팅방 입장 요청

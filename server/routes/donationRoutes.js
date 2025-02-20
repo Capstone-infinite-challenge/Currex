@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Donation from '../models/donation.js';
 import multer from 'multer';
 import { getUserDonationTotal } from '../services/donationService.js';
+import userService from '../services/userService.js';
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
@@ -9,18 +10,19 @@ const router = Router();
 //기부 등록
 router.post("/dRegi", upload.array('donationImages', 5), async(req, res) => {
     try{
+        const userId = req.user.id;
+
+        //userId objectId로 변경
+        const donationUser = (await userService.findUserInfo(userId)).id;
+
         const donationInfo = {
             name: req.body.name,
+            userId: donationUser,
             company: req.body.company,
             contact: req.body.contact,
             address: req.body.address,
             images: [] // 이미지 배열 초기화
         };
-
-        //로그인된 사용자 아이디 함께 저장(사용자 식별 위해서)
-        const userId = req.user.id;     //로그인된 사용자의 ID
-        donationInfo.userId = userId;
-
 
         if(req.files && req.files.length > 0){
             req.files.forEach(file => {
