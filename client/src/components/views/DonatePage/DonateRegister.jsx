@@ -81,8 +81,8 @@ function DonateRegister() {
 
     const formData = new FormData();
     formData.append("name", `${firstName} ${lastName}`); // 성 + 이름 합치기
-    formData.append("company", "기부자 회사명"); // 회사
-    formData.append("contact", "기부자 연락처"); // 연락처
+    formData.append("company", company); // 회사
+    formData.append("contact", contact); // 연락처
     formData.append("address", address); // 주소
 
     uploadedImages.forEach((image, index) => {
@@ -95,6 +95,7 @@ function DonateRegister() {
       company,
       contact,
       address,
+      uploadedImages,
     });
 
     try {
@@ -270,12 +271,12 @@ export default DonateRegister;
 
 const Container = styled.div`
   width: 375px;
-  height: 812px;
+  min-height: 100vh;
   position: relative;
   background: #ffffff;
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
   border-radius: 32px;
-  overflow: auto;
+  overflow: hidden;
   font-family: "Pretendard", sans-serif;
 `;
 
@@ -414,7 +415,7 @@ const CalculatorLink = styled.span`
   color: #ca2f28;
   font-weight: 700;
   cursor: pointer;
-  margin-left: 160px;
+  margin-left: 130px;
 `;
 
 const LocationWrapper = styled.div`
