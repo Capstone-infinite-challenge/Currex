@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Sell from '../models/sell.js';
 import userService from "../services/userService.js";
+import chatService from "../services/chatService.js";
 
 const router = Router();
 
@@ -41,7 +42,8 @@ export default (io) => {
 
       //판매자 정보 (currency, amount)
       const sellInfo = await Sell.findById(sellId);
-      
+      const sellerId = sellInfo.sellerId;   //판매자 ID
+
       //프론트에 넘겨줄 값 저장
       const sellDescription = {
         buyerImg: buyerImg,
@@ -53,9 +55,20 @@ export default (io) => {
       // 소켓을 이용해 구매자에게 채팅방 입장 요청
       try {
         io.to(sellId).emit("updateChat", {message: "거래가 시작되었습니다!", sellId});
+      
+        //판매자도 해당 방에 입장 시킴
+        io.to(sellId).emit("updateChat", {message: "판매자가 입장했습니다.", sellId});
+        
+        //판매자와 구매자 채팅방에 입장시킴
+        io.to(buyerId).emit("joinRoom", {chatRoomId: sellId})    //구매자 입장
+        io.to(sellerId).emit("joinRoom", {chatRoomId: sellId});   //판매자 입장
+      
       } catch (socketError) {
         console.error("소켓 통신 중 오류 발생", socketError);
       }
+
+      //채팅방 db 저장
+      chatService.createChatRoom(sellId, sellerId, buyerId);
 
       res.status(200).json({
         message: "성공적으로 구매 요청이 완료되었습니다.",
@@ -67,5 +80,20 @@ export default (io) => {
       res.status(500).json({ message: "구매 항목 업데이트 중 오류 발생" });
     }
   });
+
+
+  //추천장소
+  router.get("/placeRecommend", async(req, res) => {
+    const chatRoomId = req.body;
+
+    const buyer = chatService.getBuyerInfo(chatRoomId);
+    const seller = chatService.getSellerInfo(chatRoomId);
+
+    
+    
+  })
+
+
+
   return router;
 };

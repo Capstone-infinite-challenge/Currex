@@ -42,7 +42,12 @@ const userSchema = new Schema({
     sells: [{                                //sell과 연결
         type: Schema.Types.ObjectId, 
         ref: 'Sell' 
-    }]
+    }],
+    chatRooms: [{
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'ChatRoom',
+        default: null
+    }],
 }, {timestamps: true});
 
 
