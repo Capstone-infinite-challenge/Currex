@@ -1,51 +1,45 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import api from "../../utils/api"; // API 요청을 위한 axios 인스턴스 (withCredentials 설정 필요)
 
 function ChatList() {
   const navigate = useNavigate();
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const chats = [
-    {
-      id: 1,
-      name: "Gabriel",
-      price: "$ 4,010",
-      description: "대화내용어쩌고",
-      status: "판매중",
-      statusColor: "#CA2F28",
-      timeAgo: "6시간 전",
-      flagFrom: "🇯🇵",
-      flagTo: "🇺🇸",
-      online: true,
-      image: "",
-    },
-    {
-      id: 2,
-      name: "Bin Thieu",
-      price: "$ 4,010",
-      description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-      status: "거래확정",
-      statusColor: "#8EA0AC",
-      timeAgo: "12시간 전",
-      flagFrom: "🇯🇵",
-      flagTo: "🇺🇸",
-      online: false,
-      image: "",
-    },
-    {
-      id: 3,
-      name: "Vinicius",
-      price: "$ 4,010",
-      description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-      status: "거래완료",
-      statusColor: "#0BB770",
-      timeAgo: "3일 전",
-      flagFrom: "🇯🇵",
-      flagTo: "🇺🇸",
-      online: false,
-      image: "",
-    },
-  ];
+  // 채팅 목록 불러오기
+  useEffect(() => {
+    const fetchChatList = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
+
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+          return;
+        }
+
+        const response = await api.get("/api/trade/list", {
+          withCredentials: true, // 인증 정보 포함
+        });
+
+        console.log("채팅 목록 불러오기 성공:", response.data);
+        setChats(response.data); // 불러온 데이터 저장
+      } catch (err) {
+        console.error("채팅 목록 불러오기 실패:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChatList();
+  }, [navigate]);
 
   return (
     <Container>
@@ -57,35 +51,34 @@ function ChatList() {
         </FilterContainer>
       </Header>
 
-      <ChatListContainer>
-        {chats.map((chat) => (
-          <ChatItem key={chat.id} onClick={() => navigate(`/chat/${chat.id}`)}>
-            <Avatar src={chat.image} alt={`${chat.name} avatar`} />
-            <ChatInfo>
-              <ChatHeader>
-                <NameContainer>
-                  {chat.online && <OnlineIndicator />}
-                  <Name>{chat.name}</Name>
-                </NameContainer>
-                <TimeAgo>{chat.timeAgo}</TimeAgo>
-              </ChatHeader>
-              <PriceAndFlags>
-                <Price>{chat.price}</Price>
-                <Flags>
-                  <Flag>{chat.flagFrom}</Flag>
-                  <Arrow>➠</Arrow>
-                  <Flag>{chat.flagTo}</Flag>
-                </Flags>
-              </PriceAndFlags>
-              <ChatFooter>
-                <Description>{chat.description}</Description>
-
-              </ChatFooter>
-              <Status style={{ backgroundColor: chat.statusColor }}>{chat.status}</Status>
-            </ChatInfo>
-          </ChatItem>
-        ))}
-      </ChatListContainer>
+      {loading ? (
+        <LoadingMessage>채팅 목록을 불러오는 중...</LoadingMessage>
+      ) : error ? (
+        <ErrorMessage>채팅 목록을 불러오지 못했습니다.</ErrorMessage>
+      ) : chats.length === 0 ? (
+        <NoDataMessage>채팅 내역이 없습니다.</NoDataMessage>
+      ) : (
+        <ChatListContainer>
+          {chats.map((chat) => (
+            <ChatItem key={chat.chatRoomId} onClick={() => navigate(`/chat/${chat.chatRoomId}`)}>
+              <Avatar src={chat.opponentProfileImg || "https://via.placeholder.com/40"} alt={`${chat.opponentName} avatar`} />
+              <ChatInfo>
+                <ChatHeader>
+                  <NameContainer>
+                    <Name>{chat.opponentName}</Name>
+                  </NameContainer>
+                  <Status style={{ backgroundColor: chat.status === "판매중" ? "#CA2F28" : chat.status === "거래확정" ? "#8EA0AC" : "#0BB770" }}>
+                    {chat.status}
+                  </Status>
+                </ChatHeader>
+                <PriceAndFlags>
+                  <Price>{chat.amount ? `${chat.amount} 원` : "금액 정보 없음"}</Price>
+                </PriceAndFlags>
+              </ChatInfo>
+            </ChatItem>
+          ))}
+        </ChatListContainer>
+      )}
     </Container>
   );
 }
@@ -249,4 +242,21 @@ const Status = styled.div`
   color: white;
   border-radius: 10px;
   margin-right:0;
+`;
+const LoadingMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #666;
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: red;
+  margin-top: 20px;
+`;
+
+const NoDataMessage = styled.div`
+  text-align: center;
+  margin-top: 20px;
+  color: #888;
 `;
