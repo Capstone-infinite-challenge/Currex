@@ -4,7 +4,7 @@ import Sell from "../models/sell.js";
 import sellService from "../services/sellService.js";
 import userService from "../services/userService.js";
 import User from "../models/user.js";
-import calculateDistance from "../utils/calculate.js";
+import calculate from "../utils/calculate.js";
 
 
 // Multer 설정: 파일 메모리 저장
@@ -133,7 +133,7 @@ router.get("/sellList", async (req, res) => {
     // 이미지 데이터를 Base64로 변환
     const formattedSellList = sellList.map((sell) => ({
       ...sell.toObject(), // Mongoose 객체를 JSON으로 변환
-      distance: calculateDistance(
+      distance: calculate.calculateDistance(
         myInfo.latitude,
         myInfo.longitude,
         sell.latitude,
