@@ -1,6 +1,6 @@
 import { Router } from "express";
 import Sell from "../models/sell.js";
-import calculateDistance from "../utils/calculate.js";
+import calculate from "../utils/calculate.js";
 
 const router = Router();
 
@@ -66,7 +66,7 @@ router.get("/SellerMatch", async (req, res) => {
     
     // 거리 계산 및 추가 정보 반환
     const sellersWithDistance = filteredSells.map((seller) => {
-      const distance = calculateDistance(
+      const distance = calculate.calculateDistance(
         buyerInfo.latitude,
         buyerInfo.longitude,
         seller.latitude,
@@ -91,7 +91,7 @@ router.get("/SellerMatch", async (req, res) => {
       (a, b) => parseFloat(a.distance) - parseFloat(b.distance)
     );
 
-    console.log("필터링된 판매자 목록:", sellersWithDistance);
+    //console.log("필터링된 판매자 목록:", sellersWithDistance);
     res.status(200).json({ sellersWithDistance, buyerInfo });
   } catch (error) {
     console.error("에러 발생:", error);
@@ -100,6 +100,7 @@ router.get("/SellerMatch", async (req, res) => {
 });
 
 
+//중간지점 라우터
 router.post("/SellerMatch/:name", async (req, res) => {
   try {
     const sellerName = req.params.name;
@@ -113,8 +114,7 @@ router.post("/SellerMatch/:name", async (req, res) => {
     console.log(seller);
 
     //중간위치 계산
-    const middleLatitude = (buyerLatitude + seller.latitude) / 2;
-    const middleLongitude = (buyerLongitude + seller.longitude) / 2;
+    const { middleLatitude, middleLongitude } = calculate.calculateMiddlePlace(buyerLatitude, buyerLongitude, seller.latitude, seller.longitude);
 
     console.log(`중간 위도: ${middleLatitude}, 중간 경도: ${middleLongitude}`);
 
@@ -127,5 +127,19 @@ router.post("/SellerMatch/:name", async (req, res) => {
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
+
+
+//채팅 목록(io객체 필요없어서 여기에)
+router.get("/list", async(req, res) => {
+  const userId = req.user.id;
+  try{
+    const chatList = await chatService.getChatList(userId);
+    res.status(200).json(chatList);
+  }catch(error){
+    console.log("채팅 리스트 불러오는 도중 에러 발생", error);
+    res.status(500).json({message: "채팅 리스트 반환 중 에러 발생"});
+  }
+});
+
 
 export default router;
