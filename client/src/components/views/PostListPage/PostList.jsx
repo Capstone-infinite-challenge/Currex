@@ -113,7 +113,7 @@ const sortSells = (sells, sortType) => {
 };
 
 useEffect(() => {
-  let filtered = sells;
+  let filtered = [...sells];
 
   // 선택한 국가 필터 적용
   if (selectedCountries.length > 0) {
@@ -132,16 +132,15 @@ useEffect(() => {
     });
   }
 
-
-   // 거리순 및 최신순 정렬 적용
-   if (selectedSort === "latest") {
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  // 정렬 적용
+  let sortedFiltered = [...filtered]; // 새로운 배열 생성
+  if (selectedSort === "latest") {
+    sortedFiltered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   } else if (selectedSort === "distance") {
-    filtered.sort((a, b) => {
+    sortedFiltered.sort((a, b) => {
       const distanceA = parseFloat(a.distance);
       const distanceB = parseFloat(b.distance);
 
-      // ✅ NaN 방지: distance가 없으면 무한대로 설정
       if (isNaN(distanceA)) return 1;
       if (isNaN(distanceB)) return -1;
 
@@ -149,9 +148,10 @@ useEffect(() => {
     });
   }
 
-  console.log("정렬된 데이터:", filtered); // ✅ 디버깅용 로그
-  setFilteredSells(filtered);
+  console.log("정렬된 데이터:", sortedFiltered);
+  setFilteredSells([...sortedFiltered]); // 새로운 배열을 상태에 직접 반영
 }, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
+
 
 //국가 필터
   const handleCountryChange = (currency) => {
