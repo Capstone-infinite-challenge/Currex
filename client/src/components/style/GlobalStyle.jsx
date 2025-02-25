@@ -29,6 +29,12 @@ const GlobalStyle = createGlobalStyle`
     font-family: "Pretendard";
   }
 
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden; 
+  }
+
   /* Slider */
 .slick-loading .slick-list {
   background: #fff url('./ajax-loader.gif') center center no-repeat;

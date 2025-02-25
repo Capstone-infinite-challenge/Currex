@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import logo from "../../images/currexlogo.png";
+import logo from "../../images/currexlogo.svg";
 import kakaoIcon from "../../images/kakaoicon.svg";
-import googleIcon from "../../images/googleicon.png";
+import googleIcon from "../../images/googleicon.svg";
 import api from "../../utils/api";
 
 function Login() {
@@ -66,7 +66,6 @@ function Login() {
     <Container>
       <LogoContainer>
         <Logo src={logo} alt="Logo" />
-        <AppName>CURREX</AppName>
       </LogoContainer>
       <SocialLoginContainer>
         <LoginText>Sign up with Social Networks</LoginText>
@@ -86,11 +85,14 @@ export default Login;
 const Container = styled.div`
   width: 100%;
   height: 100vh;
-  background-color: #121212;
+  background-color: #1F1F24;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
   font-family: "Pretendard", sans-serif;
 `;
 
@@ -98,20 +100,18 @@ const LogoContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; 
+  width: 100%; 
   margin-bottom: 40px;
 `;
 
 const Logo = styled.img`
-  width: 90%;
-  height: 90%;
-  margin-bottom: 20px;
+  max-width: 80%;  
+  height: auto;
+  margin-bottom: 10px;
+  margin-left:10px;
 `;
 
-const AppName = styled.h1`
-  font-size: 24px;
-  font-weight: bold;
-  color: #e63946;
-`;
 
 const SocialLoginContainer = styled.div`
   display: flex;
