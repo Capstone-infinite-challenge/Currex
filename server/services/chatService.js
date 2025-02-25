@@ -1,5 +1,6 @@
 import ChatRoom from "../models/chatRoom.js";
 import User from "../models/user.js";
+import axios from "axios";
 
 //채팅방 생성
 const createChatRoom = async(sellId, sellerId, buyerId) => {
@@ -92,14 +93,59 @@ const getSellerInfo = async(chatRoomId) => {
         const sellerInfo = await User.findById(sellerId);
         return sellerInfo;
     }catch(error){
-
+        console.error("Error getting sellerInfo", error);
+        throw error;
     }
 }
+
+
+//카카오 위치 보정
+const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
+    const apiKey = process.env.REST_API_KEY;
+
+    //조회할 카테고리
+    const categories = ["MT1", "CS2", "SW8", "PO3", "AT4", "CE7"];
+    //MT1: 대형마트, CS2: 편의점, SW8: 지하철역, PO3: 공공기관, AT4: 관광명소, CE7: 카페
+
+    try{
+        const responses = await Promise.all(         //Promise.all 로 동시에 요청
+            categories.map(async(category) => {
+                const response = axios.get(
+                    `https://dapi.kakao.com/v2/local/search/category.json`,
+                    {
+                        headers: {
+                            Authorization: `KakaoAK ${apiKey}`,
+                        },
+                        params: {
+                            category_group_code: category,
+                            x: middleLongitude,
+                            y: middleLatitude,
+                            radius: 10000,  //반경 10km
+                            sort: "distance",   //거리순 정렬
+                        },
+                    }
+                );
+                return response.data.documents;     //결과 데이터만 반환환
+            })
+        );
+        //모든 결과를 하나의 배열로 합치기
+        const allPlaces = responses.flat();
+
+        //거리 순으로 정렬 후 가장 가까운 장소 반환
+        const nearestPlace = allPlaces.sort((a, b) => a.distance - b.distance)[0];
+        
+        return nearestPlace || null;
+    }catch(error){
+        console.log("Error recommending places:", error);
+        return null;
+    }
+};
 
 
 export default{
     createChatRoom,
     getChatList,
     getBuyerInfo,
-    getSellerInfo
+    getSellerInfo,
+    getRecommendedPlace
 };

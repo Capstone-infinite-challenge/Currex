@@ -2,6 +2,7 @@ import { Router } from "express";
 import Sell from '../models/sell.js';
 import userService from "../services/userService.js";
 import chatService from "../services/chatService.js";
+import calculate from "../utils/calculate.js";
 
 const router = Router();
 
@@ -89,9 +90,22 @@ export default (io) => {
     const buyer = chatService.getBuyerInfo(chatRoomId);
     const seller = chatService.getSellerInfo(chatRoomId);
 
-    
-    
-  })
+    //중간 지점 계산
+    const { middleLatitude, middleLongitude } = calculate.calculateMiddlePlace(
+      buyer.tradeAddress_latitude, 
+      buyer.tradeAddress_longitude,
+      seller.tradeAddress_latitude,
+      seller.tradeAddress_longitude
+    );
+
+    console.log('중간지점:', middleLatitude, middleLongitude);
+
+    //주변 편의시설 보정
+    const recommendedPlace = await chatService.getRecommendedPlace(middleLatitude, middleLongitude);
+    console.log(recommendedPlace);
+
+    res.status(200).json(recommendedPlace);
+  });
 
 
 
