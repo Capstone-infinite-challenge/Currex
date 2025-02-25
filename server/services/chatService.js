@@ -47,7 +47,7 @@ const getChatList = async(userId) => {
         })
         .populate({
             path: "chatRoomId",
-            select: "status amount"
+            select: "status amount currency"
         })
         .populate({
             path: "seller.userId buyer.userId",
@@ -62,6 +62,7 @@ const getChatList = async(userId) => {
                 chatRoomId: chatRoom.chatRoomId._id,
                 status: chatRoom.chatRoomId?.status,
                 amount: chatRoom.chatRoomId?.amount,
+                currency: chatRoom.chatRoomId?.currency,
                 opponentName : isSeller? chatRoom.buyer.userId.nickname : chatRoom.seller.userId.nickname,
                 opponentProfileImg: isSeller?chatRoom.buyer.userId.profile_img : chatRoom.seller.userId.profile_img
             };

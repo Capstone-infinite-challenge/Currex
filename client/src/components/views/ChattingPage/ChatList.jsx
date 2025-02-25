@@ -2,13 +2,23 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import api from "../../utils/api"; // API 요청을 위한 axios 인스턴스 (withCredentials 설정 필요)
+import api from "../../utils/api"; 
+import dropdown from "../../images/dropdown.svg";
 
 function ChatList() {
   const navigate = useNavigate();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("전체"); 
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [exchangeRates, setExchangeRates] = useState({});
+
+  const statusColors = {
+    "판매중": "#CA2F28",
+    "거래중": "#0BB770",
+    "거래완료": "#1F2024"
+  };
 
   // 채팅 목록 불러오기
   useEffect(() => {
@@ -24,9 +34,7 @@ function ChatList() {
           return;
         }
 
-        const response = await api.get("/api/trade/list", {
-          withCredentials: true, // 인증 정보 포함
-        });
+        const response = await api.get("/api/trade/list", { withCredentials: true });
 
         console.log("채팅 목록 불러오기 성공:", response.data);
         setChats(response.data); // 불러온 데이터 저장
@@ -41,13 +49,56 @@ function ChatList() {
     fetchChatList();
   }, [navigate]);
 
+  // 선택된 상태에 따라 필터링
+  const filteredChats = selectedStatus === "전체"
+    ? chats
+    : chats.filter(chat => chat.status === selectedStatus);
+
+
+  // 실시간 환율 가져오기
+useEffect(() => {
+  const fetchExchangeRates = async () => {
+    if (chats.length === 0) return; // 채팅 목록이 없으면 실행 안 함
+
+    const uniqueCurrencies = [...new Set(chats.map((chat) => chat.currency).filter(Boolean))]; 
+    const rates = {};
+
+    try {
+      await Promise.all(
+        uniqueCurrencies.map(async (currency) => {
+          const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+          rates[currency] = response.data.rates.KRW;
+        })
+      );
+      setExchangeRates(rates);
+    } catch (error) {
+      console.error("환율 데이터 불러오기 오류:", error);
+    }
+  };
+
+  fetchExchangeRates();
+}, [chats]); 
+
+
   return (
     <Container>
       <Header>
-        <Title>환전 채팅</Title>
-        <FilterContainer>
-          <Filter>최신순</Filter>
-          <Filter>전체</Filter>
+        <Title>채팅</Title>
+        <FilterContainer onClick={() => setShowDropdown(!showDropdown)}>
+          {selectedStatus}
+          <DropdownIcon src={dropdown} alt="드롭다운" />
+          {showDropdown && (
+            <DropdownMenu>
+              {["전체", "판매중", "거래중", "거래완료"].map((status) => (
+                <DropdownItem key={status} onClick={() => {
+                  setSelectedStatus(status);
+                  setShowDropdown(false);
+                }}>
+                  {status}
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          )}
         </FilterContainer>
       </Header>
 
@@ -55,11 +106,11 @@ function ChatList() {
         <LoadingMessage>채팅 목록을 불러오는 중...</LoadingMessage>
       ) : error ? (
         <ErrorMessage>채팅 목록을 불러오지 못했습니다.</ErrorMessage>
-      ) : chats.length === 0 ? (
+      ) : filteredChats.length === 0 ? (
         <NoDataMessage>채팅 내역이 없습니다.</NoDataMessage>
       ) : (
         <ChatListContainer>
-          {chats.map((chat) => (
+          {filteredChats.map((chat) => (
             <ChatItem key={chat.chatRoomId} onClick={() => navigate(`/chat/${chat.chatRoomId}`)}>
               <Avatar src={chat.opponentProfileImg || "https://via.placeholder.com/40"} alt={`${chat.opponentName} avatar`} />
               <ChatInfo>
@@ -67,13 +118,23 @@ function ChatList() {
                   <NameContainer>
                     <Name>{chat.opponentName}</Name>
                   </NameContainer>
-                  <Status style={{ backgroundColor: chat.status === "판매중" ? "#CA2F28" : chat.status === "거래확정" ? "#8EA0AC" : "#0BB770" }}>
+                  <Status style={{ backgroundColor: statusColors[chat.status] || "#000" }}>
                     {chat.status}
                   </Status>
                 </ChatHeader>
                 <PriceAndFlags>
-                  <Price>{chat.amount ? `${chat.amount} 원` : "금액 정보 없음"}</Price>
+                  <PriceContainer>
+                    <Amount>
+                      {chat.amount ? `${chat.amount} ${chat.currency}` : "금액 정보 없음"}
+                    </Amount>
+                    <ConvertedPrice>
+                      {exchangeRates[chat.currency]
+                        ? `${Math.round(chat.amount * exchangeRates[chat.currency])} 원`
+                        : "환율 정보 없음"}
+                    </ConvertedPrice>
+                  </PriceContainer>
                 </PriceAndFlags>
+
               </ChatInfo>
             </ChatItem>
           ))}
@@ -104,18 +165,15 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 700;
   color: #1f2024;
 `;
 
 const FilterContainer = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
-`;
-
-const Filter = styled.div`
+  align-items: center;
+  gap: 8px;
   padding: 8px 12px;
   font-size: 11px;
   font-weight: 500;
@@ -123,23 +181,66 @@ const Filter = styled.div`
   background: #f7f7f7;
   border-radius: 1000px;
   cursor: pointer;
+  position: relative;
+  margin-left:250px;
+`;
+
+const DropdownIcon = styled.img`
+  width: 10px;
+  height: 10px;
+`;
+
+const DropdownMenu = styled.div`
+  position: absolute;
+  top: 100%;
+  right: 0; 
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 100px;
+  font-weight: 300; 
+`;
+
+const DropdownItem = styled.div`
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #1f2024;
+  text-align: left;
+  font-weight: 300; 
+
+  &:hover {
+    background: #f7f7f7;
+  }
 `;
 
 const ChatListContainer = styled.div`
   flex: 1;
   overflow-y: auto;
+  margin-left:0;
 `;
 
 const ChatItem = styled.div`
   display: flex;
   gap: 12px;
   padding: 16px 21px;
-  border-bottom: 1px solid #f7f7f7;
+  border-bottom: 1px solid #f1f1f1; 
   cursor: pointer;
 
   &:hover {
     background: #f9f9f9;
   }
+`;
+
+const Status = styled.div`
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 300; 
+  color: white;
+  border-radius: 10px;
+  margin-right: 0;
 `;
 
 const Avatar = styled.img`
@@ -171,78 +272,43 @@ const NameContainer = styled.div`
   margin-left:0;
 `;
 
-const OnlineIndicator = styled.div`
-  width: 4px;
-  height: 4px;
-  background: #14f698;
-  border-radius: 50%;
-`;
-
 const Name = styled.span`
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #1f2024;
 `;
 
-const TimeAgo = styled.span`
-  font-size: 11px;
-  font-weight: 400;
-  color: #898d99;
-`;
 
 const PriceAndFlags = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-left:0;
-  gap: 150px;
+  align-items: center;
+  margin-left: 0;
+  gap: 16px;
 `;
 
-const Price = styled.div`
+const PriceContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+`;
+
+const Amount = styled.div`
   font-size: 18px;
   font-weight: 700;
   color: #1f2024;
-  margin-left:0;
 `;
 
-const Flags = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const Flag = styled.span`
+const ConvertedPrice = styled.div`
   font-size: 12px;
-  font-weight: 600;
-  color: #1f2024;
-`;
-
-const Arrow = styled.span`
-  font-size: 10px;
   font-weight: 400;
   color: #666666;
+  margin-left: 10px;
+  margin-top:5px;
 `;
 
-const ChatFooter = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-left:0;
-`;
 
-const Description = styled.div`
-  font-size: 12px;
-  font-weight: 300;
-  color: #898d99;
-  flex: 1;
-`;
 
-const Status = styled.div`
-  padding: 4px 12px;
-  font-size: 10px;
-  font-weight: 700;
-  color: white;
-  border-radius: 10px;
-  margin-right:0;
-`;
 const LoadingMessage = styled.div`
   text-align: center;
   margin-top: 20px;
@@ -260,3 +326,4 @@ const NoDataMessage = styled.div`
   margin-top: 20px;
   color: #888;
 `;
+

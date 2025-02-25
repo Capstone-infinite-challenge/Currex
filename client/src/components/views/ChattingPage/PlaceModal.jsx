@@ -1,36 +1,52 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import api from "../../utils/api";
 
-function PlaceModal({ isOpen, onClose, onSend }) {
+function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
   const [mapLoaded, setMapLoaded] = useState(false);
-  const latitude = 37.558514;
-  const longitude = 126.946994;
-  const distance=100;
+  const [place, setPlace] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!isOpen) return;
 
+    const fetchRecommendedPlace = async () => {
+      try {
+        const response = await api.get(`/api/chat/placeRecommend`, {
+          params: { chatRoomId },
+        });
+        setPlace(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("추천 장소 불러오기 실패:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchRecommendedPlace();
+  }, [isOpen, chatRoomId]);
+
+  useEffect(() => {
+    if (!isOpen || !place) return;
+
     const initializeMap = () => {
       const container = document.getElementById("kakao-map");
-      if (!container) {
-        console.error("Kakao Map 컨테이너를 찾을 수 없습니다.");
-        return;
-      }
+      if (!container) return;
 
       const options = {
-        center: new window.kakao.maps.LatLng(latitude, longitude),
+        center: new window.kakao.maps.LatLng(place.latitude, place.longitude),
         level: 3,
       };
+
       const map = new window.kakao.maps.Map(container, options);
 
-      // ✅마커 추가
+      //  마커 추가
       new window.kakao.maps.Marker({
-        position: new window.kakao.maps.LatLng(latitude, longitude),
+        position: new window.kakao.maps.LatLng(place.latitude, place.longitude),
         map: map,
       });
 
       setMapLoaded(true);
-      console.log("마커 추가 완료!");
     };
 
     if (!window.kakao || !window.kakao.maps) {
@@ -42,12 +58,7 @@ function PlaceModal({ isOpen, onClose, onSend }) {
         script.async = true;
 
         script.onload = () => {
-          console.log("Kakao Map Script 로드 완료");
           window.kakao.maps.load(initializeMap);
-        };
-
-        script.onerror = () => {
-          console.error("Kakao Map Script 로드 실패");
         };
 
         document.body.appendChild(script);
@@ -57,30 +68,29 @@ function PlaceModal({ isOpen, onClose, onSend }) {
     } else {
       window.kakao.maps.load(initializeMap);
     }
-  }, [isOpen, latitude, longitude]);
+  }, [isOpen, place]);
 
   if (!isOpen) return null;
 
   return (
-    //<Overlay>
-      <ModalContainer>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <Title>추천 장소</Title>
-        <Description>
-          나와 Olivia Gracia님의 추천 거래 장소는 <br></br><strong>이대역 3번 출구</strong>입니다.
-        </Description>
-        <MapContainer id="kakao-map">{!mapLoaded && <LoadingText>지도 로딩 중...</LoadingText>}</MapContainer>
-        <SendButton onClick={() => onSend({
-            name: "이대역 3번 출구",
-            latitude,
-            longitude,
-            distance: 2.4 // 예제 거리값
-            })}>
-             전송하기
-        </SendButton>
-
-      </ModalContainer>
-    //</Overlay>
+    <ModalContainer>
+      <CloseButton onClick={onClose}>×</CloseButton>
+      <Title>추천 장소</Title>
+      {loading ? (
+        <LoadingText>추천 장소를 불러오는 중...</LoadingText>
+      ) : place ? (
+        <>
+          <Description>
+            나와 거래 상대자의 추천 거래 장소는 <br />
+            <strong>{place.name}</strong>입니다.
+          </Description>
+          <MapContainer id="kakao-map">{!mapLoaded && <LoadingText>지도 로딩 중...</LoadingText>}</MapContainer>
+          <SendButton onClick={() => onSend(place)}>전송하기</SendButton>
+        </>
+      ) : (
+        <Description>추천할 거래 장소가 없습니다.</Description>
+      )}
+    </ModalContainer>
   );
 }
 

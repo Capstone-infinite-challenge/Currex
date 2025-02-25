@@ -55,14 +55,14 @@ function NavBar() {
         <NavText isActive={active === "camera"}>카메라</NavText>
       </NavItem>
       <NavItem
-        isActive={active === "chat"}
+        isActive={active === "chatlist"}
         onClick={() => handleClick("chatlist", "/chatlist")}
       >
         <NavIcon
-          src={active === "chat" ? chaticonActive : chaticon}
+          src={active === "chatlist" ? chaticonActive : chaticon}
           alt="채팅하기"
         />
-        <NavText isActive={active === "chat"}>채팅하기</NavText>
+        <NavText isActive={active === "chatlist"}>채팅하기</NavText>
       </NavItem>
       <NavItem
         isActive={active === "mypage"}
