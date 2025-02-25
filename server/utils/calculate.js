@@ -13,6 +13,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return R * c; // 거리 반환 (km)
 }
 
+//중간 위도, 경도 계산
 function calculateMiddlePlace(lat1, lon1, lat2, lon2) {
   const mLat = (lat1 + lat2) / 2;
   const mLon = (lon1 + lon2) / 2; 
