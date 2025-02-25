@@ -26,6 +26,24 @@ function Chat() {
   const [sellerInfo, setSellerInfo] = useState(null);
   const sellId = chatRoomId; // chatRoomId를 sellId로 사용
 
+  //거래 상태를 받아오기 위함
+  useEffect(() => {
+    const fetchSellStatus = async () => {
+      try {
+        const response = await api.get(`/api/sell/sellDescription/${sellId}`); 
+        setStatus(response.data.status); // 상태 업데이트
+      } catch (error) {
+        console.error("판매 상태 불러오기 오류:", error);
+      }
+    };
+  
+    if (sellId) {
+      fetchSellStatus();
+    }
+  }, [sellId]); 
+  
+
+
   useEffect(() => {
     if (!chatRoomId) return;
 
@@ -92,12 +110,16 @@ function Chat() {
   
       await api.patch(`/api/sell/${sellId}/status`, { status: newStatus });
   
-      setStatus(newStatus);
+      // 상태 업데이트를 위해 다시 DB에서 불러오기
+      const updatedSell = await api.get(`/api/sell/sellDescription/${sellId}`);
+      setStatus(updatedSell.data.status);
+  
       setShowOptions(false);
     } catch (error) {
       console.error("거래 상태 변경 오류:", error);
     }
   };
+  
 
 
   // 거래 장소 추천
