@@ -2,6 +2,7 @@ import { Router } from "express";
 import Sell from "../models/sell.js";
 import calculate from "../utils/calculate.js";
 import chatService from "../services/chatService.js";
+import userService from "../services/userService.js";
 
 const router = Router();
 
@@ -101,6 +102,20 @@ router.get("/SellerMatch", async (req, res) => {
 });
 
 
+//채팅 목록(io객체 필요없어서 여기에)
+router.get("/list", async(req, res) => {
+  const userId = req.user.id;
+  const objectUserId = (await userService.findUserInfo(userId)).id;
+  try{
+    const chatList = await chatService.getChatList(objectUserId);
+    res.status(200).json(chatList);
+  }catch(error){
+    console.log("채팅 리스트 불러오는 도중 에러 발생", error);
+    res.status(500).json({message: "채팅 리스트 반환 중 에러 발생"});
+  }
+});
+
+/*
 //중간지점 라우터
 router.post("/SellerMatch/:name", async (req, res) => {
   try {
@@ -128,19 +143,5 @@ router.post("/SellerMatch/:name", async (req, res) => {
     res.status(500).json({ error: "서버 오류 발생" });
   }
 });
-
-
-//채팅 목록(io객체 필요없어서 여기에)
-router.get("/list", async(req, res) => {
-  const userId = req.user.id;
-  try{
-    const chatList = await chatService.getChatList(userId);
-    res.status(200).json(chatList);
-  }catch(error){
-    console.log("채팅 리스트 불러오는 도중 에러 발생", error);
-    res.status(500).json({message: "채팅 리스트 반환 중 에러 발생"});
-  }
-});
-
-
+*/
 export default router;
