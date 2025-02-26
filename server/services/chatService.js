@@ -31,7 +31,7 @@ const createChatRoom = async(sellId, sellerId, buyerId) => {
     buyer.chatRooms.push(newChatRoom._id);
 
     await seller.save();
-    await seller.save();
+    await buyer.save();
 
     console.log('새 채팅방이 생성됨', newChatRoom);
 };
@@ -78,7 +78,12 @@ const getChatList = async(userId) => {
 //chatRoomId로 판매자 정보 가져오기
 const getBuyerInfo = async(chatRoomId) => {
     try{
-        const buyerId = (await ChatRoom.findById(chatRoomId)).buyer.userId;
+        const chatRoom = await ChatRoom.findOne({ chatRoomId });
+
+        if(!chatRoom){
+            throw new Error('ChatRoom not found');
+        }
+        const buyerId = chatRoom.buyer.userId;
         const buyerInfo = await User.findById(buyerId);
         return buyerInfo;
     }catch(error){
@@ -90,7 +95,12 @@ const getBuyerInfo = async(chatRoomId) => {
 //chatRoomId로 구매자 정보 가져오기
 const getSellerInfo = async(chatRoomId) => {
     try{
-        const sellerId = (await ChatRoom.findById(chatRoomId)).seller.userId;
+        const chatRoom = await ChatRoom.findOne({ chatRoomId });
+
+        if(!chatRoom){
+            throw new Error('ChatRoom not found');
+        }
+        const sellerId = chatRoom.seller.userId;
         const sellerInfo = await User.findById(sellerId);
         return sellerInfo;
     }catch(error){
@@ -102,7 +112,7 @@ const getSellerInfo = async(chatRoomId) => {
 
 //카카오 위치 보정
 const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
-    const apiKey = process.env.REST_API_KEY;
+    const apiKey = process.env.KAKAO_MAP_KEY;
 
     //조회할 카테고리
     const categories = ["MT1", "CS2", "SW8", "PO3", "AT4", "CE7"];
@@ -116,6 +126,7 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
                     {
                         headers: {
                             Authorization: `KakaoAK ${apiKey}`,
+                            Origin: 'http://127.0.0.1:5000'
                         },
                         params: {
                             category_group_code: category,
@@ -126,7 +137,8 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
                         },
                     }
                 );
-                return response.data.documents;     //결과 데이터만 반환환
+                console.log(response);
+                return response.data;       //결과 데이터만 반환환
             })
         );
         //모든 결과를 하나의 배열로 합치기
