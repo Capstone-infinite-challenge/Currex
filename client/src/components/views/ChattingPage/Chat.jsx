@@ -199,7 +199,7 @@ function Chat() {
           <InfoText>AI에게 거래 장소를 추천받아 보세요</InfoText>
         </InfoContainer>
         <RecommendationButton onClick={() => setShowModal(true)}>추천받기</RecommendationButton>
-        <PlaceModal isOpen={showModal} onClose={() => setShowModal(false)} onSend={handleSendPlace} />
+        <PlaceModal isOpen={showModal} onClose={() => setShowModal(false)} onSend={handleSendPlace} chatRoomId={chatRoomId} />
       </RecommendationSection>
 
       {/* 메시지 입력창 */}

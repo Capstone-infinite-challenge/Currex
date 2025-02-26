@@ -3,6 +3,7 @@ import Sell from '../models/sell.js';
 import userService from "../services/userService.js";
 import chatService from "../services/chatService.js";
 import calculate from "../utils/calculate.js";
+import mongoose from "mongoose";
 
 const router = Router();
 
@@ -85,11 +86,12 @@ export default (io) => {
 
   //추천장소
   router.get("/placeRecommend", async(req, res) => {
-    const chatRoomId = req.body;
+    const chatRoomId = new mongoose.Types.ObjectId(req.query.chatRoomId);
 
-    const buyer = chatService.getBuyerInfo(chatRoomId);
-    const seller = chatService.getSellerInfo(chatRoomId);
+    const buyer = await chatService.getBuyerInfo(chatRoomId);
+    const seller = await chatService.getSellerInfo(chatRoomId);
 
+    console.log("구매자:" ,buyer , "판매자: ", seller);
     //중간 지점 계산
     const { middleLatitude, middleLongitude } = calculate.calculateMiddlePlace(
       buyer.tradeAddress_latitude, 
