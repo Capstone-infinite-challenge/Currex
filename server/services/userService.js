@@ -38,7 +38,7 @@ const updateAddress = async (userId, addr1, addr2, lat, lon) => {
     if (addr1 !== user.address) updateFields.address = addr1;
     if (addr2 !== user.tradeAddress) updateFields.tradeAddress = addr2;
     if (lat !== user.tradeAddress_latitude) updateFields.tradeAddress_latitude = lat;
-    if (lon !== user.tradeAddress_longtitude) updateFields.tradeAddress_longtitude = lon;
+    if (lon !== user.tradeAddress_longitude) updateFields.tradeAddress_longitude = lon;
 
     if (Object.keys(updateFields).length > 0) {
       await User.updateOne({ loginId: userId }, { $set: updateFields });
@@ -62,6 +62,7 @@ const updateTradeAddress = async(userId, addr, lat, lon) => {
     user.tradeAddress_longitude = lon;
 
     await user.save();
+    return '구매자의 거래주소가 성공적으로 업데이트 되었습니다.';
   }catch(error){
     console.error(error);
     throw new Error('거래 주소 업데이트 중 에러가 발생하였습니다.');
