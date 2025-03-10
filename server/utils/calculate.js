@@ -15,8 +15,17 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 
 //중간 위도, 경도 계산
 function calculateMiddlePlace(lat1, lon1, lat2, lon2) {
+  console.log('받은 위도 경도', lat1, lat2, lon1, lon2);
+
+  // parseFloat을 사용하여 값이 문자열이라면 숫자로 변환
+  lat1 = parseFloat(lat1);
+  lon1 = parseFloat(lon1);
+  lat2 = parseFloat(lat2);
+  lon2 = parseFloat(lon2);
+
   const mLat = (lat1 + lat2) / 2;
   const mLon = (lon1 + lon2) / 2; 
+  console.log('중간 위도 경도 계산 결과', mLat, mLon);
   return { middleLatitude: mLat, middleLongitude: mLon };
 }
 

@@ -121,7 +121,7 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
     try{
         const responses = await Promise.all(         //Promise.all 로 동시에 요청
             categories.map(async(category) => {
-                const response = axios.get(
+                const response = await axios.get(
                     `https://dapi.kakao.com/v2/local/search/category.json`,
                     {
                         headers: {
@@ -137,8 +137,7 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
                         },
                     }
                 );
-                console.log(response);
-                return response.data;       //결과 데이터만 반환
+                return response.data.documents;       //결과 데이터만 반환
             })
         );
         //모든 결과를 하나의 배열로 합치기
@@ -146,8 +145,8 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
 
         //거리 순으로 정렬 후 가장 가까운 장소 반환
         const nearestPlace = allPlaces.sort((a, b) => a.distance - b.distance)[0];
-        
         return nearestPlace || null;
+        
     }catch(error){
         console.log("Error recommending places:", error);
         return null;
