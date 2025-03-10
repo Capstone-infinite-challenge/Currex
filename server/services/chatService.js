@@ -138,7 +138,7 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
                     }
                 );
                 console.log(response);
-                return response.data;       //결과 데이터만 반환환
+                return response.data;       //결과 데이터만 반환
             })
         );
         //모든 결과를 하나의 배열로 합치기

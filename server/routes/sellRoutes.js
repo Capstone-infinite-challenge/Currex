@@ -23,6 +23,13 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
     //seller 정보 찾기
     const seller = await userService.findUserInfo(req.user.id);
 
+
+    //사용자의 거래 장소가 아직 null이라면 판매 등록시의 거래장소를 trade_address로 지정
+    if(!seller.tradeAddress){
+      await userService.updateTradeAddress(req.user.id, req.body.sellerLocation, req.body.latitude, req.body.longitude);
+    }
+
+
     //사용자 정보 할당
     const sellInfo = {
       sellerId: seller.id, 
@@ -62,9 +69,7 @@ router.post("/productRegi", upload.array("images", 5), async (req, res) => {
     //user에도 sell정보 연결
     await User.findByIdAndUpdate(seller.id, { $push: { sells: newSell._id } });
 
-    res
-      .status(201)
-      .json({ message: "판매 등록이 완료되었습니다", sell: newSell });
+    res.status(201).json({ message: "판매 등록이 완료되었습니다", sell: newSell });
   } catch (error) {
     console.error("에러 발생:", error);
     res.status(500).json({ error: "서버 오류가 발생했습니다" });
