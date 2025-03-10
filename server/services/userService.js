@@ -28,9 +28,8 @@ const findUserInfo = async(userId) => {
       throw new Error('사용자를 찾는 도중 문제가 발생하였습니다.');
     }
   };
-  
 
-//사용자의 주소 업데이트
+//사용자의 주소 업데이트 - 마이페이지
 const updateAddress = async (userId, addr1, addr2, lat, lon) => {
   try {
     const user = await User.findOne({ loginId: userId });
@@ -52,8 +51,25 @@ const updateAddress = async (userId, addr1, addr2, lat, lon) => {
   }
 };
 
+//사용자의 거래주소만 업데이트
+const updateTradeAddress = async(userId, addr, lat, lon) => {
+  try{
+    const user = await User.findOne({ loginId: userId });
+
+    //사용자 정보 업데이트
+    user.tradeAddress = addr;
+    user.tradeAddress_latitude = lat;
+    user.tradeAddress_longitude = lon;
+
+    await user.save();
+  }catch(error){
+    console.error(error);
+    throw new Error('거래 주소 업데이트 중 에러가 발생하였습니다.');
+  }
+};
 
 export default{
     findUserInfo,
-    updateAddress
+    updateAddress,
+    updateTradeAddress
 };
