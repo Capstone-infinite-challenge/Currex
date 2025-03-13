@@ -100,6 +100,7 @@ export default (io) => {
     );
 
     console.log('중간지점:', middleLatitude, middleLongitude);
+    
 
     //주변 편의시설 보정
     const recommendedPlace = await chatService.getRecommendedPlace(middleLatitude, middleLongitude);

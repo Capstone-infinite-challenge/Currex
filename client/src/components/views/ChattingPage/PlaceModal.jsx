@@ -8,14 +8,29 @@ function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !chatRoomId) return;
+
+    console.log("📌 chatRoomId 요청 URL:", `/api/chat/placeRecommend?chatRoomId=${chatRoomId}`);
 
     const fetchRecommendedPlace = async () => {
       try {
-        const response = await api.get(`/api/chat/placeRecommend`, {
+        const response = await api.get(`/api/chat/placeRecommend`, {  // ✅ 쿼리 파라미터 방식으로 변경
           params: { chatRoomId },
         });
-        setPlace(response.data);
+
+        console.log("✅ 추천 장소 응답:", response.data);
+
+        if (!response.data) {
+          setLoading(false);
+          return;
+        }
+
+        setPlace({
+          name: response.data.place_name, // ✅ 백엔드 응답 구조에 맞게 수정
+          latitude: response.data.y, // ✅ 카카오 API 응답에서 `y`가 위도
+          longitude: response.data.x, // ✅ 카카오 API 응답에서 `x`가 경도
+        });
+
         setLoading(false);
       } catch (error) {
         console.error("추천 장소 불러오기 실패:", error);
@@ -40,7 +55,6 @@ function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
 
       const map = new window.kakao.maps.Map(container, options);
 
-      //  마커 추가
       new window.kakao.maps.Marker({
         position: new window.kakao.maps.LatLng(place.latitude, place.longitude),
         map: map,
@@ -95,7 +109,6 @@ function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
 }
 
 export default PlaceModal;
-
 /* 
 const Overlay = styled.div` 
   position:absolute;
