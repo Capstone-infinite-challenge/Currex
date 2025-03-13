@@ -10,7 +10,7 @@ function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
   useEffect(() => {
     if (!isOpen || !chatRoomId) return;
 
-    console.log("📌 chatRoomId 요청 URL:", `/api/chat/placeRecommend?chatRoomId=${chatRoomId}`);
+    //console.log("📌 chatRoomId 요청 URL:", `/api/chat/placeRecommend?chatRoomId=${chatRoomId}`);
 
     const fetchRecommendedPlace = async () => {
       try {
