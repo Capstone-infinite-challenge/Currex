@@ -25,80 +25,74 @@ function Chat() {
   const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
   const [sellerInfo, setSellerInfo] = useState(null);
   const sellId = chatRoomId; // chatRoomId를 sellId로 사용
+  const [chat, setChat] = useState(null);
 
-  //거래 상태를 받아오기 위함
-  useEffect(() => {
-    const fetchSellStatus = async () => {
+    //  채팅방 입장 (
+    useEffect(() => {
+      if (!chatRoomId) return;
+      
+      socket.emit("joinRoom", { chatRoomId });
+  
+      return () => {
+        socket.off("joinRoom");
+      };
+    }, [chatRoomId]);
+  
+    //  상대방 정보 불러오기
+    useEffect(() => {
+      const fetchChatData = async () => {
+        try {
+          const response = await api.get(`/api/trade/list`, { withCredentials: true });
+          
+          // 현재 chatRoomId와 일치하는 채팅방 데이터 찾기
+          const chatRoom = response.data.find((chat) => chat.chatRoomId === chatRoomId);
+          
+          if (chatRoom) {
+            setChat(chatRoom);
+          } else {
+            console.error("채팅방 정보를 찾을 수 없습니다.");
+          }
+        } catch (error) {
+          console.error("채팅방 정보 불러오기 오류:", error);
+        }
+      };
+  
+      fetchChatData();
+    }, [chatRoomId]);
+  
+    //  메시지 실시간 업데이트 (소켓 연결)
+    useEffect(() => {
+      socket.on("receiveMessage", (msg) => {
+        setMessages((prev) => [...prev, msg]);
+      });
+  
+      return () => {
+        socket.off("receiveMessage");
+      };
+    }, []);
+  
+    //  메시지 전송
+    const handleSendMessage = async () => {
+      if (!newMessage.trim()) return;
+  
+      const messageData = {
+        chatRoomId,
+        senderId: currentUserId,
+        text: newMessage,
+      };
+  
+      socket.emit("sendMessage", messageData);
+  
       try {
-        const response = await api.get(`/api/sell/sellDescription/${sellId}`); 
-        setStatus(response.data.status); // 상태 업데이트
+        await api.post("/api/chat/sendMessage", messageData);
       } catch (error) {
-        console.error("판매 상태 불러오기 오류:", error);
+        console.error("메시지 저장 오류:", error);
       }
+  
+      setMessages((prev) => [...prev, messageData]);
+      setNewMessage("");
     };
   
-    if (sellId) {
-      fetchSellStatus();
-    }
-  }, [sellId]); 
-  
-
-
-  useEffect(() => {
-    if (!chatRoomId) return;
-
-    // 채팅방 입장
-    socket.emit("joinRoom", { chatRoomId });
-
-    const fetchChatData = async () => {
-      try {
-        // 메시지 가져오기 (임시)
-        const messagesResponse = await api.get(`/api/chat/messages/${chatRoomId}`);
-        setMessages(messagesResponse.data);
-
-        // 판매자 정보 가져오기 (임시)
-        const sellerResponse = await api.get(`/api/chat/sellInfo/${chatRoomId}`);
-        setSellerInfo(sellerResponse.data);
-      } catch (error) {
-        console.error("채팅 데이터 불러오기 오류:", error);
-      }
-    };
-    fetchChatData();
-
-    // 실시간 메시지 받기
-    socket.on("receiveMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
-
-    return () => {
-      socket.off("receiveMessage");
-    };
-  }, [chatRoomId]);
-
-  // 메시지 전송
-  const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
-
-    const messageData = {
-      chatRoomId,
-      senderId: currentUserId,
-      text: newMessage,
-    };
-
-    // 메시지를 소켓으로 전송
-    socket.emit("sendMessage", messageData);
-
-    // 메시지를 서버에 저장 (임시)
-    try {
-      await api.post("/api/chat/sendMessage", messageData);
-    } catch (error) {
-      console.error("메시지 저장 오류:", error);
-    }
-
-    setMessages((prev) => [...prev, messageData]);
-    setNewMessage("");
-  };
 
   // 거래 상태 변경
   const changeStatus = async (newStatus) => {
@@ -147,18 +141,17 @@ function Chat() {
       <Header>
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
         
-        {/* 판매자 정보가 있으면 표시 */}
-        {sellerInfo ? (
-          <SellerInfo>
-            <ProfileImage src={sellerInfo.profile_img || "https://via.placeholder.com/40"} alt="seller" />
-            <SellerName>{sellerInfo.nickname || "판매자"}</SellerName>
-          </SellerInfo>
-        ) : (
-          <SellerInfo>
-            <ProfileImage src="https://via.placeholder.com/40" alt="seller" />
-            <SellerName>로딩 중...</SellerName>
-          </SellerInfo>
-        )}
+        {chat ? (
+        <SellerInfo>
+          <ProfileImage src={chat.opponentProfileImg || "https://via.placeholder.com/40"} alt="opponent" />
+          <SellerName>{chat.opponentName || "알 수 없는 사용자"}</SellerName>
+        </SellerInfo>
+      ) : (
+        <SellerInfo>
+          <ProfileImage src="https://via.placeholder.com/40" alt="seller" />
+          <SellerName>로딩 중...</SellerName>
+        </SellerInfo>
+                  )}
 
         <StatusContainer>
           <StatusButton onClick={() => setShowOptions(!showOptions)} disabled={status === "거래완료"}>

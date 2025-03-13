@@ -183,5 +183,6 @@ export default{
     getChatList,
     getBuyerInfo,
     getSellerInfo,
+    getChatters,
     getRecommendedPlace
 };
