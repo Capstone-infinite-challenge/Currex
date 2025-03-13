@@ -83,6 +83,33 @@ export default (io) => {
     }
   });
 
+  //채팅방에서 상대의 info 보여주기
+  router.get("/opponentInfo", async(req, res) => {
+    const chatRoomId = req.body;
+    const user = await (userService.findUserInfo(req.user.id)).id;
+
+    if(!user){
+      return res.status(404).json({message: "사용자를 찾을 수 없습니다."});
+    }
+
+    try{
+      const chatters = await chatService.getBuyerInfo(chatRoomId);
+      let opponentInfo = null;    //상대 정보 저장할 변수
+
+      if(user == chatters.buyer){
+        opponentInfo = await chatService.getBuyerInfo(chatRoomId);
+      }else if(user == chatters.seller){
+        opponentInfo = await chatService.getSellerInfo(chatRoomId);
+      };
+
+      console.log(opponentInfo);
+      return res.status(200).json(opponentInfo);
+
+    }catch(error){
+      console.log('상대의 정보를 불러오는 도중 에러가 발생하였습니다.');
+      res.status(500).json({message: "Error getting opponent's info:", error});
+    }
+  });
 
   //추천장소
   router.get("/placeRecommend", async(req, res) => {
