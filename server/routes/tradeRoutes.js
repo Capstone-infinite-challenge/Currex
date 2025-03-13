@@ -47,7 +47,7 @@ router.post("/buy", (req, res) => {
 });
 
 //판매자 매칭
-router.get("/SellerMatch", async (req, res) => {
+router.patch("/SellerMatch", async (req, res) => {
   // 구매자 정보를 기준으로 판매자 필터링
   const buyerInfo = req.session.buyerInfo; 
   const currentUserId = req.user.id;  // 현재 로그인한 사용자의 ID
@@ -56,6 +56,20 @@ router.get("/SellerMatch", async (req, res) => {
     if (!buyerInfo) {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
+
+    console.log('구매자 정보:',buyerInfo);
+
+    //구매자의 trade_address가 null인 경우 입력한 정보로 업데이트 ---- 이 부분 에러 수정 필요
+    let buyer = await userService.findUserInfo(currentUserId);
+
+    console.log(buyer.tradeAddress);
+    
+    //trade_address가 null이면 업데이트
+    if(!buyer.tradeAddress){
+      await userService.updateTradeAddress(currentUserId, buyerInfo.userLocation, buyerInfo.latitude, buyerInfo.longitude);
+    }
+
+    //판매자 조회
     const sells = await Sell.find({
       currency: buyerInfo.currency,
       amount: { $gte: buyerInfo.minAmount, $lte: buyerInfo.maxAmount },
