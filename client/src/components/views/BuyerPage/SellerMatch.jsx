@@ -18,7 +18,7 @@ function SellerMatch() {
   useEffect(() => {
     const fetchSells = async () => {
       try {
-        const response = await api.get("/api/trade/SellerMatch", { withCredentials: true });
+        const response = await api.patch("/api/trade/SellerMatch", { withCredentials: true });
         console.log("백엔드 응답 데이터:", response.data);
   
         const sellersWithDistance = response.data.sellersWithDistance || [];
