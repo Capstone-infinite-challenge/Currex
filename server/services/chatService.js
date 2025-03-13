@@ -74,6 +74,26 @@ const getChatList = async(userId) => {
     }
 };
 
+//chatRoodId로 판매자 구매자 id가져오기
+const getChatters = async(chatRoomId) => {
+    try{
+        const chatRoom = await ChatRoom.findOne({ chatRoomId });
+
+        if(!chatRoom){
+            throw new Error('ChatRoom not found');
+        }
+        const buyerId = chatRoom.buyer.userId;
+        const sellerId = chatRoom.seller.userId;
+
+        return {
+            buyer: buyerId,
+            seller: sellerId
+        }
+    }catch(error){
+        console.error(error);
+        throw error;
+    }
+}
 
 //chatRoomId로 판매자 정보 가져오기
 const getBuyerInfo = async(chatRoomId) => {
@@ -85,6 +105,8 @@ const getBuyerInfo = async(chatRoomId) => {
         }
         const buyerId = chatRoom.buyer.userId;
         const buyerInfo = await User.findById(buyerId);
+
+        console.log("채팅 판매자 정보 확인", buyerInfo);
         return buyerInfo;
     }catch(error){
         console.error("Error getting buyerInfo:", error);
@@ -102,6 +124,8 @@ const getSellerInfo = async(chatRoomId) => {
         }
         const sellerId = chatRoom.seller.userId;
         const sellerInfo = await User.findById(sellerId);
+
+        console.log("채팅 구매자 정보 확인", buyerInfo);
         return sellerInfo;
     }catch(error){
         console.error("Error getting sellerInfo", error);
