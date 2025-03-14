@@ -16,6 +16,7 @@ const createChatRoom = async(sellId, sellerId, buyerId) => {
     //새로운 채팅방 생성
     const newChatRoom = new ChatRoom({
         chatRoomId: sellId,
+        sellId: sellId, 
         seller: {
             userId: sellerId,
         },
@@ -47,7 +48,7 @@ const getChatList = async(userId) => {
         })
         .populate({
             path: "chatRoomId",
-            select: "status amount currency"
+            select: "status amount currency _id"
         })
         .populate({
             path: "seller.userId buyer.userId",
@@ -60,6 +61,7 @@ const getChatList = async(userId) => {
             const isSeller = chatRoom.seller.userId._id.toString() === userId.toString();
             return {
                 chatRoomId: chatRoom.chatRoomId._id,
+                sellId: chatRoom.chatRoomId._id,  
                 status: chatRoom.chatRoomId?.status,
                 amount: chatRoom.chatRoomId?.amount,
                 currency: chatRoom.chatRoomId?.currency,
@@ -74,7 +76,7 @@ const getChatList = async(userId) => {
     }
 };
 
-//chatRoodId로 판매자 구매자 id가져오기
+//chatRoomId로 판매자 구매자 id가져오기
 const getChatters = async(chatRoomId) => {
     try{
         const chatRoom = await ChatRoom.findOne({ chatRoomId });
@@ -125,7 +127,7 @@ const getSellerInfo = async(chatRoomId) => {
         const sellerId = chatRoom.seller.userId;
         const sellerInfo = await User.findById(sellerId);
 
-        console.log("채팅 구매자 정보 확인", buyerInfo);
+        console.log("채팅 구매자 정보 확인", sellerInfo);
         return sellerInfo;
     }catch(error){
         console.error("Error getting sellerInfo", error);

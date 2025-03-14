@@ -107,6 +107,7 @@ router.get("/sellDescription/:sellId", async (req, res) => {
         ? userProfile.profile_img
         : "https://via.placeholder.com/40"; // 기본 이미지
     const reformatSell = (sell) => ({
+      sellId: sell._id,
       ...sell.toObject(),
       profile_img: profileImage, //기본 이미지 설정
       images: sell.images.map(

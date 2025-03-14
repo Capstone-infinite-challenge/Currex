@@ -345,6 +345,7 @@ useEffect(() => {
                 ) : (
                   <NoImage>이미지 없음</NoImage>
                 )}
+                {sell.status === "판매중" && <ReservedLabel color="#1E62C1">판매중</ReservedLabel>}
                 {sell.status === "거래중" && <ReservedLabel color="#0BB770">거래중</ReservedLabel>}
                 {sell.status === "거래완료" && <ReservedLabel color="black">거래완료</ReservedLabel>}
               </ImageContainer>
