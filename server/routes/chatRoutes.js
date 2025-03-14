@@ -4,6 +4,7 @@ import userService from "../services/userService.js";
 import chatService from "../services/chatService.js";
 import calculate from "../utils/calculate.js";
 import mongoose from "mongoose";
+import sell from "../models/sell.js";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ export default (io) => {
         sellId,
         {
           buyer: buyerId,
-          status: "거래중",
+          status: "판매중",
         },
         { new: true }
       );
@@ -48,9 +49,11 @@ export default (io) => {
 
       //프론트에 넘겨줄 값 저장
       const sellDescription = {
+        sellId: sellId,
         buyerImg: buyerImg,
         currency: sellInfo.currency,
         amount: sellInfo.amount,
+        status: sellInfo.status,
         sellImg: sellInfo.images[0] ? `data:${sellInfo.images[0].contentType};base64,${sellInfo.images[0].data.toString("base64")}` : null
       }
 
@@ -75,6 +78,7 @@ export default (io) => {
       res.status(200).json({
         message: "성공적으로 구매 요청이 완료되었습니다.",
         chatRoomId: sellId,
+        sellId: sellId,
         sellDescription
       });
     } catch (error) {
@@ -83,33 +87,38 @@ export default (io) => {
     }
   });
 
-  //채팅방에서 상대의 info 보여주기
-  router.get("/opponentInfo", async(req, res) => {
-    const chatRoomId = req.body;
-    const user = await (userService.findUserInfo(req.user.id)).id;
+  // 채팅방에서 상대의 info 보여주기
+router.get("/opponentInfo", async (req, res) => {
+  const chatRoomId = req.query.chatRoomId; // Get 요청에서는 req.query로 받아야 함
+  const user = await userService.findUserInfo(req.user.id);
 
-    if(!user){
-      return res.status(404).json({message: "사용자를 찾을 수 없습니다."});
+  if (!user) {
+    return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+  }
+
+  try {
+    const chatters = await chatService.getChatters(chatRoomId); //  getChatters로 수정
+    let opponentInfo = null;
+
+    if (user.id.toString() === chatters.buyer.toString()) {
+      opponentInfo = await chatService.getSellerInfo(chatRoomId);
+    } else if (user.id.toString() === chatters.seller.toString()) {
+      opponentInfo = await chatService.getBuyerInfo(chatRoomId);
+    } else {
+      return res.status(403).json({ message: "채팅방에 속해 있지 않습니다." });
     }
 
-    try{
-      const chatters = await chatService.getBuyerInfo(chatRoomId);
-      let opponentInfo = null;    //상대 정보 저장할 변수
+    console.log("상대방 정보:", opponentInfo);
+    return res.status(200).json({
+      nickname: opponentInfo.nickname,
+      profile_img: opponentInfo.profile_img || "https://via.placeholder.com/40",
+    });
 
-      if(user == chatters.buyer){
-        opponentInfo = await chatService.getBuyerInfo(chatRoomId);
-      }else if(user == chatters.seller){
-        opponentInfo = await chatService.getSellerInfo(chatRoomId);
-      };
-
-      console.log(opponentInfo);
-      return res.status(200).json(opponentInfo);
-
-    }catch(error){
-      console.log('상대의 정보를 불러오는 도중 에러가 발생하였습니다.');
-      res.status(500).json({message: "Error getting opponent's info:", error});
-    }
-  });
+  } catch (error) {
+    console.log("상대의 정보를 불러오는 도중 에러 발생:", error);
+    res.status(500).json({ message: "Error getting opponent's info", error });
+  }
+});
 
   //추천장소
   router.get("/placeRecommend", async(req, res) => {

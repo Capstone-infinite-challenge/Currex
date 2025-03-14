@@ -8,24 +8,23 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import sendicon from "../../images/sendicon.svg";
 import PlaceModal from "./PlaceModal";
+import axios from "axios";
 
 const socket = io("http://localhost:5000", { withCredentials: true });
 
 function Chat() {
   const { chatRoomId } = useParams();
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "me", text: "안녕하세요\n내일 거래 가능 하신가요?" },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [status, setStatus] = useState("판매중"); //  판매 상태 관리
-  const [showOptions, setShowOptions] = useState(false); // 드롭다운 표시 상태 관리
-  const [showModal, setShowModal] = useState(false); //  모달 상태 추가
-
-  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
-  const [sellerInfo, setSellerInfo] = useState(null);
-  const sellId = chatRoomId; // chatRoomId를 sellId로 사용
+  const [status, setStatus] = useState(""); 
+  const [showOptions, setShowOptions] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [chat, setChat] = useState(null);
+  const [isSeller, setIsSeller] = useState(false); // 판매자인지 여부 저장
+  const [sellId, setSellId] = useState(null); 
+  const [exchangeRates, setExchangeRates] = useState({});
+  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
     //  채팅방 입장 (
     useEffect(() => {
@@ -38,28 +37,57 @@ function Chat() {
       };
     }, [chatRoomId]);
   
-    //  상대방 정보 불러오기
     useEffect(() => {
       const fetchChatData = async () => {
         try {
           const response = await api.get(`/api/trade/list`, { withCredentials: true });
-          
-          // 현재 chatRoomId와 일치하는 채팅방 데이터 찾기
           const chatRoom = response.data.find((chat) => chat.chatRoomId === chatRoomId);
-          
-          if (chatRoom) {
-            setChat(chatRoom);
-          } else {
+    
+          if (!chatRoom) {
             console.error("채팅방 정보를 찾을 수 없습니다.");
+            return;
           }
+    
+          //console.log("chatRoom 데이터 확인:", chatRoom);
+    
+          if (!chatRoom.sellId) {
+            console.error("sellId 없음, API에서 가져와야 함.");
+            return;
+          }
+    
+          //console.log("불러온 sellId:", chatRoom.sellId);
+          setSellId(chatRoom.sellId);
+    
+          // 판매 정보 가져오기
+          const postResponse = await api.get(`/api/sell/sellDescription/${chatRoom.sellId}`);
+          setChat((prev) => ({ ...prev, sellInfo: postResponse.data }));
+          setStatus(postResponse.data.status);
+    
+          // 판매자와 현재 사용자 비교
+          if (postResponse.data.sellerId === currentUserId) {
+            setIsSeller(true);
+          } else {
+            setIsSeller(false);
+          }
+    
+          //상대방 정보 가져오기 추가
+          const opponentResponse = await api.get(`/api/chat/opponentInfo?chatRoomId=${chatRoomId}`);
+          setChat((prev) => ({
+            ...prev,
+            opponentName: opponentResponse.data.nickname || "알 수 없는 사용자",
+            opponentProfileImg: opponentResponse.data.profile_img || "https://via.placeholder.com/40",
+          }));
         } catch (error) {
           console.error("채팅방 정보 불러오기 오류:", error);
         }
       };
-  
+    
       fetchChatData();
-    }, [chatRoomId]);
-  
+    }, [chatRoomId, currentUserId]);
+    
+    
+
+
     //  메시지 실시간 업데이트 (소켓 연결)
     useEffect(() => {
       socket.on("receiveMessage", (msg) => {
@@ -96,6 +124,11 @@ function Chat() {
 
   // 거래 상태 변경
   const changeStatus = async (newStatus) => {
+    if (!isSeller) {
+      console.error("거래 상태 변경은 판매자만 가능합니다.");
+      return;
+    }
+  
     try {
       if (!sellId) {
         console.error("오류: sellId가 정의되지 않았습니다.");
@@ -107,14 +140,13 @@ function Chat() {
       // 상태 업데이트를 위해 다시 DB에서 불러오기
       const updatedSell = await api.get(`/api/sell/sellDescription/${sellId}`);
       setStatus(updatedSell.data.status);
-  
       setShowOptions(false);
     } catch (error) {
       console.error("거래 상태 변경 오류:", error);
     }
   };
   
-
+  
 
   // 거래 장소 추천
   const handleSendPlace = (place) => {
@@ -133,7 +165,27 @@ function Chat() {
     setShowModal(false);
   };
 
+
+  // 실시간 환율 가져오기
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      if (!chat || !chat.sellInfo || !chat.sellInfo.currency) return; // 🔥 방어 코드 추가
   
+      const currency = chat.sellInfo.currency;
+      try {
+        const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+        setExchangeRates((prevRates) => ({
+          ...prevRates,
+          [currency]: response.data.rates.KRW,
+        }));
+      } catch (error) {
+        console.error("환율 데이터 불러오기 오류:", error);
+      }
+    };
+  
+    fetchExchangeRates();
+  }, [chat]); 
+
   
   return (
     <Container>
@@ -153,23 +205,49 @@ function Chat() {
         </SellerInfo>
                   )}
 
-        <StatusContainer>
-          <StatusButton onClick={() => setShowOptions(!showOptions)} disabled={status === "거래완료"}>
-            <StatusText>{status}</StatusText>
-            {status !== "거래완료" && <StatusDropdown src={dropdown} />}
-          </StatusButton>
+         {/* 판매자인 경우에만 거래 상태 변경 가능능*/}
+         <StatusContainer>
+            {isSeller ? ( //  판매자인 경우에만 버튼 활성화
+              <>
+                <StatusButton onClick={() => setShowOptions(!showOptions)} disabled={status === "거래완료"}>
+                  <StatusText>{status}</StatusText>
+                  {status !== "거래완료" && <StatusDropdown src={dropdown} />}
+                </StatusButton>
 
-          {showOptions && (
-            <DropdownMenu>
-              {["판매중", "거래중", "거래완료"].map((s) => (
-                <DropdownItem key={s} onClick={() => changeStatus(s)}>
-                  {s}
-                </DropdownItem>
-              ))}
-            </DropdownMenu>
-          )}
-        </StatusContainer>
+                {showOptions && (
+                  <DropdownMenu>
+                    {["판매중", "거래중", "거래완료"].map((s) => (
+                      <DropdownItem key={s} onClick={() => changeStatus(s)}>
+                        {s}
+                      </DropdownItem>
+                    ))}
+                  </DropdownMenu>
+                )}
+              </>
+            ) : (
+              <StatusText>{status}</StatusText> // 구매자는 상태 변경 버튼 없이 보기만 가능
+            )}
+          </StatusContainer>
       </Header>
+
+     {/* 가격 및 환율 정보 표시 */}
+     <ProductInfo onClick={() => navigate(`/sell/${chat?.sellInfo?.sellId}`)}>
+        <ProductImage src={chat?.sellInfo?.images || "https://via.placeholder.com/100"} alt="상품 이미지" />
+        <ProductDetails>
+          <CurrencyTag>{chat?.sellInfo?.currency}</CurrencyTag>
+          <PriceContainer>
+            <Price>${chat?.sellInfo?.amount?.toLocaleString()}</Price>
+            <Dot>·</Dot>
+            <KRWAmount>
+              {exchangeRates[chat?.sellInfo?.currency]
+                ? (chat.sellInfo.amount * exchangeRates[chat.sellInfo.currency]).toLocaleString()
+                : "환율 정보 없음"} 원
+            </KRWAmount>
+          </PriceContainer>
+        </ProductDetails>
+      </ProductInfo>
+
+
 
       {/* 기존 채팅 메시지 표시 */}
       <ChatContainer>

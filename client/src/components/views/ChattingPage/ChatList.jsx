@@ -15,7 +15,7 @@ function ChatList() {
   const [exchangeRates, setExchangeRates] = useState({});
 
   const statusColors = {
-    "판매중": "#CA2F28",
+    "판매중": "#1E62C1",
     "거래중": "#0BB770",
     "거래완료": "#1F2024"
   };
