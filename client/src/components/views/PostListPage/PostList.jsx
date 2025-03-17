@@ -642,7 +642,7 @@ const Distance = styled.div`
 
 const Won = styled.div`
   margin-bottom: 4px;
-  margin-left:10px;
+  margin-right:5px;
 `;
 
 const Location = styled.div`

@@ -36,7 +36,7 @@ function ChatList() {
 
         const response = await api.get("/api/trade/list", { withCredentials: true });
 
-        console.log("채팅 목록 불러오기 성공:", response.data);
+        //console.log("채팅 목록 불러오기 성공:", response.data);
         setChats(response.data); // 불러온 데이터 저장
       } catch (err) {
         console.error("채팅 목록 불러오기 실패:", err);
@@ -220,6 +220,7 @@ const ChatListContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   margin-left:0;
+  padding-bottom:60px;
 `;
 
 const ChatItem = styled.div`

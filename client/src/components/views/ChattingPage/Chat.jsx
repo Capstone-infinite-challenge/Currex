@@ -149,23 +149,58 @@ function Chat() {
   
 
   // 거래 장소 추천
-  const handleSendPlace = (place) => {
-    const mapImageUrl = `https://map.kakao.com/v2/maps/staticmap?appkey=${process.env.REACT_APP_KAKAO_API_KEY}&center=${place.longitude},${place.latitude}&level=3&size=480x320&map_type=roadmap&markers=${place.longitude},${place.latitude}`;
-
+  const renderMessage = (msg) => {
+    const isPlaceMessage = msg.isPlace && msg.linkUrl; // 거래 장소 추천 메시지 여부
+  
+    return (
+      <Message 
+        sender={msg.senderId === currentUserId ? "me" : "other"}
+        isPlace={isPlaceMessage} 
+      >
+         {msg.text}
+        <br />
+        {isPlaceMessage && (
+          <a 
+            href={msg.linkUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ color: "#007AFF", textDecoration: "underline" }}>
+            [지도 보기]
+          </a>
+        )}
+      </Message>
+    );
+  };
+  
+  
+  
+  const handleSendPlace = (selectedPlace) => {
+    if (!selectedPlace) {
+      console.error("장소 데이터가 없습니다!");
+      return;
+    }
+  
+    // 카카오 동적 지도 링크 URL 생성 
+    const dynamicMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(selectedPlace.name)},${selectedPlace.latitude},${selectedPlace.longitude}`;
+  
+    console.log("동적 지도 URL:", dynamicMapUrl);
+  
     const placeMessage = {
       chatRoomId,
       senderId: currentUserId,
-      text: `📍 ${place.name}\n현재 위치에서 ${place.distance}km`,
+      text: `거래 장소 추천: ${selectedPlace.name}`,
       isPlace: true,
-      mapUrl: mapImageUrl,
+      linkUrl: dynamicMapUrl,
     };
-
+  
     socket.emit("sendMessage", placeMessage);
     setMessages((prev) => [...prev, placeMessage]);
     setShowModal(false);
   };
+  
 
-
+  
+  
   // 실시간 환율 가져오기
   useEffect(() => {
     const fetchExchangeRates = async () => {
@@ -253,15 +288,12 @@ function Chat() {
       <ChatContainer>
         {messages.map((msg, index) => (
           <MessageWrapper key={index} sender={msg.senderId === currentUserId ? "me" : "other"}>
-            <Message sender={msg.senderId === currentUserId ? "me" : "other"}>
-              {msg.text.split("\n").map((line, i) => (
-                <span key={i}>{line}</span>
-              ))}
-              {msg.isPlace && <MapImage src={msg.mapUrl} alt="지도 이미지" />}
-            </Message>
+            {renderMessage(msg)} {/* ✅ `renderMessage`를 호출하여 메시지를 렌더링 */}
           </MessageWrapper>
         ))}
       </ChatContainer>
+
+
 
       {/* 거래 장소 추천 */}
       <RecommendationSection>
@@ -460,36 +492,25 @@ const ChatContainer = styled.div`
 `;
 
 const Message = styled.div`
-  background: ${({ sender }) => (sender === "me" ? "#ca2f28" : "#f7f7f7")};
-  color: ${({ sender }) => (sender === "me" ? "#fff" : "#000")};
+  background: ${({ sender, isPlace }) => 
+    isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#f7f7f7"};
+  color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
   padding: 10px 12px;
-  border-radius: ${({ sender }) => (sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px")};
+  border-radius: ${({ sender }) => 
+    sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px"};
   max-width: 70%;
-  align-self: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
+  align-self: ${({ sender }) => 
+    sender === "me" ? "flex-end" : "flex-start"};
   margin-bottom: 8px;
   white-space: pre-line;
 
-  /* ✅ 오른쪽 정렬 조정 */
-  ${({ sender }) => sender === "me" && "margin-left: auto;"} 
-  ${({ sender }) => sender === "me" && "margin-right: 0px;"} 
-
-  /* ✅ 장소 메시지일 경우 지도 이미지 포함 */
-  ${({ isPlace }) =>
+  ${({ isPlace }) => 
     isPlace &&
     `
-    background: #fff;
     border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
+    padding: 12px;
   `}
 `;
-const MapImage = styled.img`
-  width: 100%;
-  max-width: 300px; 
-  border-radius: 8px;
-  margin-top: 8px;
-`;
-
 
 const MessageWrapper = styled.div`
   display: flex;
