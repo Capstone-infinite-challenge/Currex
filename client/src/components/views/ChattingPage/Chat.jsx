@@ -106,7 +106,7 @@ function Chat() {
       const messageData = {
         chatRoomId,
         senderId: currentUserId,
-        text: newMessage,
+        message: newMessage,
       };
   
       socket.emit("sendMessage", messageData);
