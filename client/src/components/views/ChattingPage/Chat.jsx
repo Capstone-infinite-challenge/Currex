@@ -106,16 +106,16 @@ function Chat() {
       const messageData = {
         chatRoomId,
         senderId: currentUserId,
-        text: newMessage,
+        message: newMessage,
       };
   
       socket.emit("sendMessage", messageData);
   
-      //try {
-        //await api.post("/api/chat/sendMessage", messageData);
-      //} catch (error) {
-        //console.error("메시지 저장 오류:", error);
-      //}
+      try {
+        await api.post("/api/chat/sendMessage", messageData);
+      } catch (error) {
+        console.error("메시지 저장 오류:", error);
+      }
   
       setMessages((prev) => [...prev, messageData]);
       setNewMessage("");
