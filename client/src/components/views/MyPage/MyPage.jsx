@@ -175,7 +175,8 @@ export default MyPage;
 // 스타일 정의
 const Container = styled.div`
   width: 100%;
-  min-height: 110vh;
+  min-height: 100vh;
+  max-height: 100vh;
   padding-bottom: 3000px;
   overflow-y: scroll;
   -ms-overflow-style: none;
