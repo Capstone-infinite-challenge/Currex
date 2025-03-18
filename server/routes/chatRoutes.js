@@ -159,6 +159,14 @@ export default (io) => {
     }
   });
 
+  //메세지 가져오기
+  router.get("/getMessage", async(req, res) => {
+    const chatRoomId = req.query.chatRoomId;
+
+    const messages = await redisService.getChatMessages(chatRoomId);
+    res.status(200).json(messages);
+  });
+
 
   return router;
 };

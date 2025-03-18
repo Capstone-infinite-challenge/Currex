@@ -17,8 +17,12 @@ const saveChatMessage = async(chatRoomId, senderId, message) => {
     }
 };
 
+//채팅 메세지들 불러오기
 const getChatMessages = async(chatRoomId) => {
-    const messages = await redisClient.lRange(`chat: ${chatRoomId}`, 0, 20);
+    console.log(chatRoomId);
+    const messages = await redisClient.lRange(`chat:${chatRoomId}`, 0, -1);
+
+    console.log(messages);
     return messages.map((msg) => JSON.parse(msg));      //JSON으로 변환
 }
 
