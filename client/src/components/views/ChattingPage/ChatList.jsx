@@ -277,6 +277,7 @@ const Name = styled.span`
   font-size: 15px;
   font-weight: 600;
   color: #1f2024;
+    max-width:200px;
 `;
 
 
