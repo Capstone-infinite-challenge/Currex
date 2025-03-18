@@ -5,6 +5,7 @@ import chatService from "../services/chatService.js";
 import calculate from "../utils/calculate.js";
 import mongoose from "mongoose";
 import sell from "../models/sell.js";
+import redisService from "../services/redisService.js";
 
 const router = Router();
 
@@ -74,7 +75,7 @@ export default (io) => {
 
       //채팅방 db 저장
       chatService.createChatRoom(sellId, sellerId, buyerId);
-
+      
       res.status(200).json({
         message: "성공적으로 구매 요청이 완료되었습니다.",
         chatRoomId: sellId,
@@ -88,37 +89,37 @@ export default (io) => {
   });
 
   // 채팅방에서 상대의 info 보여주기
-router.get("/opponentInfo", async (req, res) => {
-  const chatRoomId = req.query.chatRoomId; // Get 요청에서는 req.query로 받아야 함
-  const user = await userService.findUserInfo(req.user.id);
+  router.get("/opponentInfo", async (req, res) => {
+    const chatRoomId = req.query.chatRoomId; // Get 요청에서는 req.query로 받아야 함
+    const user = await userService.findUserInfo(req.user.id);
 
-  if (!user) {
-    return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-  }
-
-  try {
-    const chatters = await chatService.getChatters(chatRoomId); //  getChatters로 수정
-    let opponentInfo = null;
-
-    if (user.id.toString() === chatters.buyer.toString()) {
-      opponentInfo = await chatService.getSellerInfo(chatRoomId);
-    } else if (user.id.toString() === chatters.seller.toString()) {
-      opponentInfo = await chatService.getBuyerInfo(chatRoomId);
-    } else {
-      return res.status(403).json({ message: "채팅방에 속해 있지 않습니다." });
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
 
-    console.log("상대방 정보:", opponentInfo);
-    return res.status(200).json({
-      nickname: opponentInfo.nickname,
-      profile_img: opponentInfo.profile_img || "https://via.placeholder.com/40",
-    });
+    try {
+      const chatters = await chatService.getChatters(chatRoomId); 
+      let opponentInfo = null;
 
-  } catch (error) {
-    console.log("상대의 정보를 불러오는 도중 에러 발생:", error);
-    res.status(500).json({ message: "Error getting opponent's info", error });
-  }
-});
+      if (user.id.toString() === chatters.buyer.toString()) {
+        opponentInfo = await chatService.getSellerInfo(chatRoomId);
+      } else if (user.id.toString() === chatters.seller.toString()) {
+        opponentInfo = await chatService.getBuyerInfo(chatRoomId);
+      } else {
+        return res.status(403).json({ message: "채팅방에 속해 있지 않습니다." });
+      }
+
+      //console.log("상대방 정보:", opponentInfo);
+      return res.status(200).json({
+        nickname: opponentInfo.nickname,
+        profile_img: opponentInfo.profile_img || "https://via.placeholder.com/40",
+      });
+
+    } catch (error) {
+      console.log("상대의 정보를 불러오는 도중 에러 발생:", error);
+      res.status(500).json({ message: "Error getting opponent's info", error });
+    }
+  });
 
   //추천장소
   router.get("/placeRecommend", async(req, res) => {
@@ -135,16 +136,36 @@ router.get("/opponentInfo", async (req, res) => {
       seller.tradeAddress_longitude
     );
 
-    console.log('중간지점:', middleLatitude, middleLongitude);
+    //console.log('중간지점:', middleLatitude, middleLongitude);
     
 
     //주변 편의시설 보정
     const recommendedPlace = await chatService.getRecommendedPlace(middleLatitude, middleLongitude);
-    console.log(recommendedPlace);
+    //console.log(recommendedPlace);
 
     res.status(200).json(recommendedPlace);
   });
 
+  //메세지 보내기
+  router.post("/sendMessage", async(req, res) => {
+    const {chatRoomId, senderId, message} = req.body;
+    try{
+      io.to(chatRoomId).emit('receiveMessage', {senderId, message});
+
+      res.status(200).json({ success: true });
+    }catch(error){
+      console.error("⚠️메세지를 보내는 도중 에러 발생", error);
+      res.status(500).json('error during sending messages', error.message);
+    }
+  });
+
+  //메세지 가져오기
+  router.get("/getMessage", async(req, res) => {
+    const chatRoomId = req.query.chatRoomId;
+
+    const messages = await redisService.getChatMessages(chatRoomId);
+    res.status(200).json(messages);
+  });
 
 
   return router;

@@ -36,7 +36,8 @@ function Chat() {
         socket.off("joinRoom");
       };
     }, [chatRoomId]);
-  
+    
+    //채팅방, 상대정보, 판매정보 가져오기
     useEffect(() => {
       const fetchChatData = async () => {
         try {
@@ -47,8 +48,6 @@ function Chat() {
             console.error("채팅방 정보를 찾을 수 없습니다.");
             return;
           }
-    
-          //console.log("chatRoom 데이터 확인:", chatRoom);
     
           if (!chatRoom.sellId) {
             console.error("sellId 없음, API에서 가져와야 함.");
@@ -86,41 +85,55 @@ function Chat() {
     }, [chatRoomId, currentUserId]);
     
     
-
-
-    //  메시지 실시간 업데이트 (소켓 연결)
+    //메시지받기
     useEffect(() => {
-      socket.on("receiveMessage", (msg) => {
+      const handleReceiveMessage = (msg) => {
+        console.log("받은 메시지:", msg); 
         setMessages((prev) => [...prev, msg]);
-      });
-  
+      };
+    
+      socket.on("receiveMessage", handleReceiveMessage);
+    
       return () => {
-        socket.off("receiveMessage");
+        socket.off("receiveMessage", handleReceiveMessage);
       };
     }, []);
-  
-    //  메시지 전송
-    const handleSendMessage = async () => {
-      if (!newMessage.trim()) return;
-  
-      const messageData = {
-        chatRoomId,
-        senderId: currentUserId,
-        text: newMessage,
-      };
-  
-      socket.emit("sendMessage", messageData);
-  
+    
+    useEffect(() => {
+      console.log("현재 messages 상태:", messages);
+    }, [messages]);
+    
+
+  // 기존 메시지 불러오기
+  useEffect(() => {
+    const fetchMessages = async () => {
       try {
-        await api.post("/api/chat/sendMessage", messageData);
+        const response = await api.get(`/api/chat/getMessage?chatRoomId=${chatRoomId}`);
+        console.log("서버에서 가져온 메시지 목록:", response.data);
+        setMessages(response.data || []);
       } catch (error) {
-        console.error("메시지 저장 오류:", error);
+        console.error("메시지 불러오기 오류:", error);
       }
-  
-      setMessages((prev) => [...prev, messageData]);
-      setNewMessage("");
     };
   
+    fetchMessages();
+  }, [chatRoomId]);
+  
+
+  // 메시지 전송 
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const messageData = {
+      chatRoomId,
+      senderId: currentUserId,
+      message: newMessage,
+    };
+
+    socket.emit("sendMessage", messageData); 
+    setNewMessage(""); 
+  };
+
 
   // 거래 상태 변경
   const changeStatus = async (newStatus) => {
@@ -147,24 +160,59 @@ function Chat() {
   };
   
   
-
-  // 거래 장소 추천
-  const handleSendPlace = (place) => {
-    const mapImageUrl = `https://map.kakao.com/v2/maps/staticmap?appkey=${process.env.REACT_APP_KAKAO_API_KEY}&center=${place.longitude},${place.latitude}&level=3&size=480x320&map_type=roadmap&markers=${place.longitude},${place.latitude}`;
-
+   // 거래 장소 추천
+   const renderMessage = (msg) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g; //URL 찾는 정규식
+  
+    return (
+      <Message sender={msg.senderId === currentUserId ? "me" : "other"}>
+        {msg.message.split(urlRegex).map((part, index) =>
+          part.match(urlRegex) ? (
+            <a
+              key={index}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ 
+                color: "#F7F7F7", 
+                textDecoration: "underline",
+              }}
+            >
+              [지도 보기]
+            </a>
+          ) : (
+            part
+          )
+        )}
+      </Message>
+    );
+  };
+  
+  
+  const handleSendPlace = (selectedPlace) => {
+    if (!selectedPlace) {
+      console.error("장소 데이터가 없습니다!");
+      return;
+    }
+  
+    // 카카오 동적 지도 링크 URL 생성 
+    const dynamicMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(selectedPlace.name)},${selectedPlace.latitude},${selectedPlace.longitude}`;
+  
+    console.log("동적 지도 URL:", dynamicMapUrl);
+  
     const placeMessage = {
       chatRoomId,
       senderId: currentUserId,
-      text: `📍 ${place.name}\n현재 위치에서 ${place.distance}km`,
-      isPlace: true,
-      mapUrl: mapImageUrl,
+      message: `거래 장소 추천: ${selectedPlace.name}\n${dynamicMapUrl}`, // 🔥 URL을 message에 포함
+      isPlace: true
     };
-
+  
+    // 소켓을 통해 서버로 메시지 전송
     socket.emit("sendMessage", placeMessage);
-    setMessages((prev) => [...prev, placeMessage]);
+    
     setShowModal(false);
   };
-
+  
 
   // 실시간 환율 가져오기
   useEffect(() => {
@@ -247,21 +295,15 @@ function Chat() {
         </ProductDetails>
       </ProductInfo>
 
-
-
       {/* 기존 채팅 메시지 표시 */}
       <ChatContainer>
         {messages.map((msg, index) => (
           <MessageWrapper key={index} sender={msg.senderId === currentUserId ? "me" : "other"}>
-            <Message sender={msg.senderId === currentUserId ? "me" : "other"}>
-              {msg.text.split("\n").map((line, i) => (
-                <span key={i}>{line}</span>
-              ))}
-              {msg.isPlace && <MapImage src={msg.mapUrl} alt="지도 이미지" />}
-            </Message>
+            {renderMessage(msg)} {/* ✅ renderMessage를 호출하여 메시지를 렌더링 */}
           </MessageWrapper>
         ))}
       </ChatContainer>
+
 
       {/* 거래 장소 추천 */}
       <RecommendationSection>
@@ -297,12 +339,12 @@ export default Chat;
 const Container = styled.div`
   width: 100%;
   max-width: 375px;
-  margin: 0 auto;
   height: 100vh;
   display: flex;
   flex-direction: column;
   background: #fff;
   overflow: hidden;
+  padding-bottom:60px;
 `;
 
 const Header = styled.div`
@@ -334,12 +376,14 @@ const ProfileImage = styled.img`
   height: 32px;
   border-radius: 50%; 
   margin-left:50px;
+  margin-top:5px;
 `;
 
 const SellerName = styled.b`
   font-size: 16px;
-  margin-top: 8px;
+  margin-top: 10px;
   font-weight:400;
+  max-width:140px;
 `;
 
 const StatusContainer = styled.div`
@@ -454,47 +498,35 @@ const KRWAmount = styled.span`
 
 /* 채팅 메시지 */
 const ChatContainer = styled.div`
-  flex: 1;
+  display: flex;  
+  flex-direction: column; 
+  align-items: stretch;  
   padding: 12px;
   overflow-y: auto;
+  padding-bottom:90px;
+`;
+
+const MessageWrapper = styled.div`
+   display: flex;
+  justify-content: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")}; 
+  width: 100%; /* 🔥 전체 너비 사용 */
+  padding: 5px 0; /* 🔥 메시지 간격 추가 */
 `;
 
 const Message = styled.div`
-  background: ${({ sender }) => (sender === "me" ? "#ca2f28" : "#f7f7f7")};
-  color: ${({ sender }) => (sender === "me" ? "#fff" : "#000")};
-  padding: 10px 12px;
-  border-radius: ${({ sender }) => (sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px")};
-  max-width: 70%;
-  align-self: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
-  margin-bottom: 8px;
-  white-space: pre-line;
-
-  /* ✅ 오른쪽 정렬 조정 */
-  ${({ sender }) => sender === "me" && "margin-left: auto;"} 
-  ${({ sender }) => sender === "me" && "margin-right: 0px;"} 
-
-  /* ✅ 장소 메시지일 경우 지도 이미지 포함 */
-  ${({ isPlace }) =>
-    isPlace &&
-    `
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-  `}
-`;
-const MapImage = styled.img`
-  width: 100%;
-  max-width: 300px; 
-  border-radius: 8px;
-  margin-top: 8px;
-`;
-
-
-const MessageWrapper = styled.div`
-  display: flex;
-  justify-content: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
-  margin-bottom: 8px;
+  margin-left: ${({ sender }) => (sender === "me" ? "auto" : "0")};
+  margin-right: ${({ sender }) => (sender === "me" ? "0" : "auto")};
+  background: ${({ sender, isPlace }) => 
+    isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#1F2024"};
+  color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
+  padding: 12px 16px;
+  border-radius: ${({ sender }) => 
+    sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px"};
+  max-width: 75%;  /* 🔥 메시지 너비 제한 */
+  align-self: ${({ sender }) => sender === "me" ? "flex-end" : "flex-start"};
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: ${({ sender }) => sender === "me" ? "right" : "left"};
 `;
 
 
@@ -594,4 +626,3 @@ const SendButton = styled.button`
     height: 16px;
   }
 `;
-

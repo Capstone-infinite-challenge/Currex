@@ -86,6 +86,8 @@ function PlaceModal({ isOpen, onClose, onSend, chatRoomId }) {
 
   if (!isOpen) return null;
 
+  
+
   return (
     <ModalContainer>
       <CloseButton onClick={onClose}>×</CloseButton>

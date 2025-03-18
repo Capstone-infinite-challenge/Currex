@@ -33,7 +33,7 @@ function PostList() {
 
       try {
         const accessToken = localStorage.getItem("accessToken") || sessionStorage.getItem("accessToken");
-        console.log("현재 저장된 accessToken:", accessToken);
+        //console.log("현재 저장된 accessToken:", accessToken);
 
         if (!accessToken) {
           alert("로그인이 필요합니다.");
@@ -642,7 +642,7 @@ const Distance = styled.div`
 
 const Won = styled.div`
   margin-bottom: 4px;
-  margin-left:10px;
+  margin-right:5px;
 `;
 
 const Location = styled.div`
