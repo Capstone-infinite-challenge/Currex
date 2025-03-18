@@ -316,8 +316,6 @@ const ConvertedPrice = styled.div`
   margin-top:5px;
 `;
 
-
-
 const LoadingMessage = styled.div`
   text-align: center;
   margin-top: 20px;
