@@ -114,14 +114,14 @@ useEffect(() => {
             <ChatItem key={chat.chatRoomId} onClick={() => navigate(`/chat/${chat.chatRoomId}`)}>
               <Avatar src={chat.opponentProfileImg || "https://via.placeholder.com/40"} alt={`${chat.opponentName} avatar`} />
               <ChatInfo>
-                <ChatHeader>
-                  <NameContainer>
-                    <Name>{chat.opponentName}</Name>
-                  </NameContainer>
-                  <Status style={{ backgroundColor: statusColors[chat.status] || "#000" }}>
-                    {chat.status}
-                  </Status>
-                </ChatHeader>
+              <ChatHeader>
+                <NameContainer>
+                  <Name>{chat.opponentName}</Name>
+                </NameContainer>
+                <Status style={{ backgroundColor: statusColors[chat.status] || "#000" }}>
+                  {chat.status}
+                </Status>
+              </ChatHeader>
                 <PriceAndFlags>
                   <PriceContainer>
                     <Amount>
@@ -219,9 +219,12 @@ const DropdownItem = styled.div`
 const ChatListContainer = styled.div`
   flex: 1;
   overflow-y: auto;
-  margin-left:0;
-  padding-bottom:60px;
+  padding-bottom: 60px;
+  width: 100%; 
+  max-width: 375px; 
+  margin: 0 auto; 
 `;
+
 
 const ChatItem = styled.div`
   display: flex;
@@ -235,20 +238,12 @@ const ChatItem = styled.div`
   }
 `;
 
-const Status = styled.div`
-  padding: 4px 12px;
-  font-size: 10px;
-  font-weight: 300; 
-  color: white;
-  border-radius: 10px;
-  margin-right: 0;
-`;
-
 const Avatar = styled.img`
   width: 56px;
   height: 56px;
   border-radius: 50%;
   border: 1px solid #f1f1f1;
+  margin-left: -10px;
 `;
 
 const ChatInfo = styled.div`
@@ -261,25 +256,37 @@ const ChatInfo = styled.div`
 
 const ChatHeader = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-left:0;
-  gap: 150px;
+  justify-content: space-between; 
+  align-items: center;
+  width: 100%;
+  flex-wrap: nowrap;
 `;
 
 const NameContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-left:0;
+  flex-grow: 1; 
+  min-width: 0;
+  overflow: hidden;
 `;
 
 const Name = styled.span`
   font-size: 15px;
   font-weight: 600;
   color: #1f2024;
-    max-width:200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
+const Status = styled.div`
+  padding: 4px 12px;
+  font-size: 10px;
+  font-weight: 300;
+  color: white;
+  border-radius: 10px;
+  flex-shrink: 0; 
+  margin-left: auto; 
+  margin-right: -10px;
+`;
 
 const PriceAndFlags = styled.div`
   display: flex;
@@ -308,8 +315,6 @@ const ConvertedPrice = styled.div`
   margin-left: 10px;
   margin-top:5px;
 `;
-
-
 
 const LoadingMessage = styled.div`
   text-align: center;

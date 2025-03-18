@@ -160,29 +160,34 @@ function Chat() {
   };
   
   
-  // 거래 장소 추천
-  const renderMessage = (msg) => {
-    const isPlaceMessage = msg.isPlace && msg.linkUrl; // 거래 장소 추천 메시지 여부
+   // 거래 장소 추천
+   const renderMessage = (msg) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g; //URL 찾는 정규식
   
     return (
-      <Message 
-        sender={msg.senderId === currentUserId ? "me" : "other"}
-        isPlace={isPlaceMessage} 
-      >
-         {msg.message}
-        <br />
-        {isPlaceMessage && (
-          <a 
-            href={msg.linkUrl} 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            style={{ color: "#007AFF", textDecoration: "underline" }}>
-            [지도 보기]
-          </a>
+      <Message sender={msg.senderId === currentUserId ? "me" : "other"}>
+        {msg.message.split(urlRegex).map((part, index) =>
+          part.match(urlRegex) ? (
+            <a
+              key={index}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ 
+                color: "#F7F7F7", 
+                textDecoration: "underline",
+              }}
+            >
+              [지도 보기]
+            </a>
+          ) : (
+            part
+          )
         )}
       </Message>
     );
   };
+  
   
   const handleSendPlace = (selectedPlace) => {
     if (!selectedPlace) {
@@ -198,13 +203,10 @@ function Chat() {
     const placeMessage = {
       chatRoomId,
       senderId: currentUserId,
-      message: `거래 장소 추천: ${selectedPlace.name}`,
-      isPlace: true,
-      linkUrl: dynamicMapUrl,
+      message: `거래 장소 추천: ${selectedPlace.name}\n${dynamicMapUrl}`, // 🔥 URL을 message에 포함
+      isPlace: true
     };
   
-    setMessages((prev) => [...prev, placeMessage]);
-    
     // 소켓을 통해 서버로 메시지 전송
     socket.emit("sendMessage", placeMessage);
     
@@ -297,10 +299,11 @@ function Chat() {
       <ChatContainer>
         {messages.map((msg, index) => (
           <MessageWrapper key={index} sender={msg.senderId === currentUserId ? "me" : "other"}>
-            {renderMessage(msg)} {/* ✅ `renderMessage`를 호출하여 메시지를 렌더링 */}
+            {renderMessage(msg)} {/* ✅ renderMessage를 호출하여 메시지를 렌더링 */}
           </MessageWrapper>
         ))}
       </ChatContainer>
+
 
       {/* 거래 장소 추천 */}
       <RecommendationSection>
