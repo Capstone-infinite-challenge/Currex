@@ -204,6 +204,10 @@ function Chat() {
     };
   
     setMessages((prev) => [...prev, placeMessage]);
+    
+    // 소켓을 통해 서버로 메시지 전송
+    socket.emit("sendMessage", placeMessage);
+    
     setShowModal(false);
   };
   
