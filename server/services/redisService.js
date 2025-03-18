@@ -9,8 +9,7 @@ const saveChatMessage = async(chatRoomId, senderId, message) => {
     });
 
     try {
-        await redisClient.lPush(`chat:${chatRoomId}`, chatData);
-        console.log('메세지 Redis에 저장 완료');
+        await redisClient.rPush(`chat:${chatRoomId}`, chatData);
     } catch (error) {
         console.error("메시지 저장 중 오류 발생: ", error);
         throw error; // 오류를 던져서 처리할 수 있도록 함
@@ -19,10 +18,8 @@ const saveChatMessage = async(chatRoomId, senderId, message) => {
 
 //채팅 메세지들 불러오기
 const getChatMessages = async(chatRoomId) => {
-    console.log(chatRoomId);
     const messages = await redisClient.lRange(`chat:${chatRoomId}`, 0, -1);
 
-    console.log(messages);
     return messages.map((msg) => JSON.parse(msg));      //JSON으로 변환
 }
 
