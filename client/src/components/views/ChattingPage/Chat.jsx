@@ -36,7 +36,8 @@ function Chat() {
         socket.off("joinRoom");
       };
     }, [chatRoomId]);
-  
+    
+    //채팅방, 상대정보, 판매정보 가져오기
     useEffect(() => {
       const fetchChatData = async () => {
         try {
@@ -47,8 +48,6 @@ function Chat() {
             console.error("채팅방 정보를 찾을 수 없습니다.");
             return;
           }
-    
-          //console.log("chatRoom 데이터 확인:", chatRoom);
     
           if (!chatRoom.sellId) {
             console.error("sellId 없음, API에서 가져와야 함.");
@@ -86,41 +85,55 @@ function Chat() {
     }, [chatRoomId, currentUserId]);
     
     
-
-
-    //  메시지 실시간 업데이트 (소켓 연결)
+    //메시지받기
     useEffect(() => {
-      socket.on("receiveMessage", (msg) => {
+      const handleReceiveMessage = (msg) => {
+        console.log("받은 메시지:", msg); 
         setMessages((prev) => [...prev, msg]);
-      });
-  
+      };
+    
+      socket.on("receiveMessage", handleReceiveMessage);
+    
       return () => {
-        socket.off("receiveMessage");
+        socket.off("receiveMessage", handleReceiveMessage);
       };
     }, []);
-  
-    //  메시지 전송
-    const handleSendMessage = async () => {
-      if (!newMessage.trim()) return;
-  
-      const messageData = {
-        chatRoomId,
-        senderId: currentUserId,
-        message: newMessage,
-      };
-  
-      socket.emit("sendMessage", messageData);
-  
+    
+    useEffect(() => {
+      console.log("현재 messages 상태:", messages);
+    }, [messages]);
+    
+
+  // 기존 메시지 불러오기
+  useEffect(() => {
+    const fetchMessages = async () => {
       try {
-        await api.post("/api/chat/sendMessage", messageData);
+        const response = await api.get(`/api/chat/getMessage?chatRoomId=${chatRoomId}`);
+        console.log("서버에서 가져온 메시지 목록:", response.data);
+        setMessages(response.data || []);
       } catch (error) {
-        console.error("메시지 저장 오류:", error);
+        console.error("메시지 불러오기 오류:", error);
       }
-  
-      setMessages((prev) => [...prev, messageData]);
-      setNewMessage("");
     };
   
+    fetchMessages();
+  }, [chatRoomId]);
+  
+
+  // 메시지 전송 
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    const messageData = {
+      chatRoomId,
+      senderId: currentUserId,
+      message: newMessage,
+    };
+
+    socket.emit("sendMessage", messageData); 
+    setNewMessage(""); 
+  };
+
 
   // 거래 상태 변경
   const changeStatus = async (newStatus) => {
@@ -147,7 +160,6 @@ function Chat() {
   };
   
   
-
   // 거래 장소 추천
   const renderMessage = (msg) => {
     const isPlaceMessage = msg.isPlace && msg.linkUrl; // 거래 장소 추천 메시지 여부
@@ -157,7 +169,7 @@ function Chat() {
         sender={msg.senderId === currentUserId ? "me" : "other"}
         isPlace={isPlaceMessage} 
       >
-         {msg.text}
+         {msg.message}
         <br />
         {isPlaceMessage && (
           <a 
@@ -171,8 +183,6 @@ function Chat() {
       </Message>
     );
   };
-  
-  
   
   const handleSendPlace = (selectedPlace) => {
     if (!selectedPlace) {
@@ -188,19 +198,16 @@ function Chat() {
     const placeMessage = {
       chatRoomId,
       senderId: currentUserId,
-      text: `거래 장소 추천: ${selectedPlace.name}`,
+      message: `거래 장소 추천: ${selectedPlace.name}`,
       isPlace: true,
       linkUrl: dynamicMapUrl,
     };
   
-    socket.emit("sendMessage", placeMessage);
     setMessages((prev) => [...prev, placeMessage]);
     setShowModal(false);
   };
   
 
-  
-  
   // 실시간 환율 가져오기
   useEffect(() => {
     const fetchExchangeRates = async () => {
@@ -282,8 +289,6 @@ function Chat() {
         </ProductDetails>
       </ProductInfo>
 
-
-
       {/* 기존 채팅 메시지 표시 */}
       <ChatContainer>
         {messages.map((msg, index) => (
@@ -292,8 +297,6 @@ function Chat() {
           </MessageWrapper>
         ))}
       </ChatContainer>
-
-
 
       {/* 거래 장소 추천 */}
       <RecommendationSection>
@@ -335,6 +338,7 @@ const Container = styled.div`
   flex-direction: column;
   background: #fff;
   overflow: hidden;
+  padding-bottom:60px;
 `;
 
 const Header = styled.div`
@@ -493,12 +497,12 @@ const ChatContainer = styled.div`
 
 const Message = styled.div`
   background: ${({ sender, isPlace }) => 
-    isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#f7f7f7"};
+    isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#1F2024"};
   color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
   padding: 10px 12px;
   border-radius: ${({ sender }) => 
     sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px"};
-  max-width: 70%;
+  max-width: 250%;
   align-self: ${({ sender }) => 
     sender === "me" ? "flex-end" : "flex-start"};
   margin-bottom: 8px;
@@ -615,4 +619,3 @@ const SendButton = styled.button`
     height: 16px;
   }
 `;
-
