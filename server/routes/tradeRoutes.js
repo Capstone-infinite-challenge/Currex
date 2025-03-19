@@ -129,33 +129,4 @@ router.get("/list", async(req, res) => {
   }
 });
 
-/*
-//중간지점 라우터
-router.post("/SellerMatch/:name", async (req, res) => {
-  try {
-    const sellerName = req.params.name;
-    const { buyerLatitude, buyerLongitude } = req.body;
-
-    const seller = await Sell.findOne({ name: sellerName });
-    if (!seller) {
-      return res.status(404).json({ error: "판매자를 찾을 수 없습니다." });
-    }
-
-    console.log(seller);
-
-    //중간위치 계산
-    const { middleLatitude, middleLongitude } = calculate.calculateMiddlePlace(buyerLatitude, buyerLongitude, seller.latitude, seller.longitude);
-
-    console.log(`중간 위도: ${middleLatitude}, 중간 경도: ${middleLongitude}`);
-
-    return res.json({
-      middleLatitude,
-      middleLongitude,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "서버 오류 발생" });
-  }
-});
-*/
 export default router;
