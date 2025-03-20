@@ -206,6 +206,21 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
     }
 };
 
+//해당 sellId의 내가 속한 채팅방이 있는 지 확인
+const findChatRoom = async(sellId, buyerId) => {
+    try{
+        const chatRoom = await ChatRoom.findOne({
+            chatRoomId: sellId,
+            "buyer.userId": buyerId
+        });
+
+        return chatRoom !== null;
+    }catch(error){
+        console.error("Error checking chat room", error);
+        return false;
+    }
+};
+
 
 export default{
     createChatRoom,
@@ -213,5 +228,6 @@ export default{
     getBuyerInfo,
     getSellerInfo,
     getChatters,
-    getRecommendedPlace
+    getRecommendedPlace,
+    findChatRoom
 };
