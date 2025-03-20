@@ -5,6 +5,7 @@ import modelRoutes from "./modelRoutes.js"; // ai 모델 추가함
 import authenticateToken from "../middleware/authMiddleware.js";
 import userRoutes from "./userRoutes.js";
 import tradeRoutes from "./tradeRoutes.js";
+import historyRoutes from "./historyRoutes.js";
 import chatRoutes from "./chatRoutes.js";
 import express from "express";
 import fs from "fs";
@@ -27,6 +28,7 @@ router.use("/sell", authenticateToken, sellRoutes);
 router.use("/donation", authenticateToken, donationRoutes);
 router.use("/user", authenticateToken, userRoutes);
 router.use("/trade", authenticateToken, tradeRoutes);
+router.use("/history", authenticateToken, historyRoutes);
 router.use("/api/model", modelRoutes); // YOLO 모델 API 추가
 router.use("/uploads", express.static("uploads")); // 정적 파일 제공 (ai 업로드된 이미지 접근 가능하게)
 
