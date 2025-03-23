@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import Donation from '../models/donation.js';
 import multer from 'multer';
-import { getUserDonationTotal } from '../services/donationService.js';
+import donationService from '../services/donationService.js';
 import userService from '../services/userService.js';
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -60,7 +60,7 @@ router.post("/dRegi", upload.array('donationImages', 5), async(req, res) => {
 router.get("/total", async(req, res) => {
     try{
         const userId = req.user.id;     //로그인된 사용자의 ID
-        const total = await getUserDonationTotal(userId);
+        const total = await donationService.getUserDonationTotal(userId);
         res.json({userId, toatlAmount: total});
     }catch(error){
         res.status(500).json({error: 'Failed to fetch total donations'});

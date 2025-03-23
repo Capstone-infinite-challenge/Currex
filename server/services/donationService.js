@@ -15,6 +15,6 @@ async function getUserDonationTotal(userId) {
     }
 }
 
-export {
+export default{
     getUserDonationTotal
 };

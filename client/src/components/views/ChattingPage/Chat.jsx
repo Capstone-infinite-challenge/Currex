@@ -59,7 +59,11 @@ function Chat() {
     
           // 판매 정보 가져오기
           const postResponse = await api.get(`/api/sell/sellDescription/${chatRoom.sellId}`);
-          setChat((prev) => ({ ...prev, sellInfo: postResponse.data }));
+          setChat((prev) => ({ ...prev, sellInfo: {
+            ...postResponse.data,
+            image: postResponse.data.images?.[0], // 첫 번째 이미지만 저장
+          },
+        }));
           setStatus(postResponse.data.status);
     
           // 판매자와 현재 사용자 비교
@@ -280,7 +284,7 @@ function Chat() {
 
      {/* 가격 및 환율 정보 표시 */}
      <ProductInfo onClick={() => navigate(`/sell/${chat?.sellInfo?.sellId}`)}>
-        <ProductImage src={chat?.sellInfo?.images || "https://via.placeholder.com/100"} alt="상품 이미지" />
+        <ProductImage src={chat?.sellInfo?.image || "https://via.placeholder.com/100"} alt="상품 이미지" />
         <ProductDetails>
           <CurrencyTag>{chat?.sellInfo?.currency}</CurrencyTag>
           <PriceContainer>

@@ -1,6 +1,7 @@
 import ChatRoom from "../models/chatRoom.js";
 import User from "../models/user.js";
 import axios from "axios";
+import redisClient from "../configs/redis.js";
 
 //채팅방 생성
 const createChatRoom = async(sellId, sellerId, buyerId) => {
@@ -66,10 +67,36 @@ const getChatList = async(userId) => {
                 amount: chatRoom.chatRoomId?.amount,
                 currency: chatRoom.chatRoomId?.currency,
                 opponentName : isSeller? chatRoom.buyer.userId.nickname : chatRoom.seller.userId.nickname,
-                opponentProfileImg: isSeller?chatRoom.buyer.userId.profile_img : chatRoom.seller.userId.profile_img
+                opponentProfileImg: isSeller?chatRoom.buyer.userId.profile_img : chatRoom.seller.userId.profile_img,
+                lastMessageTime: 0 // 기본값 0으로 설정
             };
         });
-        return formattedList;
+
+        //Redis에서 최신 메세지 시간 조회
+        const chatListByTimestamps = await Promise.all(formattedList.map(async chatRoom => {
+            const chatRoomId = chatRoom.chatRoomId;
+            
+            const lastMessage = await redisClient.lRange(`chat:${chatRoomId}`, -1, -1);
+            
+            let lastMessageTime = 0;    //lastMessage시간 저장 변수 초기화
+            if(lastMessage.length > 0){
+                try{
+                    const messageObj = JSON.parse(lastMessage[0]);
+                    lastMessageTime = new Date(messageObj.timestamp).getTime() || 0;    //시간으로 변환해야 비교 가능
+                }catch(error){
+                    console.error(`Error parsing message for chat:${chatRoomId}`, error);
+                }
+            }
+
+            return {
+                ...chatRoom,
+                lastMessageTime
+            };
+        }));
+        //최신 메세지 기준으로 정렬
+        chatListByTimestamps.sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+
+        return chatListByTimestamps;
     }catch(error){
         console.error("Error getting chat list:", error);
         throw error;
@@ -179,6 +206,21 @@ const getRecommendedPlace = async(middleLatitude, middleLongitude) => {
     }
 };
 
+//해당 sellId의 내가 속한 채팅방이 있는 지 확인
+const findChatRoom = async(sellId, buyerId) => {
+    try{
+        const chatRoom = await ChatRoom.findOne({
+            chatRoomId: sellId,
+            "buyer.userId": buyerId
+        });
+
+        return chatRoom !== null;
+    }catch(error){
+        console.error("Error checking chat room", error);
+        return false;
+    }
+};
+
 
 export default{
     createChatRoom,
@@ -186,5 +228,6 @@ export default{
     getBuyerInfo,
     getSellerInfo,
     getChatters,
-    getRecommendedPlace
+    getRecommendedPlace,
+    findChatRoom
 };

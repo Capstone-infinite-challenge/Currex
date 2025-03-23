@@ -30,6 +30,17 @@ export default (io) => {
       const buyerId = buyerInfo.id;     //판매자 아이디
       const buyerImg = buyerInfo.img;   //판매자 프로필 이미지
 
+      //이미 내가 문의하고 있는 채팅방일 경우 -> 해당 채팅방으로 이동
+      const isChat = await chatService.findChatRoom(sellId, buyerId);
+
+      if(isChat){
+        return res.status(200).json({
+          message: "이미 채팅중인 상품입니다.",
+          chatRoomId: sellId,
+          sellId: sellId
+        });
+      };
+
       //sell 업데이트
       const updateSell = await Sell.findByIdAndUpdate(
         sellId,
