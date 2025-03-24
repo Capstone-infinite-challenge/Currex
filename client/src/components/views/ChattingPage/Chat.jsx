@@ -17,114 +17,126 @@ function Chat() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [status, setStatus] = useState(""); 
+  const [status, setStatus] = useState("");
   const [showOptions, setShowOptions] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [chat, setChat] = useState(null);
   const [isSeller, setIsSeller] = useState(false); // 판매자인지 여부 저장
-  const [sellId, setSellId] = useState(null); 
+  const [sellId, setSellId] = useState(null);
   const [exchangeRates, setExchangeRates] = useState({});
-  const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+  const currentUserId =
+    localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
-    //  채팅방 입장 (
-    useEffect(() => {
-      if (!chatRoomId) return;
-      
-      socket.emit("joinRoom", { chatRoomId });
-  
-      return () => {
-        socket.off("joinRoom");
-      };
-    }, [chatRoomId]);
-    
-    //채팅방, 상대정보, 판매정보 가져오기
-    useEffect(() => {
-      const fetchChatData = async () => {
-        try {
-          const response = await api.get(`/api/trade/list`, { withCredentials: true });
-          const chatRoom = response.data.find((chat) => chat.chatRoomId === chatRoomId);
-    
-          if (!chatRoom) {
-            console.error("채팅방 정보를 찾을 수 없습니다.");
-            return;
-          }
-    
-          if (!chatRoom.sellId) {
-            console.error("sellId 없음, API에서 가져와야 함.");
-            return;
-          }
-    
-          //console.log("불러온 sellId:", chatRoom.sellId);
-          setSellId(chatRoom.sellId);
-    
-          // 판매 정보 가져오기
-          const postResponse = await api.get(`/api/sell/sellDescription/${chatRoom.sellId}`);
-          setChat((prev) => ({ ...prev, sellInfo: {
+  //  채팅방 입장 (
+  useEffect(() => {
+    if (!chatRoomId) return;
+
+    socket.emit("joinRoom", { chatRoomId });
+
+    return () => {
+      socket.off("joinRoom");
+    };
+  }, [chatRoomId]);
+
+  //채팅방, 상대정보, 판매정보 가져오기
+  useEffect(() => {
+    const fetchChatData = async () => {
+      try {
+        const response = await api.get(`/api/trade/list`, {
+          withCredentials: true,
+        });
+        const chatRoom = response.data.find(
+          (chat) => chat.chatRoomId === chatRoomId
+        );
+
+        if (!chatRoom) {
+          console.error("채팅방 정보를 찾을 수 없습니다.");
+          return;
+        }
+
+        if (!chatRoom.sellId) {
+          console.error("sellId 없음, API에서 가져와야 함.");
+          return;
+        }
+
+        //console.log("불러온 sellId:", chatRoom.sellId);
+        setSellId(chatRoom.sellId);
+
+        // 판매 정보 가져오기
+        const postResponse = await api.get(
+          `/api/sell/sellDescription/${chatRoom.sellId}`
+        );
+        setChat((prev) => ({
+          ...prev,
+          sellInfo: {
             ...postResponse.data,
             image: postResponse.data.images?.[0], // 첫 번째 이미지만 저장
           },
         }));
-          setStatus(postResponse.data.status);
-    
-          // 판매자와 현재 사용자 비교
-          if (postResponse.data.sellerId === currentUserId) {
-            setIsSeller(true);
-          } else {
-            setIsSeller(false);
-          }
-    
-          //상대방 정보 가져오기 추가
-          const opponentResponse = await api.get(`/api/chat/opponentInfo?chatRoomId=${chatRoomId}`);
-          setChat((prev) => ({
-            ...prev,
-            opponentName: opponentResponse.data.nickname || "알 수 없는 사용자",
-            opponentProfileImg: opponentResponse.data.profile_img || "https://via.placeholder.com/40",
-          }));
-        } catch (error) {
-          console.error("채팅방 정보 불러오기 오류:", error);
+        setStatus(postResponse.data.status);
+
+        // 판매자와 현재 사용자 비교
+        if (postResponse.data.sellerId === currentUserId) {
+          setIsSeller(true);
+        } else {
+          setIsSeller(false);
         }
-      };
-    
-      fetchChatData();
-    }, [chatRoomId, currentUserId]);
-    
-    
-    //메시지받기
-    useEffect(() => {
-      const handleReceiveMessage = (msg) => {
-        console.log("받은 메시지:", msg); 
-        setMessages((prev) => [...prev, msg]);
-      };
-    
-      socket.on("receiveMessage", handleReceiveMessage);
-    
-      return () => {
-        socket.off("receiveMessage", handleReceiveMessage);
-      };
-    }, []);
-    
-    useEffect(() => {
-      console.log("현재 messages 상태:", messages);
-    }, [messages]);
-    
+
+        //상대방 정보 가져오기 추가
+        const opponentResponse = await api.get(
+          `/api/chat/opponentInfo?chatRoomId=${chatRoomId}`
+        );
+        setChat((prev) => ({
+          ...prev,
+          opponentName: opponentResponse.data.nickname || "알 수 없는 사용자",
+          opponentProfileImg:
+            opponentResponse.data.profile_img ||
+            "https://via.placeholder.com/40",
+        }));
+      } catch (error) {
+        console.error("채팅방 정보 불러오기 오류:", error);
+      }
+    };
+
+    fetchChatData();
+  }, [chatRoomId, currentUserId]);
+
+  //메시지받기
+  useEffect(() => {
+    const handleReceiveMessage = (msg) => {
+      console.log("받은 메시지:", msg);
+      setMessages((prev) => [...prev, msg]);
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("현재 messages 상태:", messages);
+  }, [messages]);
 
   // 기존 메시지 불러오기
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await api.get(`/api/chat/getMessage?chatRoomId=${chatRoomId}`);
+        const response = await api.get(
+          `/api/chat/getMessage?chatRoomId=${chatRoomId}`
+        );
         console.log("서버에서 가져온 메시지 목록:", response.data);
         setMessages(response.data || []);
       } catch (error) {
         console.error("메시지 불러오기 오류:", error);
       }
     };
-  
+
     fetchMessages();
   }, [chatRoomId]);
-  
 
-  // 메시지 전송 
+  // 메시지 전송
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return;
 
@@ -134,10 +146,9 @@ function Chat() {
       message: newMessage,
     };
 
-    socket.emit("sendMessage", messageData); 
-    setNewMessage(""); 
+    socket.emit("sendMessage", messageData);
+    setNewMessage("");
   };
-
 
   // 거래 상태 변경
   const changeStatus = async (newStatus) => {
@@ -145,15 +156,15 @@ function Chat() {
       console.error("거래 상태 변경은 판매자만 가능합니다.");
       return;
     }
-  
+
     try {
       if (!sellId) {
         console.error("오류: sellId가 정의되지 않았습니다.");
         return;
       }
-  
+
       await api.patch(`/api/sell/${sellId}/status`, { status: newStatus });
-  
+
       // 상태 업데이트를 위해 다시 DB에서 불러오기
       const updatedSell = await api.get(`/api/sell/sellDescription/${sellId}`);
       setStatus(updatedSell.data.status);
@@ -162,12 +173,11 @@ function Chat() {
       console.error("거래 상태 변경 오류:", error);
     }
   };
-  
-  
-   // 거래 장소 추천
-   const renderMessage = (msg) => {
+
+  // 거래 장소 추천
+  const renderMessage = (msg) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g; //URL 찾는 정규식
-  
+
     return (
       <Message sender={msg.senderId === currentUserId ? "me" : "other"}>
         {msg.message.split(urlRegex).map((part, index) =>
@@ -177,8 +187,8 @@ function Chat() {
               href={part}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ 
-                color: "#F7F7F7", 
+              style={{
+                color: "#F7F7F7",
                 textDecoration: "underline",
               }}
             >
@@ -191,41 +201,43 @@ function Chat() {
       </Message>
     );
   };
-  
-  
+
   const handleSendPlace = (selectedPlace) => {
     if (!selectedPlace) {
       console.error("장소 데이터가 없습니다!");
       return;
     }
-  
-    // 카카오 동적 지도 링크 URL 생성 
-    const dynamicMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(selectedPlace.name)},${selectedPlace.latitude},${selectedPlace.longitude}`;
-  
+
+    // 카카오 동적 지도 링크 URL 생성
+    const dynamicMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(
+      selectedPlace.name
+    )},${selectedPlace.latitude},${selectedPlace.longitude}`;
+
     console.log("동적 지도 URL:", dynamicMapUrl);
-  
+
     const placeMessage = {
       chatRoomId,
       senderId: currentUserId,
       message: `거래 장소 추천: ${selectedPlace.name}\n${dynamicMapUrl}`, // 🔥 URL을 message에 포함
-      isPlace: true
+      isPlace: true,
     };
-  
+
     // 소켓을 통해 서버로 메시지 전송
     socket.emit("sendMessage", placeMessage);
-    
+
     setShowModal(false);
   };
-  
 
   // 실시간 환율 가져오기
   useEffect(() => {
     const fetchExchangeRates = async () => {
       if (!chat || !chat.sellInfo || !chat.sellInfo.currency) return; // 🔥 방어 코드 추가
-  
+
       const currency = chat.sellInfo.currency;
       try {
-        const response = await axios.get(`https://api.exchangerate-api.com/v4/latest/${currency}`);
+        const response = await axios.get(
+          `https://api.exchangerate-api.com/v4/latest/${currency}`
+        );
         setExchangeRates((prevRates) => ({
           ...prevRates,
           [currency]: response.data.rates.KRW,
@@ -234,57 +246,69 @@ function Chat() {
         console.error("환율 데이터 불러오기 오류:", error);
       }
     };
-  
-    fetchExchangeRates();
-  }, [chat]); 
 
-  
+    fetchExchangeRates();
+  }, [chat]);
+
   return (
     <Container>
       {/* 헤더 - 판매자 정보 추가 */}
       <Header>
-        <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
-        
+        <BackButton
+          src={backarrow}
+          alt="뒤로가기"
+          onClick={() => navigate(-1)}
+        />
+
         {chat ? (
-        <SellerInfo>
-          <ProfileImage src={chat.opponentProfileImg || "https://via.placeholder.com/40"} alt="opponent" />
-          <SellerName>{chat.opponentName || "알 수 없는 사용자"}</SellerName>
-        </SellerInfo>
-      ) : (
-        <SellerInfo>
-          <ProfileImage src="https://via.placeholder.com/40" alt="seller" />
-          <SellerName>로딩 중...</SellerName>
-        </SellerInfo>
-                  )}
+          <SellerInfo>
+            <ProfileImage
+              src={chat.opponentProfileImg || "https://via.placeholder.com/40"}
+              alt="opponent"
+            />
+            <SellerName>{chat.opponentName || "알 수 없는 사용자"}</SellerName>
+          </SellerInfo>
+        ) : (
+          <SellerInfo>
+            <ProfileImage src="https://via.placeholder.com/40" alt="seller" />
+            <SellerName>로딩 중...</SellerName>
+          </SellerInfo>
+        )}
 
-         {/* 판매자인 경우에만 거래 상태 변경 가능능*/}
-         <StatusContainer>
-            {isSeller ? ( //  판매자인 경우에만 버튼 활성화
-              <>
-                <StatusButton onClick={() => setShowOptions(!showOptions)} disabled={status === "거래완료"}>
-                  <StatusText>{status}</StatusText>
-                  {status !== "거래완료" && <StatusDropdown src={dropdown} />}
-                </StatusButton>
+        {/* 판매자인 경우에만 거래 상태 변경 가능능*/}
+        <StatusContainer>
+          {isSeller ? ( //  판매자인 경우에만 버튼 활성화
+            <>
+              <StatusButton
+                onClick={() => setShowOptions(!showOptions)}
+                disabled={status === "거래완료"}
+              >
+                <StatusText>{status}</StatusText>
+                {status !== "거래완료" && <StatusDropdown src={dropdown} />}
+              </StatusButton>
 
-                {showOptions && (
-                  <DropdownMenu>
-                    {["판매중", "거래중", "거래완료"].map((s) => (
-                      <DropdownItem key={s} onClick={() => changeStatus(s)}>
-                        {s}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                )}
-              </>
-            ) : (
-              <StatusText>{status}</StatusText> // 구매자는 상태 변경 버튼 없이 보기만 가능
-            )}
-          </StatusContainer>
+              {showOptions && (
+                <DropdownMenu>
+                  {["판매중", "거래중", "거래완료"].map((s) => (
+                    <DropdownItem key={s} onClick={() => changeStatus(s)}>
+                      {s}
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              )}
+            </>
+          ) : (
+            <StatusText>{status}</StatusText> // 구매자는 상태 변경 버튼 없이 보기만 가능
+          )}
+        </StatusContainer>
       </Header>
 
-     {/* 가격 및 환율 정보 표시 */}
-     <ProductInfo onClick={() => navigate(`/sell/${chat?.sellInfo?.sellId}`)}>
-        <ProductImage src={chat?.sellInfo?.image || "https://via.placeholder.com/100"} alt="상품 이미지" />
+      {/* 가격 및 환율 정보 표시 */}
+      <ProductInfo onClick={() => navigate(`/sell/${chat?.sellInfo?.sellId}`)}>
+        <ProductImage
+          src={chat?.sellInfo?.image || "https://via.placeholder.com/100"}
+          alt="상품 이미지"
+        />
         <ProductDetails>
           <CurrencyTag>{chat?.sellInfo?.currency}</CurrencyTag>
           <PriceContainer>
@@ -292,8 +316,11 @@ function Chat() {
             <Dot>·</Dot>
             <KRWAmount>
               {exchangeRates[chat?.sellInfo?.currency]
-                ? (chat.sellInfo.amount * exchangeRates[chat.sellInfo.currency]).toLocaleString()
-                : "환율 정보 없음"} 원
+                ? (
+                    chat.sellInfo.amount * exchangeRates[chat.sellInfo.currency]
+                  ).toLocaleString()
+                : "환율 정보 없음"}{" "}
+              원
             </KRWAmount>
           </PriceContainer>
         </ProductDetails>
@@ -302,12 +329,15 @@ function Chat() {
       {/* 기존 채팅 메시지 표시 */}
       <ChatContainer>
         {messages.map((msg, index) => (
-          <MessageWrapper key={index} sender={msg.senderId === currentUserId ? "me" : "other"}>
-            {renderMessage(msg)} {/* ✅ renderMessage를 호출하여 메시지를 렌더링 */}
+          <MessageWrapper
+            key={index}
+            sender={msg.senderId === currentUserId ? "me" : "other"}
+          >
+            {renderMessage(msg)}{" "}
+            {/* ✅ renderMessage를 호출하여 메시지를 렌더링 */}
           </MessageWrapper>
         ))}
       </ChatContainer>
-
 
       {/* 거래 장소 추천 */}
       <RecommendationSection>
@@ -315,8 +345,15 @@ function Chat() {
           <img src={infoicon} alt="info icon" width="16" height="16" />
           <InfoText>AI에게 거래 장소를 추천받아 보세요</InfoText>
         </InfoContainer>
-        <RecommendationButton onClick={() => setShowModal(true)}>추천받기</RecommendationButton>
-        <PlaceModal isOpen={showModal} onClose={() => setShowModal(false)} onSend={handleSendPlace} chatRoomId={chatRoomId} />
+        <RecommendationButton onClick={() => setShowModal(true)}>
+          추천받기
+        </RecommendationButton>
+        <PlaceModal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          onSend={handleSendPlace}
+          chatRoomId={chatRoomId}
+        />
       </RecommendationSection>
 
       {/* 메시지 입력창 */}
@@ -338,7 +375,6 @@ function Chat() {
 
 export default Chat;
 
-
 /* 스타일링 */
 const Container = styled.div`
   width: 100%;
@@ -348,7 +384,7 @@ const Container = styled.div`
   flex-direction: column;
   background: #fff;
   overflow: hidden;
-  padding-bottom:60px;
+  padding-bottom: 60px;
 `;
 
 const Header = styled.div`
@@ -372,22 +408,22 @@ const BackButton = styled.img`
 const SellerInfo = styled.div`
   display: flex;
   gap: 8px;
-  margin-left:0;
+  margin-left: 0;
 `;
 
 const ProfileImage = styled.img`
   width: 32px;
   height: 32px;
-  border-radius: 50%; 
-  margin-left:50px;
-  margin-top:5px;
+  border-radius: 50%;
+  margin-left: 50px;
+  margin-top: 5px;
 `;
 
 const SellerName = styled.b`
   font-size: 16px;
   margin-top: 10px;
-  font-weight:400;
-  max-width:140px;
+  font-weight: 400;
+  max-width: 140px;
 `;
 
 const StatusContainer = styled.div`
@@ -420,7 +456,7 @@ const StatusDropdown = styled.img`
 
 const DropdownMenu = styled.div`
   position: absolute;
-  top: 110%; 
+  top: 110%;
   left: 0;
   background: #fff;
   border-radius: 8px;
@@ -442,7 +478,6 @@ const DropdownItem = styled.div`
   }
 `;
 
-
 /* 상품 정보 */
 const ProductInfo = styled.div`
   display: flex;
@@ -460,14 +495,14 @@ const ProductImage = styled.img`
   height: 48px;
   border-radius: 8px;
   object-fit: cover;
-  margin-left:0;
+  margin-left: 0;
 `;
 
 const ProductDetails = styled.div`
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-left:-110px;;
+  margin-left: -110px;
 `;
 
 const CurrencyTag = styled.div`
@@ -476,12 +511,12 @@ const CurrencyTag = styled.div`
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 10px;
-  margin-left:0;
+  margin-left: 0;
 `;
 
 const PriceContainer = styled.div`
   display: flex;
-  algn-items:left;
+  algn-items: left;
 `;
 
 const Price = styled.b`
@@ -496,23 +531,24 @@ const Dot = styled.span`
 const KRWAmount = styled.span`
   color: #666666;
   font-weight: 300;
-  font-size:10px;
-  margin-top:5px;
+  font-size: 10px;
+  margin-top: 5px;
 `;
 
 /* 채팅 메시지 */
 const ChatContainer = styled.div`
-  display: flex;  
-  flex-direction: column; 
-  align-items: stretch;  
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   padding: 12px;
   overflow-y: auto;
-  padding-bottom:90px;
+  padding-bottom: 90px;
 `;
 
 const MessageWrapper = styled.div`
-   display: flex;
-  justify-content: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")}; 
+  display: flex;
+  justify-content: ${({ sender }) =>
+    sender === "me" ? "flex-end" : "flex-start"};
   width: 100%; /* 🔥 전체 너비 사용 */
   padding: 5px 0; /* 🔥 메시지 간격 추가 */
 `;
@@ -520,26 +556,25 @@ const MessageWrapper = styled.div`
 const Message = styled.div`
   margin-left: ${({ sender }) => (sender === "me" ? "auto" : "0")};
   margin-right: ${({ sender }) => (sender === "me" ? "0" : "auto")};
-  background: ${({ sender, isPlace }) => 
+  background: ${({ sender, isPlace }) =>
     isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#1F2024"};
   color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
   padding: 12px 16px;
-  border-radius: ${({ sender }) => 
+  border-radius: ${({ sender }) =>
     sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px"};
-  max-width: 75%;  /* 🔥 메시지 너비 제한 */
-  align-self: ${({ sender }) => sender === "me" ? "flex-end" : "flex-start"};
+  max-width: 75%; /* 🔥 메시지 너비 제한 */
+  align-self: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
   white-space: pre-wrap;
   word-wrap: break-word;
-  text-align: ${({ sender }) => sender === "me" ? "right" : "left"};
+  text-align: ${({ sender }) => (sender === "me" ? "right" : "left")};
 `;
-
 
 /* AI 거래 장소 추천 */
 
 const RecommendationSection = styled.div`
   position: fixed;
-  bottom: 69px; 
-  left: 50%; 
+  bottom: 69px;
+  left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px); /* 좌우 16px씩 마진 */
   max-width: 375px; /* 중앙에 오게 하고 크기 제한 */
@@ -560,8 +595,7 @@ const InfoContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom:0px;
-  
+  margin-bottom: 0px;
 `;
 
 const InfoText = styled.span`
@@ -569,11 +603,11 @@ const InfoText = styled.span`
   font-size: 12px;
   font-weight: 600;
   opacity: 0.6;
-  margin-bottom:0px;
+  margin-bottom: 0px;
 `;
 
 const RecommendationButton = styled.button`
-  background: #CA2F28;
+  background: #ca2f28;
   color: white;
   font-size: 12px;
   font-weight: 400;
@@ -585,12 +619,13 @@ const RecommendationButton = styled.button`
 
 /*  메시지 입력 */
 const MessageInputContainer = styled.div`
-  display: ${({ isOpen }) => (isOpen ? "none" : "flex")}; /* ✅ 모달이 열리면 숨김 */
+  display: ${({ isOpen }) =>
+    isOpen ? "none" : "flex"}; /* ✅ 모달이 열리면 숨김 */
   padding: 12px;
   box-shadow: 0px -2px 8px rgba(0, 0, 0, 0.1);
   position: fixed;
   bottom: 0px;
-  left: 50%; 
+  left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px); /* 좌우 16px씩 마진 */
   max-width: 375px; /* 중앙에 오게 하고 크기 제한 */
@@ -615,18 +650,18 @@ const MessageInput = styled.input`
 `;
 
 const SendButton = styled.button`
-  width:35px;  
-  height: 35px; 
-  background: black; 
+  width: 35px;
+  height: 35px;
+  background: black;
   border: none;
-  border-radius: 50%; 
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 
   img {
-    width: 16px; 
+    width: 16px;
     height: 16px;
   }
 `;
