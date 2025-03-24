@@ -302,14 +302,14 @@ function DonateRegister() {
 export default DonateRegister;
 
 const Container = styled.div`
-  width: 375px;
-  min-height: 100vh;
-  position: relative;
-  background: #ffffff;
-  box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
-  border-radius: 32px;
-  overflow: hidden;
-  font-family: "Pretendard", sans-serif;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  padding: 16px;
+  background-color: #fff;
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 20px;
 `;
 
 const Header = styled.div`
@@ -348,6 +348,7 @@ const CurrencyInputWrapper = styled.div`
   padding: 7px;
   gap: 8px;
   width: 123%;
+  position: relative;
 `;
 
 const DropdownIcon = styled.img`
@@ -430,7 +431,7 @@ const InputRow = styled.div`
 
 const Suffix = styled.span`
   position: absolute;
-  left: 280px;
+  right: 12px;
   font-size: 14px;
   color: #888;
 `;

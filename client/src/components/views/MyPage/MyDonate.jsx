@@ -45,6 +45,8 @@ function MyDonate() {
         <Title>기부내역 조회</Title>
       </Header>
 
+      <Divider />
+
       <ProgressSection>
         {steps.map((step, idx) => (
           <React.Fragment key={idx}>

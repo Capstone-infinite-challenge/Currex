@@ -90,6 +90,9 @@ const Container = styled.div`
   margin: auto;
   padding: 16px;
   background-color: #fff;
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 80px;
 `;
 
 const Header = styled.div`
