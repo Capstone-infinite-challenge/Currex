@@ -97,13 +97,15 @@ function DonateInfo() {
 
 export default DonateInfo;
 
-/* 스타일링 */
 const Container = styled.div`
   width: 100%;
   max-width: 400px;
   margin: auto;
   padding: 16px;
   background-color: #fff;
+  height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 20px;
 `;
 
 const Header = styled.div`

@@ -35,25 +35,28 @@ function MyPage() {
         console.error("사용자 정보 가져오기 실패:", error);
       }
     };
-  
+
     fetchUserInfo();
   }, []);
-  
 
   const handleSave = async () => {
     try {
       const { tradeAddress, address } = userInfo;
-  
+
       // 위도, 경도 가져오기
       const geoResponse = await axios.get(
-        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(tradeAddress)}`,
+        `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(
+          tradeAddress
+        )}`,
         {
-          headers: { Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}` },
+          headers: {
+            Authorization: `KakaoAK ${process.env.REACT_APP_KAKAO_API_KEY}`,
+          },
         }
       );
-  
+
       const { x: lon, y: lat } = geoResponse.data.documents[0];
-  
+
       // 서버로 데이터 전송
       await api.put("/api/user/changeAddress", {
         addr1: address,
@@ -61,14 +64,13 @@ function MyPage() {
         lat: lat,
         lon: lon,
       });
-  
+
       alert("주소가 성공적으로 저장되었습니다.");
       setIsEditing(false);
     } catch (error) {
       console.error("주소 저장 실패:", error);
     }
   };
-  
 
   const openKakaoPostcode = (field) => {
     new window.daum.Postcode({
@@ -77,20 +79,24 @@ function MyPage() {
       },
     }).open();
   };
-  
+
   //로그아웃
   const handleLogout = async () => {
     try {
       console.log("🚪 로그아웃 중...");
       const token = localStorage.getItem("accessToken");
-  
+
       if (token) {
-        await api.post("/api/auth/logout", {}, {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        });
+        await api.post(
+          "/api/auth/logout",
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
       }
-  
+
       // 모든 저장소 클리어
       localStorage.clear();
       sessionStorage.clear();
@@ -99,7 +105,7 @@ function MyPage() {
           .replace(/^ +/, "")
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
-  
+
       alert("로그아웃되었습니다.");
       window.location.href = "/";
     } catch (error) {
@@ -107,13 +113,15 @@ function MyPage() {
       alert("로그아웃 중 오류가 발생했습니다.");
     }
   };
-  
-
 
   return (
     <Container>
       <Header>
-        <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
+        <BackButton
+          src={backarrow}
+          alt="뒤로가기"
+          onClick={() => navigate(-1)}
+        />
         <Title>마이페이지</Title>
       </Header>
 
@@ -123,16 +131,19 @@ function MyPage() {
       </ProfileSection>
 
       <ButtonGrid>
-        <Button>기부 내역</Button>
-        <Button onClick={() => navigate('/myexchange')}>환전 내역</Button>
-        <Button onClick={() => navigate('/mysell')}>나의 판매</Button>
-        <Button onClick={() => navigate('/calculator')}>외화 계산기</Button>
+        <Button onClick={() => navigate("/mydonate")}>기부 내역</Button>
+        <Button onClick={() => navigate("/myexchange")}>환전 내역</Button>
+        <Button onClick={() => navigate("/mysell")}>나의 판매</Button>
+        <Button onClick={() => navigate("/calculator")}>외화 계산기</Button>
       </ButtonGrid>
 
       <Divider />
       <InfoHeader>
         <InfoTitle>나의 정보</InfoTitle>
-        <EditButton onClick={() => isEditing ? handleSave() : setIsEditing(true)} isEditing={isEditing}>
+        <EditButton
+          onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
+          isEditing={isEditing}
+        >
           {isEditing ? "확인" : "수정하기"}
           {!isEditing && <EditIcon src={editicon} alt="수정 아이콘" />}
         </EditButton>
@@ -163,14 +174,13 @@ function MyPage() {
         </InfoItem>
       </InfoSection>
       <LogoutSection>
-        <LogoutButton onClick={handleLogout} >로그아웃</LogoutButton>
-     </LogoutSection>
+        <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+      </LogoutSection>
     </Container>
   );
 }
 
 export default MyPage;
-
 
 // 스타일 정의
 const Container = styled.div`
@@ -190,7 +200,6 @@ const Container = styled.div`
   text-align: center;
   justify-content: space-between;
 `;
-
 
 const Header = styled.div`
   width: 100%;
@@ -212,8 +221,8 @@ const BackButton = styled.img`
 const Title = styled.h1`
   font-size: 18px;
   font-weight: 700;
-  flex-grow: 1; 
- text-align:center;
+  flex-grow: 1;
+  text-align: center;
 `;
 
 const ProfileSection = styled.div`
@@ -246,7 +255,7 @@ const ButtonGrid = styled.div`
 const Button = styled.button`
   background: #ca2f28;
   width: 80%;
-  height:60px;
+  height: 60px;
   color: white;
   font-size: 14px;
   font-weight: 300;
@@ -276,21 +285,20 @@ const InfoHeader = styled.div`
 
 const InfoTitle = styled.h3`
   font-size: 16px;
-  font-wight:400;
-  margin-left:0;
+  font-wight: 400;
+  margin-left: 0;
 `;
 
 const EditButton = styled.button`
   background: none;
   border: none;
-  color: ${({ isEditing }) => (isEditing ? '#ca2f28' : '#898d99')}; 
+  color: ${({ isEditing }) => (isEditing ? "#ca2f28" : "#898d99")};
   font-size: 14px;
   display: flex;
   align-items: center;
   cursor: pointer;
-  margin-right:0;
+  margin-right: 0;
 `;
-
 
 const EditIcon = styled.img`
   width: 16px;
@@ -309,18 +317,18 @@ const InfoItem = styled.div`
 const Label = styled.p`
   font-size: 14px;
   font-weight: 500;
-  margin-bottom:10px;
-  margin-top:0px;
+  margin-bottom: 10px;
+  margin-top: 0px;
 `;
 
 const DisabledInput = styled.input`
   width: 100%;
   padding: 10px;
-  background: #B9B9B9;
+  background: #b9b9b9;
   border-radius: 8px;
   border: none;
   font-size: 14px;
-  color: #FFFFFF;
+  color: #ffffff;
   cursor: not-allowed;
   font-weight: 200;
 `;
@@ -328,20 +336,20 @@ const DisabledInput = styled.input`
 const Input = styled.input`
   width: 100%;
   padding: 10px;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 8px;
-  border: 1px solid #C8C8C8;
+  border: 1px solid #c8c8c8;
   font-size: 14px;
   cursor: pointer;
   ::placeholder {
     font-size: 14px;
-    color: #888; 
-    transition: color 0.3s ease; 
+    color: #888;
+    transition: color 0.3s ease;
   }
 
   &:focus {
     outline: none;
-    border: 1px solid #CA2F28;
+    border: 1px solid #ca2f28;
   }
 `;
 
@@ -361,7 +369,7 @@ const LogoutButton = styled.button`
   cursor: pointer;
   padding: 10px;
   transition: 0.3s;
-  
+
   &:hover {
     color: #a92521;
   }
