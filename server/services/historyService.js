@@ -22,7 +22,7 @@ const getMyExchanges = async(userId) => {
 
         const formattedList = exchangeList.map(exchange => {
             let opponent = null;
-            if (exchange.sellerId._id.toString() === userId){
+            if (exchange.sellerId._id.toString() === userId.toString()){
                 opponent = exchange.buyer;
             }else{
                 opponent = exchange.sellerId;
@@ -32,7 +32,7 @@ const getMyExchanges = async(userId) => {
                 amount: exchange.amount,
                 currency: exchange.currency,
                 exchangeDate: exchange.updatedAt,
-                role: exchange.sellerId._id.toString() === userId? "판매": "구매",
+                role: exchange.sellerId._id.toString() === userId.toString()? "판매": "구매",
                 opponent: opponent? {
                     nickname: opponent.nickname,
                     profile_img: opponent.profile_img
