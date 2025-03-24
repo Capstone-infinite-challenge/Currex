@@ -20,6 +20,7 @@ import Detect from "./components/views/ModelPage/Detect";
 import Donate from "./components/views/DonatePage/Donate";
 import DonateInfo from "./components/views/DonatePage/DonateInfo";
 import DonateRegister from "./components/views/DonatePage/DonateRegister";
+import MyDonate from "./components/views/MyPage/MyDonate";
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
             <Route exact path="/donate" element={<Donate />} />
             <Route path="/donateinfo" element={<DonateInfo />} />
             <Route path="/donateregister" element={<DonateRegister />} />
+            <Route exact path="/mydonate" element={<MyDonate />} />
           </Routes>
         </Layout>
       </BrowserRouter>
