@@ -19,6 +19,18 @@ function DonateRegister() {
   const [company, setCompany] = useState(""); // 연락처
   const maxImageCount = 5; // 최대 업로드 가능 이미지 수
   const navigate = useNavigate();
+  const [exchangeRate, setExchangeRate] = useState(0); // 환율 상태
+
+  useEffect(() => {
+    if (currency) {
+      fetch(`https://api.exchangerate-api.com/v4/latest/${currency}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setExchangeRate(data.rates.KRW || 0); // 환율 저장
+        })
+        .catch((error) => console.error("환율 API 호출 실패:", error));
+    }
+  }, [currency]);
 
   /*주소 검색 */
   const openKakaoPostcode = () => {
@@ -63,7 +75,14 @@ function DonateRegister() {
 
   /*기부 등록 */
   const handleSubmit = async () => {
-    if (!firstName || !lastName || !contact || !address || !company) {
+    if (
+      !firstName ||
+      !lastName ||
+      !contact ||
+      !address ||
+      !company ||
+      !amount
+    ) {
       alert("모든 필드를 입력해주세요.");
       return;
     }
@@ -79,16 +98,28 @@ function DonateRegister() {
       navigate("/login"); // 로그인 페이지로 리디렉션
     }
 
+    const amountInKRW = Math.round(parseFloat(amount) * exchangeRate); // 💥 환산 금액 계산
+
+    console.log("외화 금액:", amount, currency);
+    console.log("환율:", exchangeRate);
+    console.log("환산된 한화 금액:", amountInKRW);
+
     const formData = new FormData();
     formData.append("name", `${firstName} ${lastName}`); // 성 + 이름 합치기
     formData.append("company", company); // 회사
     formData.append("contact", contact); // 연락처
     formData.append("address", address); // 주소
+    formData.append("amount", amountInKRW); // 한화금액
 
     uploadedImages.forEach((image, index) => {
       formData.append("donationImages", image);
       console.log(`업로드 이미지 ${index}:`, image);
     });
+
+    // 👉 formData 전체 출력
+    for (let pair of formData.entries()) {
+      console.log("📦 formData:", pair[0], pair[1]);
+    }
 
     console.log("전송할 데이터 확인:", {
       name: `${firstName} ${lastName}`,
@@ -96,6 +127,7 @@ function DonateRegister() {
       contact,
       address,
       uploadedImages,
+      amount,
     });
 
     try {
