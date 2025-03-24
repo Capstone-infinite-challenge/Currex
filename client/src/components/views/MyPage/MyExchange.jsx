@@ -74,7 +74,9 @@ function MyExchange() {
                 <DateText>{new Date(exchange.exchangeDate).toLocaleString("ko-KR")}</DateText>
                 <ProfileWrapper>
                   <UserProfile src={exchange.opponent?.profile_img || "https://via.placeholder.com/40"} />
-                  <UserName>{exchange.opponent?.nickname || "알 수 없음"}</UserName>
+                  <UserName length={exchange.opponent?.nickname.length}>
+                    {exchange.opponent?.nickname || "알 수 없음"}
+                  </UserName>
                 </ProfileWrapper>
               </TradeLeft>
 
@@ -100,13 +102,28 @@ export default MyExchange;
 
 /* ✅ 스타일 */
 const Container = styled.div`
-  width: 375px;
-  height: 812px;
+  width: 100%;
+  max-width: 375px;
+  min-height: 100vh;
+  max-height: 100vh;
+  margin: 0 auto; /* 중앙 정렬 */
   position: relative;
   background: #ffffff;
   border-radius: 32px;
-  overflow: hidden;
+
+  
+  flex-direction: column;
+
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE */
+  scrollbar-width: none;     /* Firefox */
+  padding-bottom: 80px;
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari */
+  }
 `;
+
 
 const Header = styled.div`
   width: 100%;
@@ -205,31 +222,38 @@ const TradeLeft = styled.div`
   margin-left: 5px;
 `;
 
+
 const DateText = styled.div`
   font-size: 12px;
   color: gray;
-  margin-top: 0;
+  white-space: nowrap;
 `;
+
 
 /* ✅ 프로필 + 유저네임을 감싸는 컨테이너 */
 const ProfileWrapper = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 4px;
+  margin-left: 0px;
 `;
 
 const UserProfile = styled.img`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1px solid black;
+  margin-left: 0px;
 `;
 
 const UserName = styled.div`
-  font-size: 12px;
   color: black;
   text-align: center;
+  font-size: ${({ length }) => (length < 10 ? "16px" : "14px")};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
 `;
 
 
