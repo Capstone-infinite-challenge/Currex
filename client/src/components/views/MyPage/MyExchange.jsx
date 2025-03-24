@@ -1,44 +1,42 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import NavBar from "../NavBar/NavBar";
+import api from "../../utils/api"; // ✅ 추가
 
 function MyExchange() {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const [selectedFilter, setSelectedFilter] = useState("전체");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [exchangeHistory, setExchangeHistory] = useState([]); // ✅ 상태 추가
 
-  // 거래 내역 (더미 데이터) 
-  const exchangeHistory = [
-    {
-      id: 1,
-      date: "2024.11.09 21:40:19",
-      userName: "Olivia Gracia",
-      profileImg: "https://via.placeholder.com/40",
-      currency: "USD",
-      amount: 300,
-      price: "1,000,000원",
-      type: "구매", // 구매->파란색
-    },
-    {
-      id: 2,
-      date: "2024.11.01 15:17:42",
-      userName: "Sato Yui",
-      profileImg: "https://via.placeholder.com/40",
-      currency: "JPN",
-      amount: 3000,
-      price: "1,000,000원",
-      type: "판매", // 판매->빨간색
-    },
-  ];
+  // ✅ API 연동
+  useEffect(() => {
+    const fetchExchangeHistory = async () => {
+      try {
+        const response = await api.get("/api/history/exchange"); // 👈 백엔드 연동
+        setExchangeHistory(response.data);
+      } catch (error) {
+        console.error("환전 내역 불러오기 실패:", error);
+      }
+    };
+
+    fetchExchangeHistory();
+  }, []);
 
   const handleToggleDropdown = () => setIsDropdownOpen((prev) => !prev);
   const handleSelectFilter = (filter) => {
     setSelectedFilter(filter);
     setIsDropdownOpen(false);
   };
+
+  // ✅ 필터 적용된 데이터
+  const filteredHistory =
+    selectedFilter === "전체"
+      ? exchangeHistory
+      : exchangeHistory.filter((item) => item.role === selectedFilter);
 
   return (
     <Container>
@@ -48,43 +46,48 @@ const navigate = useNavigate();
         <Title>환전 내역 조회</Title>
       </Header>
 
-      {/* 필터 영역 */}
+      {/* 필터 */}
       <FilterSection>
         <FilterButton onClick={handleToggleDropdown}>
           {selectedFilter}
           <DropdownIcon src={dropdown} alt="드롭다운" />
         </FilterButton>
-
-        {/* 드롭다운 메뉴 */}
         {isDropdownOpen && (
           <DropdownMenu>
-            <DropdownItem onClick={() => handleSelectFilter("전체")}>전체</DropdownItem>
-            <DropdownItem onClick={() => handleSelectFilter("판매")}>판매</DropdownItem>
-            <DropdownItem onClick={() => handleSelectFilter("구매")}>구매</DropdownItem>
+            {["전체", "판매", "구매"].map((f) => (
+              <DropdownItem key={f} onClick={() => handleSelectFilter(f)}>
+                {f}
+              </DropdownItem>
+            ))}
           </DropdownMenu>
         )}
       </FilterSection>
 
-      {/* 거래 내역 리스트 */}
+      {/* 거래 내역 */}
       <TradeList>
-        {exchangeHistory.map((exchange) => (
-          <TradeItem key={exchange.id}>
-            <TradeLeft>
-              <Date>{exchange.date}</Date>
-              <ProfileWrapper>
-                <UserProfile src={exchange.profileImg} alt="User" />
-                <UserName>{exchange.userName}</UserName>
-              </ProfileWrapper>
-            </TradeLeft>
-            <TradeDetail>
-              <TradeType>{exchange.type}</TradeType>
-              <TradeAmount type={exchange.type}>
-                {exchange.currency} {exchange.amount}
-              </TradeAmount>
-              <TradePrice>{exchange.price}</TradePrice>
-            </TradeDetail>
-          </TradeItem>
-        ))}
+        {filteredHistory.length === 0 ? (
+          <p style={{ color: "gray", textAlign: "center" }}>환전 내역이 없습니다.</p>
+        ) : (
+          filteredHistory.map((exchange, index) => (
+            <TradeItem key={index}>
+             <TradeLeft>
+                <DateText>{new Date(exchange.exchangeDate).toLocaleString("ko-KR")}</DateText>
+                <ProfileWrapper>
+                  <UserProfile src={exchange.opponent?.profile_img || "https://via.placeholder.com/40"} />
+                  <UserName>{exchange.opponent?.nickname || "알 수 없음"}</UserName>
+                </ProfileWrapper>
+              </TradeLeft>
+
+              <TradeDetail>
+                <TradeType>{exchange.role}</TradeType>
+                <TradeAmount type={exchange.role}>
+                  {exchange.currency} {exchange.amount.toLocaleString()}
+                </TradeAmount>
+                {/* 가격 정보가 없다면 생략 가능 */}
+              </TradeDetail>
+            </TradeItem>
+          ))
+        )}
       </TradeList>
       <NavBar active="MyPage" />
     </Container>
@@ -92,6 +95,7 @@ const navigate = useNavigate();
 }
 
 export default MyExchange;
+
 
 
 /* ✅ 스타일 */
@@ -201,7 +205,7 @@ const TradeLeft = styled.div`
   margin-left: 5px;
 `;
 
-const Date = styled.div`
+const DateText = styled.div`
   font-size: 12px;
   color: gray;
   margin-top: 0;
