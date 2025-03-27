@@ -76,14 +76,18 @@ router.get("/total", async (req, res) => {
 router.get("/rank", async (req, res) => {
   try {
     const rankInfo = await redisService.getDonationRanking(20);
-    console.log(rankInfo);
 
     const formattedRankInfo = await Promise.all(
       rankInfo.map(async donation => {
       const userId = (await userService.findUserInfo(donation.userId)).id;
-      console.log(userId);
       const donationRankInfo = await donationService.addRankingInfo(userId);
-      return donationRankInfo;
+      return {
+        rank: donation.rank,
+        userId: donation.userId,
+        totalDonation: donation.totalDonation,
+        d_name: donationRankInfo.d_name,
+        d_company: donationRankInfo.d_company
+      }
     }));
     res.status(200).json(formattedRankInfo);
   } catch (error) {
