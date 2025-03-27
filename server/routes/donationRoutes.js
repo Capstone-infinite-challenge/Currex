@@ -3,6 +3,8 @@ import Donation from "../models/donation.js";
 import multer from "multer";
 import donationService from "../services/donationService.js";
 import userService from "../services/userService.js";
+import redisService from "../services/redisService.js";
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 const router = Router();
@@ -42,28 +44,30 @@ router.post("/dRegi", upload.array("donationImages", 5), async (req, res) => {
       return res.status(400).json({ error: "연락처를 입력해주세요" });
     } else if (!donationInfo.address) {
       return res.status(400).json({ error: "주소를 입력해주세요" });
+    } else if (!donationInfo.amount) {
+      return res.status(400).json({ error: "금액을 입력해주세요" });
     }
 
     const newDonation = new Donation(donationInfo);
     await newDonation.save();
 
-    res
-      .status(201)
-      .json({ message: "기부 등록이 완료되었습니다", donation: newDonation });
+    await redisService.saveDonation(userId, donationInfo.amount);
+
+    res.status(201).json({ message: "기부 등록이 완료되었습니다", donation: newDonation });
   } catch (error) {
     console.error("에러 발생:", error);
     res.status(500).json({ error: "서버 오류가 발생하였습니다." });
   }
 });
 
-//로그인 정보 확인은 아직 추가안함 추가필요!!!!
 //기부 랭킹위에 기부 누적금액 api
 router.get("/total", async (req, res) => {
   try {
-    const userId = req.user.id; //로그인된 사용자의 ID
+    const userId = (await userService.findUserInfo(req.user.id)).id;
     const total = await donationService.getUserDonationTotal(userId);
     res.json({ userId, toatlAmount: total });
   } catch (error) {
+    console.log("기부총합계산중 에러 발생", error);
     res.status(500).json({ error: "Failed to fetch total donations" });
   }
 });
@@ -71,11 +75,24 @@ router.get("/total", async (req, res) => {
 //기부 랭킹
 router.get("/rank", async (req, res) => {
   try {
+    const rankInfo = await redisService.getDonationRanking(20);
+
+    const formattedRankInfo = await Promise.all(
+      rankInfo.map(async donation => {
+      const userId = (await userService.findUserInfo(donation.userId)).id;
+      const donationRankInfo = await donationService.addRankingInfo(userId);
+      return {
+        rank: donation.rank,
+        userId: donation.userId,
+        totalDonation: donation.totalDonation,
+        d_name: donationRankInfo.d_name,
+        d_company: donationRankInfo.d_company
+      }
+    }));
+    res.status(200).json(formattedRankInfo);
   } catch (error) {
     console.log("에러: ", error);
-    res
-      .status(500)
-      .json({ error: "랭킹을 불러오는 도중 에러가 발생하였습니다." });
+    res.status(500).json({ error: "랭킹을 불러오는 도중 에러가 발생하였습니다." });
   }
 });
 

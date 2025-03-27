@@ -23,7 +23,26 @@ const getChatMessages = async(chatRoomId) => {
     return messages.map((msg) => JSON.parse(msg));      //JSON으로 변환
 }
 
+//기부 내역 저장
+const saveDonation = async(userId, amount) => {
+    await redisClient.zIncrBy("donation_ranking", amount, userId);      //amount가 지금 undefined여서 오류 발생
+};
+
+//기부 내역 조회
+const getDonationRanking = async(topN) => {
+    //상위 N명의 사용자 조회
+    const ranking = await redisClient.zRangeWithScores("donation_ranking", 0, topN-1, {REV: true});
+
+    return ranking.map((entry, index) => ({
+        rank: index + 1,
+        userId: entry.value,
+        totalDonation: entry.score
+    }))
+};
+
 export default {
     saveChatMessage,
-    getChatMessages
+    getChatMessages,
+    saveDonation,
+    getDonationRanking
 };
