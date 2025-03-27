@@ -541,33 +541,36 @@ const ChatContainer = styled.div`
   flex-direction: column;
   align-items: stretch;
   padding: 12px;
-  overflow-y: auto;
   padding-bottom: 90px;
+  overflow-y: auto;
+  margin: 0 !important; //전역 margin auto 제거
 `;
 
 const MessageWrapper = styled.div`
   display: flex;
-  justify-content: ${({ sender }) =>
-    sender === "me" ? "flex-end" : "flex-start"};
-  width: 100%; /* 🔥 전체 너비 사용 */
-  padding: 5px 0; /* 🔥 메시지 간격 추가 */
+  justify-content: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
+  width: 100%;
+  padding: 5px 0;
+  margin: 0 !important; // 전역 margin auto 제거 
 `;
 
+
 const Message = styled.div`
-  margin-left: ${({ sender }) => (sender === "me" ? "auto" : "0")};
-  margin-right: ${({ sender }) => (sender === "me" ? "0" : "auto")};
+  margin-left: ${({ sender }) => (sender === "me" ? "auto !important" : "0 !important")};
+  margin-right: ${({ sender }) => (sender === "me" ? "0 !important" : "auto !important")};
   background: ${({ sender, isPlace }) =>
     isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#1F2024"};
   color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
   padding: 12px 16px;
   border-radius: ${({ sender }) =>
     sender === "me" ? "12px 4px 12px 12px" : "4px 12px 12px 12px"};
-  max-width: 75%; /* 🔥 메시지 너비 제한 */
-  align-self: ${({ sender }) => (sender === "me" ? "flex-end" : "flex-start")};
+  max-width: 75%;
   white-space: pre-wrap;
   word-wrap: break-word;
   text-align: ${({ sender }) => (sender === "me" ? "right" : "left")};
+
 `;
+
 
 /* AI 거래 장소 추천 */
 
