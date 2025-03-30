@@ -556,8 +556,8 @@ const MessageWrapper = styled.div`
 
 
 const Message = styled.div`
-  margin-left: ${({ sender }) => (sender === "me" ? "auto !important" : "0 !important")};
-  margin-right: ${({ sender }) => (sender === "me" ? "0 !important" : "auto !important")};
+ margin-left: ${({ sender }) => (sender === "me" ? "auto" : "0")};
+  margin-right: ${({ sender }) => (sender === "me" ? "0" : "auto")};
   background: ${({ sender, isPlace }) =>
     isPlace ? "#FFFFFF" : sender === "me" ? "#ca2f28" : "#1F2024"};
   color: ${({ isPlace }) => (isPlace ? "#000000" : "#FFFFFF")};
