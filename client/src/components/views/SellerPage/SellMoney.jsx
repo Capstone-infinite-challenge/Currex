@@ -216,7 +216,7 @@ function SellMoney() {
         </Label>
 
         <Label>
-          거래 위치
+          거래 희망 위치
           <LocationWrapper>
             <WideInput
               type="text"
@@ -484,6 +484,7 @@ const LocationButton = styled.button`
 const SearchIcon = styled.img`
   width: 16px;
   height: 16px;
+  margin-right:20px;
 `;
 
 const ImageSection = styled.div`
