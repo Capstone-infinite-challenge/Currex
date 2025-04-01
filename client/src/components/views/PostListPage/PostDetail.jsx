@@ -290,10 +290,14 @@ export default PostDetail;
 
 const Container = styled.div`
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background: white;
 `;
+
 
 const ImageBackground = styled.div`
   position: relative;

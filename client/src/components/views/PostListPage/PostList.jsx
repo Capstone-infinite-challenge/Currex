@@ -371,7 +371,7 @@ useEffect(() => {
         </PostListContainer>
       )}
 
-      <RegisterButton onClick={handleRegisterClick}>판매등록 +</RegisterButton>
+      <RegisterButton onClick={handleRegisterClick}>판매등록+</RegisterButton>
 
       <RecommendationSection>
         <InfoContainer>
@@ -711,8 +711,8 @@ const RegisterButton = styled.button`
   font-size: 12px;
   font-weight: 500;
   border: none;
-  border-radius: 20px;
-  padding: 13px 16px;
+  border-radius: 60px;
+  padding: 14px 16px;
   cursor: pointer;
   z-index: 101; /* 다른 요소 위로 */
 `;

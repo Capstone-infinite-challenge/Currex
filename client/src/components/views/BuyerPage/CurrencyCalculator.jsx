@@ -349,14 +349,12 @@ function CurrencyCalculator() {
 export default CurrencyCalculator;
 
 const Container = styled.div`
-  width: 375px;
-  height: 1062px;
+  width: 100%;
+  min-height: 100vh;
   position: relative;
   background: white;
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
   border-radius: 32px;
-  overflow: hidden;
-  font-family: "Pretendard", sans-serif;
 `;
 
 const Header = styled.div`

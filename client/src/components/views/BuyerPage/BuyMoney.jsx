@@ -365,7 +365,7 @@ const SearchIcon = styled.img`
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  margin-bottom:50px;
+  margin-bottom: 70px;
 `;
 
 const InfoText = styled.p`
