@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
@@ -6,6 +6,7 @@ import noticealarm from "../../images/noticealarm.svg";
 import postmail from "../../images/postmail.svg";
 import coffeecup from "../../images/coffeecup.svg";
 import downarrow from "../../images/downarrow.svg";
+import api from "../../utils/api";
 
 function Donate() {
   const [isOpen, setIsOpen] = useState(true);
@@ -13,6 +14,42 @@ function Donate() {
     setIsOpen(!isOpen);
   };
   const navigate = useNavigate();
+  const [rankingData, setRankingData] = useState([]); // 기부 랭킹 데이터 상태
+  // 이름 마스킹 함수
+  const maskName = (name) => {
+    if (!name || name.length < 2) return name;
+    return name[0] + "*".repeat(name.length - 1);
+  };
+
+  // 기부 랭킹 불러오기
+  useEffect(() => {
+    const fetchRank = async () => {
+      try {
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
+
+        if (!accessToken) {
+          alert("로그인이 필요합니다.");
+          navigate("/login");
+          return;
+        }
+
+        const response = await api.get("/api/donation/rank", {
+          withCredentials: true,
+        });
+
+        console.log("응답 전체:", response);
+        console.log("response.data:", response.data);
+
+        setRankingData(response.data);
+      } catch (error) {
+        console.error("기부 랭킹 불러오기 실패:", error);
+      }
+    };
+
+    fetchRank();
+  }, []);
 
   return (
     <Container>
@@ -59,20 +96,12 @@ function Donate() {
 
         {isOpen && (
           <RankingList>
-            {[...Array(10)].map((_, index) => (
-              <RankingItem key={index}>
-                <RankingNumber top3={index < 3}>{index + 1}</RankingNumber>
-                <CompanyName>
-                  {index % 3 === 0
-                    ? "삼성전자"
-                    : index % 3 === 1
-                    ? "현대자동차"
-                    : "당근마켓"}
-                </CompanyName>
-                <UserName>{index % 2 === 0 ? "김*화" : "박*진"}</UserName>
-                <RankAmount>
-                  {index % 3 === 0 ? "350,000원" : "270,000원"}
-                </RankAmount>
+            {rankingData.slice(0, 10).map((item, index) => (
+              <RankingItem key={item.userId + index}>
+                <RankingNumber top3={index < 3}>{item.rank}</RankingNumber>
+                <CompanyName>{item.d_company}</CompanyName>
+                <UserName>{maskName(item.d_name)}</UserName>
+                <RankAmount>{item.totalDonation.toLocaleString()}원</RankAmount>
               </RankingItem>
             ))}
           </RankingList>
