@@ -1,37 +1,82 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 import NavBar from "../NavBar/NavBar";
+import api from "../../utils/api";
 
 function MyDonate() {
   const steps = ["기부 등록", "수령 확인", "기부 처리중", "소득 공제 완료"];
-  const counts = ["0", "1", "1", "10"];
   const navigate = useNavigate();
 
   const [selectedFilter, setSelectedFilter] = useState("전체");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [donationHistory, setDonationHistory] = useState([]);
 
-  const donationHistory = [
-    {
-      id: 1,
-      date: "2024.11.09 21:40:19",
-      amount: 50000,
-      status: "수령 확인",
-    },
-    {
-      id: 2,
-      date: "2024.11.01 15:17:42",
-      amount: 30000,
-      status: "기부 처리중",
-    },
+  const [donationCounts, setDonationCounts] = useState({
+    registered: 0,
+    checked: 0,
+    processing: 0,
+    finished: 0,
+  });
+
+  const counts = [
+    donationCounts.registered,
+    donationCounts.checked,
+    donationCounts.processing,
+    donationCounts.finished,
   ];
+
+  useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const accessToken =
+          localStorage.getItem("accessToken") ||
+          sessionStorage.getItem("accessToken");
+
+        // 기부 내역 조회
+        const res1 = await api.get("/api/history/donations", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        console.log(res1.data);
+        setDonationHistory(res1.data);
+
+        // 상태별 기부 조회
+        const res2 = await api.get("/api/donation/donationProcess", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        console.log(res2.data);
+        setDonationCounts(res2.data);
+      } catch (err) {
+        console.error("기부 내역 or 상태 정보 불러오기 실패", err);
+      }
+    };
+
+    fetchDonations();
+  }, []);
+
+  // 필터링
+  const filteredDonations =
+    selectedFilter === "전체"
+      ? donationHistory
+      : donationHistory.filter((d) => d.status === selectedFilter);
 
   const handleToggleDropdown = () => setIsDropdownOpen((prev) => !prev);
   const handleSelectFilter = (filter) => {
     setSelectedFilter(filter);
     setIsDropdownOpen(false);
+  };
+
+  const statusMap = {
+    registered: "기부 등록",
+    checked: "수령 확인",
+    processing: "기부 처리중",
+    finished: "소득 공제 완료",
   };
 
   return (
@@ -85,15 +130,17 @@ function MyDonate() {
       <MonthTitle>2024.11</MonthTitle>
 
       <DonationList>
-        {donationHistory.map((donation) => (
-          <DonationItem key={donation.id}>
+        {filteredDonations.map((donation, idx) => (
+          <DonationItem key={idx}>
             <Left>
-              <DonationDate>{donation.date}</DonationDate>
+              <DonationDate>
+                {new Date(donation.createdAt).toLocaleString("ko-KR")}
+              </DonationDate>
               <DonationAmount>
                 {donation.amount.toLocaleString()}원
               </DonationAmount>
             </Left>
-            <DonationStatus>{donation.status}</DonationStatus>
+            <DonationStatus>{statusMap[donation.status]}</DonationStatus>
           </DonationItem>
         ))}
         <More>+ 더보기</More>

@@ -36,6 +36,9 @@ function Donate() {
         }
 
         const response = await api.get("/api/donation/rank", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
           withCredentials: true,
         });
 
@@ -49,7 +52,7 @@ function Donate() {
     };
 
     fetchRank();
-  }, []);
+  }, [navigate]);
 
   return (
     <Container>
@@ -96,7 +99,7 @@ function Donate() {
 
         {isOpen && (
           <RankingList>
-            {rankingData.slice(0, 10).map((item, index) => (
+            {rankingData.slice(0, 20).map((item, index) => (
               <RankingItem key={item.userId + index}>
                 <RankingNumber top3={index < 3}>{item.rank}</RankingNumber>
                 <CompanyName>{item.d_company}</CompanyName>
