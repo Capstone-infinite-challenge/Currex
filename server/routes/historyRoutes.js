@@ -12,5 +12,12 @@ router.get('/exchange', async(req, res) => {
     return res.status(200).json(myExchanges);
 });
 
+router.get('/donations', async(req, res) => {
+    const userId = (await userService.findUserInfo(req.user.id)).id
+    const myDonations = await historyService.getMyDonations(userId);
+
+    return res.status(200).json(myDonations);
+});
+
 
 export default router;
