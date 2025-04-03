@@ -96,4 +96,31 @@ router.get("/rank", async (req, res) => {
   }
 });
 
+//기부 상태별 개수 반환 라우터
+router.get("/donationProcess", async(req, res)=> {
+  try{
+    const userId = userService.findUserInfo(req.user.id);
+    const donationCnts = donationService.getDonationProcessCnt(userId);
+    
+    return donationCnts;
+  }catch(error){
+    console.log("에러: ", error);
+    res.status(500).json({error: "프로세스 별 기부 수를 불러오는 도중 에러 발생"});
+  }
+});
+
+
+// 기부 상태 변경 라우터(admin 사용자용)
+router.post("/donationProcess/:donationId", async(req, res) => {
+  try{
+    const {donationId} = req.params;
+    await donationService.updateDonationProcess(donationId);
+
+    res.status(200).json({"success": "성공적으로 기부 상태를 변경하였습니다."});
+  }catch(error){
+    console.log("에러: ", error);
+    res.status(500).json({error: '관리자: 기부 상태를 업데이트 하는 도중 에러 발생'});
+  }
+});
+
 export default router;
