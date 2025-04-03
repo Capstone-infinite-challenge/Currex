@@ -31,6 +31,11 @@ const donationSchema = new Schema({
             data: Buffer,    
             contentType: String 
     }],
+    status: {       //기부 상태
+        type: String,
+        enum: ['registered', 'checked', 'processing', 'finished'],
+        default: 'registered', 
+    }
 
 }, {timestamps: true});
 
