@@ -1,3 +1,4 @@
+import donation from "../models/donation.js";
 import Sell from "../models/sell.js";
 import User from "../models/user.js";
 
@@ -46,6 +47,24 @@ const getMyExchanges = async(userId) => {
     }
 };
 
+const getMyDonations = async(userId) => {
+    try{
+        const donationList = await donation.find({userId: userId});
+
+        const formattedDonationList = donationList.map(donation => ({
+            createdAt: donation.createdAt,
+            amount: donation.amount,
+            status: donation.status
+        }));
+        
+        return formattedDonationList;
+    }catch(error){
+        console.error('Error fetching donation list: ', error);
+        throw new Error('기부 목록을 불러오는 도중 에러 발생');
+    }
+};
+
 export default{
     getMyExchanges,
+    getMyDonations
 };
