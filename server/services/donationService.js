@@ -42,11 +42,48 @@ const addRankingInfo = async(userId) => {
         return donatorInfo;
     }catch(error){
         console.error('Error retrieving donator Info', error);
-        throw new Error('Can not find donator info');
+        throw new Error('Cannot find donator info');
+    }
+};
+
+const getDonationProcessCnt = async(userId) => {
+    try{
+        const donationCnt = await Donation.find({
+            
+        });
+    }catch(error){
+        console.error("Error retreieving donation cnts", error);
+        throw new Error('Cannot find donation cnts');
+    }
+};
+
+const updateDonationProcess = async(donationId) => {
+    try{
+        const donation = await Donation.findById(donationId);
+        
+        if (!donation) {
+            throw new Error("Donation not found");
+        }
+        console.log(donation);
+
+        if(donation.status === 'registered'){
+            donation.status = 'checked';
+        }else if(donation.status === 'checked'){
+            donation.status = 'processing';
+        }else if(donation.status === 'checked'){
+            donation.status = 'finished';
+        }
+        await Donation.updateOne({_id: donationId}, {$set: { status: donation.status } });
+
+    }catch(error){
+        console.error("Error updating donation's process", error);
+        throw new Error("Cannot update donation process");
     }
 };
 
 export default{
     getUserDonationTotal,
-    addRankingInfo
+    addRankingInfo,
+    getDonationProcessCnt,
+    updateDonationProcess
 };
