@@ -28,6 +28,19 @@ function MyDonate() {
     donationCounts.finished,
   ];
 
+  const getDateRange = () => {
+    if (!donationHistory.length) return "기록 없음";
+
+    const sorted = [...donationHistory].sort(
+      (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+    );
+    const first = new Date(sorted[0].createdAt);
+    const last = new Date(sorted[sorted.length - 1].createdAt);
+    return `${first.toLocaleDateString("ko-KR")} ~ ${last.toLocaleDateString(
+      "ko-KR"
+    )}`;
+  };
+
   useEffect(() => {
     const fetchDonations = async () => {
       try {
@@ -126,8 +139,7 @@ function MyDonate() {
 
       <Divider />
 
-      <DateRange>2024.0815 ~ 2024.1114</DateRange>
-      <MonthTitle>2024.11</MonthTitle>
+      <DateRange>{getDateRange()}</DateRange>
 
       <DonationList>
         {filteredDonations.map((donation, idx) => (
@@ -158,7 +170,7 @@ const Container = styled.div`
   height: 812px;
   background: #ffffff;
   border-radius: 32px;
-  overflow: hidden;
+  overflow-y: auto;
   position: relative;
 `;
 
