@@ -99,10 +99,10 @@ router.get("/rank", async (req, res) => {
 //기부 상태별 개수 반환 라우터
 router.get("/donationProcess", async(req, res)=> {
   try{
-    const userId = userService.findUserInfo(req.user.id);
-    const donationCnts = donationService.getDonationProcessCnt(userId);
+    const userId = (await userService.findUserInfo(req.user.id)).id;
+    const donationCnts = await donationService.getDonationProcessCnt(userId);
     
-    return donationCnts;
+    res.status(200).json(donationCnts);
   }catch(error){
     console.log("에러: ", error);
     res.status(500).json({error: "프로세스 별 기부 수를 불러오는 도중 에러 발생"});

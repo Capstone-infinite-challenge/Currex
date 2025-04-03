@@ -1,3 +1,4 @@
+import donation from '../models/donation.js';
 import Donation from '../models/donation.js';
 
 const getUserDonationTotal = async(userId) => {
@@ -48,9 +49,25 @@ const addRankingInfo = async(userId) => {
 
 const getDonationProcessCnt = async(userId) => {
     try{
-        const donationCnt = await Donation.find({
-            
+        const donationCnt = await Donation.aggregate([
+            { $match: { userId: userId}},   //해당 userId의 기부만 필터링
+            { $group: {_id: "$status", count: {$sum: 1}}}       //상태별 개수 집계
+        ]);
+
+        // 결과를 객체 형태로 변환
+        const result = {
+            registered: 0,
+            checked: 0,
+            processing: 0,
+            finished: 0,
+        };
+
+        //집계된 데이터를 result 객체에 매핑
+        donationCnt.forEach((doc) => {
+            result[doc._id] = doc.count;
         });
+
+        return result;
     }catch(error){
         console.error("Error retreieving donation cnts", error);
         throw new Error('Cannot find donation cnts');
