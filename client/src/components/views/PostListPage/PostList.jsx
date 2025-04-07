@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import NavBar from "../NavBar/NavBar";
@@ -27,6 +28,8 @@ function PostList() {
 
   const [districts, setDistricts] = useState({}); // 변환된 행정동 정보를 저장할 상태
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef(null);
+
 
 
   useEffect(() => {
@@ -148,7 +151,7 @@ useEffect(() => {
     });
   }
 
-  console.log("정렬된 데이터:", sortedFiltered);
+  //console.log("정렬된 데이터:", sortedFiltered);
   setFilteredSells([...sortedFiltered]); // 새로운 배열을 상태에 직접 반영
 }, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
 
@@ -230,8 +233,18 @@ useEffect(() => {
   }
 }, [filteredSells]);
 
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+      setShowSortDropdown(false);
+    }
+  };
 
-
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
 
   const handleNavigateToBuy = () => navigate("/buy");
@@ -260,22 +273,22 @@ useEffect(() => {
       </Header>
 
       <SortWrapper>
-  <SortButton onClick={() => setShowSortDropdown(!showSortDropdown)}>
-    {selectedSort === "latest" ? "최신순" : "거리순"}
-    <SortDropdownIcon src={dropdown} alt="드롭다운" />
-  </SortButton>
+        <SortButton ref={sortDropdownRef} onClick={() => setShowSortDropdown(!showSortDropdown)}>
+          {selectedSort === "latest" ? "최신순" : "거리순"}
+          <SortDropdownIcon src={dropdown} alt="드롭다운" />
+        </SortButton>
 
-  {showSortDropdown && (
-    <SortDropdownMenu>
-      <SortDropdownItem onClick={() => { setSelectedSort("latest"); setShowSortDropdown(false); }}>
-        최신순
-      </SortDropdownItem>
-      <SortDropdownItem onClick={() => { setSelectedSort("distance"); setShowSortDropdown(false); }}>
-        거리순
-      </SortDropdownItem>
-    </SortDropdownMenu>
-  )}
-</SortWrapper>
+        {showSortDropdown && (
+          <SortDropdownMenu>
+            <SortDropdownItem onClick={() => { setSelectedSort("latest"); setShowSortDropdown(false); }}>
+              최신순
+            </SortDropdownItem>
+            <SortDropdownItem onClick={() => { setSelectedSort("distance"); setShowSortDropdown(false); }}>
+              거리순
+            </SortDropdownItem>
+          </SortDropdownMenu>
+        )}
+      </SortWrapper>
 
 
       {/* 국가 필터 모달 */}

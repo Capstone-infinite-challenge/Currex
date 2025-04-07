@@ -385,6 +385,7 @@ const CurrencySelector = styled.div`
   border-radius: 1000px;
   cursor: pointer;
   position: relative;
+  margin-left:15px;
 `;
 
 
@@ -397,7 +398,7 @@ const CurrencyDropdown = styled.select`
   cursor: pointer;
   appearance: none;
   outline: none;
-  padding: 8px 14px;
+  padding: 8px 10px;
 `;
 
 const CurrencyDropdownIcon = styled.img`
