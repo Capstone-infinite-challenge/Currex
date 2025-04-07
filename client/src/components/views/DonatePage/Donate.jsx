@@ -134,12 +134,12 @@ const Header = styled.div`
 `;
 
 const Title = styled.h2`
-  color: #1f2024;
-  font-family: Pretendard;
   font-size: 20px;
   font-weight: 700;
-  line-height: 24px;
-  margin-left: 3px;
+  margin-top: 10px;
+  flex-grow: 1;
+  text-align: center;
+  margin-left:50px;
 `;
 
 const AlarmIcon = styled.img`
@@ -147,6 +147,7 @@ const AlarmIcon = styled.img`
   height: 24px;
   cursor: pointer;
   margin-right: 3px;
+  margin-top: 10px;
 `;
 
 const DonationBox = styled.div`
