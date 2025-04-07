@@ -83,7 +83,7 @@ useEffect(() => {
   return (
     <Container>
       <Header>
-        <Title>채팅</Title>
+        <Title>채팅 목록</Title>
         <FilterContainer onClick={() => setShowDropdown(!showDropdown)}>
           {selectedStatus}
           <DropdownIcon src={dropdown} alt="드롭다운" />
@@ -165,9 +165,11 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #1f2024;
+  margin-top: 10px;
+  flex-grow: 1;
+  text-align: center;
 `;
 
 const FilterContainer = styled.div`

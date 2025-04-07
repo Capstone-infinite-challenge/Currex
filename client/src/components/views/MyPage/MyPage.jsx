@@ -216,13 +216,16 @@ const BackButton = styled.img`
   height: 20px;
   cursor: pointer;
   margin-left: 0px;
+  margin-top: -10px;
 `;
 
 const Title = styled.h1`
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
+  margin-top: 10px;
   flex-grow: 1;
   text-align: center;
+  margin-top: -10px;
 `;
 
 const ProfileSection = styled.div`
