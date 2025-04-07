@@ -240,7 +240,7 @@ useEffect(() => {
   return (
     <Container>
      <Header>
-        <Title>목록</Title>
+        <Title>판매 목록</Title>
         <FilterContainer>
         <FilterButton
           selected={selectedCountries.length > 0 && selectedCountries.length < 3} // 국가 선택됨 && 전체가 아님
@@ -402,10 +402,11 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  flex-grow: 1; 
-  margin-left:0;
+  margin-top: 10px;
+  flex-grow: 1;
+  text-align: center;
 `;
 
 const FilterContainer = styled.div`

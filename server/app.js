@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "http://10.240.67.43:3000"], //임시ㅗip주소추가
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -45,8 +45,9 @@ const io = initializeSocket(server);
 app.use("/api", Routes(io));
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {               //http서버와 socket.io 서버 동일한 포트에서 실행
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+
 
 export default app;
