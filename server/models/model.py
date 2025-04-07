@@ -4,9 +4,19 @@ from ultralytics import YOLO
 import shutil
 import os
 from PIL import Image
+from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI 앱 생성
 app = FastAPI()
+
+# CORS 설정 추가
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React 앱 주소
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 현재 모델 파일 경로 지정
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))

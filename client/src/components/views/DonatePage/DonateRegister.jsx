@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
@@ -146,13 +146,15 @@ function DonateRegister() {
     }
   };
 
+  const location = useLocation();
+
   return (
     <Container>
       <Header>
         <BackButton
           src={backarrow}
           alt="뒤로가기"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/donate")}
         />
       </Header>
 

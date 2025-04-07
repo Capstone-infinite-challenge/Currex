@@ -3,6 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom"; // React Router 사용
 
 import BackArrow from "../../images/backarrow.svg"; // SVG 아이콘 불러오기
+import euroflag from "../../images/euro.png";
 
 const Detect = () => {
   const navigate = useNavigate();
@@ -12,6 +13,11 @@ const Detect = () => {
   const [loading, setLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [cameraHeight, setCameraHeight] = useState(window.innerHeight * 0.8);
+
+  const currencyMap = {
+    22: { country: "유럽 연합", amount: "10 EUR", krwValue: "14,200" },
+    default: { country: "유럽 연합", amount: "0.1 EUR", krwValue: "140" },
+  };
 
   useEffect(() => {
     const updateHeight = () => {
@@ -65,7 +71,32 @@ const Detect = () => {
         };
 
         if (response.data?.predictions?.length > 0) {
-          detectedCurrency = response.data.predictions[0];
+          const ctx = canvas.getContext("2d");
+
+          // confidence 기준 정렬하고 상위 2개 추출
+          const sortedPredictions = response.data.predictions.sort(
+            (a, b) => b.confidence - a.confidence
+          );
+          const topTwo = sortedPredictions.slice(0, 2);
+
+          // 바운딩 박스 그리기
+          topTwo.forEach((pred) => {
+            const [x1, y1, x2, y2] = pred.bbox;
+
+            ctx.strokeStyle = "limegreen";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+            const cls = pred.class;
+            const label = currencyMap[cls]?.amount || "Detected";
+            ctx.font = "16px Pretendard";
+            ctx.fillStyle = "limegreen";
+            ctx.fillText(label, x1, y1 - 8);
+          });
+
+          // 감지된 화폐 정보
+          const cls = topTwo[0].class;
+          detectedCurrency = currencyMap[cls] || currencyMap["default"];
         }
 
         setCurrencyData(detectedCurrency);
@@ -89,7 +120,7 @@ const Detect = () => {
           style={styles.backButton}
           onClick={() => navigate(-1)} // 이전 페이지로 이동
         />
-        <h2 style={styles.title}>카메라로 화폐 감지</h2>
+        <h2 style={styles.title}>외국 돈, AI로 바로 인식!</h2>
       </div>
 
       {/* 카메라 화면 */}
@@ -101,7 +132,7 @@ const Detect = () => {
         ref={canvasRef}
         width="640"
         height="480"
-        style={{ display: "none" }}
+        style={styles.canvas}
       ></canvas>
 
       {/* 감지 버튼 */}
@@ -122,8 +153,23 @@ const Detect = () => {
           <div style={styles.popupContent}>
             <div style={styles.infoRow}>
               <span style={styles.infoLabel}>화폐의 국가</span>
-              <span style={styles.infoValue}>{currencyData.country}</span>
+              <span style={styles.infoValue}>
+                {currencyData.country === "유럽 연합" && (
+                  <img
+                    src={euroflag}
+                    alt="유럽 연합"
+                    style={{
+                      width: "20px",
+                      height: "14px",
+                      marginRight: "6px",
+                      verticalAlign: "middle",
+                    }}
+                  />
+                )}
+                {currencyData.country}
+              </span>
             </div>
+
             <div style={styles.infoRow}>
               <span style={styles.infoLabel}>금액</span>
               <span style={styles.infoValue}>{currencyData.amount}</span>
@@ -135,7 +181,17 @@ const Detect = () => {
           </div>
           <button
             style={styles.confirmButton}
-            onClick={() => setShowPopup(false)}
+            onClick={() => {
+              setShowPopup(false);
+              setCurrencyData(null); // 감지 정보 초기화
+              const ctx = canvasRef.current.getContext("2d");
+              ctx.clearRect(
+                0,
+                0,
+                canvasRef.current.width,
+                canvasRef.current.height
+              ); // 캔버스 초기화
+            }}
           >
             확인
           </button>
@@ -176,7 +232,8 @@ const styles = {
     flex: 1,
     textAlign: "center",
   },
-  cameraContainer: {
+  cameraWrapper: {
+    position: "relative",
     width: "100%",
     display: "flex",
     justifyContent: "center",
@@ -185,6 +242,7 @@ const styles = {
     overflow: "hidden",
     background: "black",
   },
+
   video: {
     width: "100%",
     height: "100%",
@@ -253,5 +311,14 @@ const styles = {
     fontSize: "16px",
     width: "100%",
     marginTop: "15px",
+  },
+
+  canvas: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    pointerEvents: "none", // 클릭 방해 안 되게
   },
 };

@@ -14,6 +14,14 @@ function MyDonate() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [donationHistory, setDonationHistory] = useState([]);
 
+  // statusMap의 반대 버전 생성
+  const reverseStatusMap = {
+    "기부 등록": "registered",
+    "수령 확인": "checked",
+    "기부 처리중": "processing",
+    "소득 공제 완료": "finished",
+  };
+
   const [donationCounts, setDonationCounts] = useState({
     registered: 0,
     checked: 0,
@@ -77,7 +85,9 @@ function MyDonate() {
   const filteredDonations =
     selectedFilter === "전체"
       ? donationHistory
-      : donationHistory.filter((d) => d.status === selectedFilter);
+      : donationHistory.filter(
+          (d) => d.status === reverseStatusMap[selectedFilter]
+        );
 
   const handleToggleDropdown = () => setIsDropdownOpen((prev) => !prev);
   const handleSelectFilter = (filter) => {

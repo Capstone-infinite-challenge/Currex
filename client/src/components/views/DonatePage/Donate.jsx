@@ -20,9 +20,21 @@ function Donate() {
     if (!name || name.length < 2) return name;
     return name[0] + "*".repeat(name.length - 1);
   };
+  const [currentTime, setCurrentTime] = useState("");
 
   // 기부 랭킹 불러오기
   useEffect(() => {
+    const now = new Date();
+    const formatted = now.toLocaleString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    setCurrentTime(formatted);
+
     const fetchRank = async () => {
       try {
         const accessToken =
@@ -95,7 +107,7 @@ function Donate() {
           <RankingTitle>기부 랭킹</RankingTitle>
           <DownArrowIcon src={downarrow} alt="토글" isOpen={isOpen} />
         </RankingHeader>
-        <RankingDate>2024년 11월 27일 16:33:41 기준</RankingDate>
+        <RankingDate>{currentTime} 기준</RankingDate>
 
         {isOpen && (
           <RankingList>

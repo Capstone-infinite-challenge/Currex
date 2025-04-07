@@ -90,7 +90,9 @@ function DonateInfo() {
       </TaxInfo>
 
       {/* 확인 버튼 */}
-      <ConfirmButton onClick={() => navigate(-1)}>확인했습니다</ConfirmButton>
+      <ConfirmButton onClick={() => navigate("/donate")}>
+        확인했습니다
+      </ConfirmButton>
     </Container>
   );
 }
