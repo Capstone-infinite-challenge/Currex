@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -13,6 +13,7 @@ function ChatList() {
   const [selectedStatus, setSelectedStatus] = useState("전체"); 
   const [showDropdown, setShowDropdown] = useState(false);
   const [exchangeRates, setExchangeRates] = useState({});
+  const dropdownRef = useRef(null);
 
   const statusColors = {
     "판매중": "#1E62C1",
@@ -79,12 +80,23 @@ useEffect(() => {
   fetchExchangeRates();
 }, [chats]); 
 
+useEffect(() => {
+  const handleClickOutside = (e) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setShowDropdown(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => document.removeEventListener("mousedown", handleClickOutside);
+}, []);
+
 
   return (
     <Container>
       <Header>
         <Title>채팅 목록</Title>
-        <FilterContainer onClick={() => setShowDropdown(!showDropdown)}>
+        <FilterContainer ref={dropdownRef} onClick={() => setShowDropdown(!showDropdown)}>
           {selectedStatus}
           <DropdownIcon src={dropdown} alt="드롭다운" />
           {showDropdown && (

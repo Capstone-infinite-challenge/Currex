@@ -355,6 +355,7 @@ const Container = styled.div`
   background: white;
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
   border-radius: 32px;
+  overflow-x: hidden;
 `;
 
 const Header = styled.div`
@@ -376,22 +377,33 @@ const BackButton = styled.img`
 const CurrencySelector = styled.div`
   display: flex;
   align-items: center;
-  margin-left:0px;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2024;
+  border-radius: 1000px;
+  cursor: pointer;
+  position: relative;
 `;
 
+
 const CurrencyDropdown = styled.select`
-  font-size: 16px;
-  font-weight: 600;
   border: none;
   background: none;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2024;
   cursor: pointer;
-  margin-right: 10px; 
+  appearance: none;
+  outline: none;
+  padding: 8px 14px;
 `;
 
 const CurrencyDropdownIcon = styled.img`
   width: 12px;
   height: 12px;
-  cursor: pointer;
+  opacity: 0.8;
 `;
 
 const DropdownIcon = styled.img`
