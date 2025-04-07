@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
 import styled from "styled-components";
 import infoicon from "../../images/infoicon.svg";
 import NavBar from "../NavBar/NavBar";
@@ -6,6 +7,7 @@ import locationicon from "../../images/locationicon.svg";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import api from "../../utils/api";
+import dropdown from "../../images/dropdown.svg";
 
 function PostList() {
   const navigate = useNavigate();
@@ -25,6 +27,10 @@ function PostList() {
   const [selectedSort, setSelectedSort] = useState("latest"); // 정렬 상태
 
   const [districts, setDistricts] = useState({}); // 변환된 행정동 정보를 저장할 상태
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef(null);
+
+
 
   useEffect(() => {
     const fetchSells = async () => {
@@ -43,14 +49,11 @@ function PostList() {
 
         const response = await api.get("/api/sell/sellList", { 
           withCredentials: true, // 쿠키 전달 설정
-        });
-    
-    console.log("불러온 판매 데이터:", response.data);
-    setSells(response.data);
+        })
     
     
 
-        console.log("불러온 판매 데이터:", response.data);
+        //console.log("불러온 판매 데이터:", response.data);
         setSells(response.data);
       } catch (err) {
         console.error("판매 목록 불러오기 실패:", err);
@@ -148,7 +151,7 @@ useEffect(() => {
     });
   }
 
-  console.log("정렬된 데이터:", sortedFiltered);
+  //console.log("정렬된 데이터:", sortedFiltered);
   setFilteredSells([...sortedFiltered]); // 새로운 배열을 상태에 직접 반영
 }, [selectedCountries, minWon, maxWon, sells, exchangeRates, selectedSort]);
 
@@ -230,8 +233,18 @@ useEffect(() => {
   }
 }, [filteredSells]);
 
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+      setShowSortDropdown(false);
+    }
+  };
 
-
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
 
 
   const handleNavigateToBuy = () => navigate("/buy");
@@ -259,72 +272,84 @@ useEffect(() => {
 
       </Header>
 
-      <SortContainer>
-        <TotalCount>
-          Total <span>{filteredSells.length}</span>
-        </TotalCount>
-        <SortSelect onChange={(e) => setSelectedSort(e.target.value)} value={selectedSort}>
-          <option value="latest">최신순</option>
-          <option value="distance">거리순</option>
-        </SortSelect>
-      </SortContainer>
+      <SortWrapper>
+        <SortButton ref={sortDropdownRef} onClick={() => setShowSortDropdown(!showSortDropdown)}>
+          {selectedSort === "latest" ? "최신순" : "거리순"}
+          <SortDropdownIcon src={dropdown} alt="드롭다운" />
+        </SortButton>
+
+        {showSortDropdown && (
+          <SortDropdownMenu>
+            <SortDropdownItem onClick={() => { setSelectedSort("latest"); setShowSortDropdown(false); }}>
+              최신순
+            </SortDropdownItem>
+            <SortDropdownItem onClick={() => { setSelectedSort("distance"); setShowSortDropdown(false); }}>
+              거리순
+            </SortDropdownItem>
+          </SortDropdownMenu>
+        )}
+      </SortWrapper>
+
 
       {/* 국가 필터 모달 */}
       {showCountryFilter && (
         <Modal>
           <ModalContent>
             <h4>국가 선택 (최대 2개)</h4>
-            <CountryButton
-              selected={selectedCountries.length === 0}  // 전체 선택 상태
-              onClick={() => setSelectedCountries([])}  // 전체 선택 시 모든 국가 해제
-            >
-              전체
-            </CountryButton>
-            {["USD", "JPY", "EUR", "CNY", "HKD", "TWD", "AUD", "VND" ].map((currency) => (
+            <CountryButtonWrapper>
               <CountryButton
-                key={currency}
-                selected={selectedCountries.includes(currency)}
-                onClick={() => handleCountryChange(currency)}
+                selected={selectedCountries.length === 0}
+                onClick={() => setSelectedCountries([])}
               >
-                {currency}
+                전체
               </CountryButton>
-            ))}
+              {["USD", "JPY", "EUR", "CNY", "HKD", "TWD", "AUD", "VND"].map((currency) => (
+                <CountryButton
+                  key={currency}
+                  selected={selectedCountries.includes(currency)}
+                  onClick={() => handleCountryChange(currency)}
+                >
+                  {currency}
+                </CountryButton>
+              ))}
+            </CountryButtonWrapper>
             <ModalActions>
               <CloseButton onClick={() => setShowCountryFilter(false)}>닫기</CloseButton>
             </ModalActions>
           </ModalContent>
+
         </Modal>
       )}
 
       {/* 금액 필터 모달 */}
       {showPriceFilter && (
-  <Modal>
-    <ModalContent>
-      <ModalHeader>
-        <h4>금액 범위 선택</h4>
-        <ResetButton onClick={() => { setMinWon(""); setMaxWon(""); }}>초기화</ResetButton>
-      </ModalHeader>
+        <Modal>
+          <ModalContent>
+            <ModalHeader>
+              <h4>금액 범위 선택</h4>
+              <ResetButton onClick={() => { setMinWon(""); setMaxWon(""); }}>초기화</ResetButton>
+            </ModalHeader>
 
-      <PriceInputContainer>
-        <PriceInput
-          type="number"
-          placeholder="00"
-          value={minWon}
-          onChange={(e) => setMinWon(e.target.value)}
-        />
-        <span>만원 -</span>
-        <PriceInput
-          type="number"
-          placeholder="00"
-          value={maxWon}
-          onChange={(e) => setMaxWon(e.target.value)}
-        />
-        <span>만원</span>
-      </PriceInputContainer>
+            <PriceInputContainer>
+              <PriceInput
+                type="number"
+                placeholder="00"
+                value={minWon}
+                onChange={(e) => setMinWon(e.target.value)}
+              />
+              <span>만원 -</span>
+              <PriceInput
+                type="number"
+                placeholder="00"
+                value={maxWon}
+                onChange={(e) => setMaxWon(e.target.value)}
+              />
+              <span>만원</span>
+            </PriceInputContainer>
 
-      <ConfirmButton onClick={() => setShowPriceFilter(false)}>확인</ConfirmButton>
-    </ModalContent>
-  </Modal>
+            <ConfirmButton onClick={() => setShowPriceFilter(false)}>확인</ConfirmButton>
+          </ModalContent>
+        </Modal>
 )}
 
 
@@ -430,86 +455,110 @@ const FilterButton = styled.button`
   }
 `;
 
-const SortContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 3px 0;
-  padding: 0 16px;
-`;
-
-const TotalCount = styled.div`
-  font-size: 14px;
-  font-weight: bold;
-  span {
-    color: #CA2F28;
-  }
-    margin-left:0;
-`;
-
-const SortSelect = styled.select`
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  margin-right:0;
-`;
 
 const Modal = styled.div`
   position: fixed;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-   z-index: 101;
+  z-index: 999;
 `;
+
+
+const CountryButton = styled.button`
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid ${({ selected }) => (selected ? "#CA2F28" : "#ccc")};
+  background: ${({ selected }) => (selected ? "#CA2F28" : "#fff")};
+  color: ${({ selected }) => (selected ? "#fff" : "#1f2024")};
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 4px;
+`;
+
+const CountryButtonWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 0 12px;
+`;
+
 
 const ModalContent = styled.div`
   background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 80%;
-   z-index: 101;
-   font-wieght
+  padding: 24px 20px;
+  border-radius: 20px;
+  width: 85%;
+  max-width: 340px;
+  text-align: center;
 `;
 
 const ModalHeader = styled.div`
-  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
+
+  h4 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1f2024;
+  }
 `;
 
-const CountryButton = styled.button`
-  padding: 6px 5px;
-  margin: 5px 5px;
-  border: 1px solid #CA2F28;
-  color: ${(props) => (props.selected ? "white" : "#CA2F28")};
-  background: ${(props) => (props.selected ? "#CA2F28" : "#fff")};
-  border-radius: 5px;
+const ResetButton = styled.button`
+  background: #e0e0e0;
+  color: #1f2024;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
 `;
 
 const PriceInputContainer = styled.div`
   display: flex;
-  gap: 10px;
+  justify-content: center;
   align-items: center;
-  font-size: 16px;
-  margin-top:10px;
+  gap: 10px;
+  margin: 16px 0;
+  font-size: 14px;
 `;
 
 const PriceInput = styled.input`
-  width: 60px;
+  width: 64px;
   padding: 8px;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 8px;
+  outline: none;
 
   &::placeholder {
     color: #aaa;
+  }
+`;
+
+const ConfirmButton = styled.button`
+  background: #1f2024;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 16px;
+
+  &:hover {
+    background: #333;
   }
 `;
 
@@ -519,35 +568,71 @@ const ModalActions = styled.div`
   margin-top: 20px;
 `;
 
-const ConfirmButton = styled.button`
-  background: #CA2F28;
-  font-size:10px;
-  color: white;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 5px;
-  margin-left:100px;
-  margin-top:15px;
-`;
-
-const ResetButton = styled.button`
-  background: #ddd;
-  color: #555;
-  padding: 6px 9px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-`;
-
-
 const CloseButton = styled.button`
-  background: #CA2F28;
-  font-size:10px;
+  background: #1f2024;
   color: white;
-  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 24px;
   border: none;
-  border-radius: 5px;
+  border-radius: 12px;
   cursor: pointer;
+  margin-top: 6px;
+
+  &:hover {
+    background: #333;
+  }
+`;
+
+const SortWrapper = styled.div`
+  position: relative;
+  margin-right: 10px;
+`;
+
+const SortButton = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2024;
+  cursor: pointer;
+`;
+
+const SortDropdownIcon = styled.img`
+  width: 10px;
+  height: 10px;
+  opacity: 0.6;
+`;
+
+const SortDropdownMenu = styled.div`
+  position: absolute;
+  top: 110%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 10;
+  min-width: 90px;
+`;
+
+const SortDropdownItem = styled.div`
+  padding: 6px 10px; 
+  font-size: 15px;
+  cursor: pointer;
+  color: #1f2024;
+  text-align: left;
+
+  &:hover {
+    background: #f7f7f7;
+  }
+`;
+
+const DropdownIcon = styled.img`
+  width: 10px;
+  height: 10px;
 `;
 
 const PostListContainer = styled.div`
@@ -741,3 +826,4 @@ const NoImage = styled.div`
   margin-top: 20px;
   color: #888;
 `; 
+

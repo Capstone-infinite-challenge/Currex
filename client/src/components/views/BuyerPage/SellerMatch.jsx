@@ -182,9 +182,7 @@ useEffect(() => {
         <NoDataMessage>추천 판매자가 없습니다.</NoDataMessage>
       )}
 
-      <ReRecommendButton onClick={() => window.location.reload()}>
-        재추천 받기
-      </ReRecommendButton>
+      
     </Container>
   );
 }
