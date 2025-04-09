@@ -1,0 +1,26 @@
+name: git push into another repo to deploy to vercel
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: creates output
+        run: sh ./build.sh
+
+      - name: Pushes to another repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: "output"
+          destination-github-username: sejin-coding
+          destination-repository-name: currex-frontend
+          user-email: ${{ secrets.OFFICIAL_ACCOUNT_EMAIL }}
+          commit-message: "🎉 자동 배포 커밋"
+          target-branch: main
