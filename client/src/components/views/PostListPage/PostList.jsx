@@ -414,12 +414,14 @@ useEffect(() => {
 export default PostList;
 
 const Container = styled.div`
-  width: 375px;
+  width: 100%;
+  max-width: 375px;
   margin: 0 auto;
-  height: 100vh; /* 전체 화면 높이 */
+  background: white;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 하위 요소에서만 스크롤 */
 `;
 
 const Header = styled.div`
@@ -457,14 +459,15 @@ const FilterButton = styled.button`
 
 
 const Modal = styled.div`
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+ position: fixed;
+  inset: 0; /* top, right, bottom, left를 전부 0으로 */
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 9999;
 `;
 
 
