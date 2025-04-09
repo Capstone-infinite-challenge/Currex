@@ -1,0 +1,9 @@
+services:
+  currex-server:
+    build: .
+    container_name: server
+    ports:
+      - "5000:5000"
+      - "8000:8000" #fast api용 포트
+    env_file:
+      - .env
