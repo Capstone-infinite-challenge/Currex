@@ -1,5 +1,5 @@
-import jwt from '../utils/jwt.js';
-import User from '../models/user.js';
+import jwt from "../utils/jwt.js";
+import User from "../models/user.js";
 
 // 카카오 로그인 또는 회원가입 처리
 async function loginOrSignupKakaoUser(kakaoUserInfo) {
@@ -7,8 +7,8 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
     console.log("🔍 카카오에서 받은 유저 정보:", kakaoUserInfo);
 
     const { id: kakaoId, kakao_account } = kakaoUserInfo;
-    const nickname = kakao_account?.profile?.nickname || '익명의사용자';
-    const profile_img_url = kakao_account?.profile.profile_image_url || null;
+    const nickname = kakao_account?.profile?.nickname || "익명의사용자";
+    const profile_img_url = kakao_account?.profile?.profile_image_url || null;
     let user = await User.findOne({ loginId: kakaoId });
 
     // 리프레시 토큰 만료시간 설정 (7일)
@@ -22,7 +22,7 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
         nickname,
         refreshToken: jwt.generateRefreshToken(),
         refreshTokenExpiresAt,
-        profile_img: profile_img_url
+        profile_img: profile_img_url,
       });
       await user.save();
     } else {
@@ -35,36 +35,36 @@ async function loginOrSignupKakaoUser(kakaoUserInfo) {
       }
     }
 
-    const token = jwt.generateToken({ id: user.loginId, nickname: user.nickname });
+    const token = jwt.generateToken({
+      id: user.loginId,
+      nickname: user.nickname,
+    });
 
     console.log("로그인 성공, 발급된 토큰:", token);
     return { userId: user._id, user, token, refreshToken: user.refreshToken };
-
   } catch (error) {
-    console.error('상세 오류:', error.stack);
+    console.error("상세 오류:", error.stack);
+    console.error(error);
     throw new Error(`카카오 로그인 처리 중 오류: ${error.message}`);
   }
 }
 
-
-
 //구글 로그인 또는 회원가입 처리
-async function loginOrSignupGoogleUser(googleUserInfo){
-
+async function loginOrSignupGoogleUser(googleUserInfo) {
   const { google_account, name, profile_img } = googleUserInfo;
 
-  try{
+  try {
     if (!google_account) {
-      throw new Error('Invalid Google Account: loginId is missing.');
+      throw new Error("Invalid Google Account: loginId is missing.");
     }
 
     let user = await User.findOne({ loginId: google_account });
 
     // 리프레시 토큰 만료시간 설정 (7일)
     const refreshTokenExpiresAt = new Date();
-    refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 7); 
+    refreshTokenExpiresAt.setDate(refreshTokenExpiresAt.getDate() + 7);
 
-    if(!user){
+    if (!user) {
       user = new User({
         loginId: google_account,
         nickname: name,
@@ -73,24 +73,22 @@ async function loginOrSignupGoogleUser(googleUserInfo){
         refreshTokenExpiresAt,
       });
       await user.save();
-    }else{
-      if(!user.refreshToken || user.refreshTokenExpiresAt < new Date()) {
+    } else {
+      if (!user.refreshToken || user.refreshTokenExpiresAt < new Date()) {
         user.refreshToken = jwt.generateRefreshToken();
         user.refreshTokenExpiresAt = refreshTokenExpiresAt;
         await user.save();
       }
     }
-    const token = jwt.generateToken({id: user.loginId, nickname: user.nickname}); 
+    const token = jwt.generateToken({
+      id: user.loginId,
+      nickname: user.nickname,
+    });
     return { user, token, refreshToken: user.refreshToken };
-  }catch(error){
-    console.error('구글 로그인/회원가입 에러:', error);
-    throw new Error('구글 로그인/회원가입 처리 중 오류가 발생했습니다.');
+  } catch (error) {
+    console.error("구글 로그인/회원가입 에러:", error);
+    throw new Error("구글 로그인/회원가입 처리 중 오류가 발생했습니다.");
   }
 }
 
-
-
-export {
-  loginOrSignupKakaoUser,
-  loginOrSignupGoogleUser
-};
+export { loginOrSignupKakaoUser, loginOrSignupGoogleUser };
