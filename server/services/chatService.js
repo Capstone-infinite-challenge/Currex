@@ -60,25 +60,20 @@ const getChatList = async (userId) => {
       })
       .lean(); //JSON 객체로 변환
 
-    //상대방의 프로필 이미지 추가
-    const formattedList = chatList.map((chatRoom) => {
-      const isSeller =
-        chatRoom.seller.userId._id.toString() === userId.toString();
-      return {
-        chatRoomId: chatRoom.chatRoomId._id,
-        sellId: chatRoom.chatRoomId._id,
-        status: chatRoom.chatRoomId?.status,
-        amount: chatRoom.chatRoomId?.amount,
-        currency: chatRoom.chatRoomId?.currency,
-        opponentName: isSeller
-          ? chatRoom.buyer.userId.nickname
-          : chatRoom.seller.userId.nickname,
-        opponentProfileImg: isSeller
-          ? chatRoom.buyer.userId.profile_img
-          : chatRoom.seller.userId.profile_img,
-        lastMessageTime: 0, // 기본값 0으로 설정
-      };
-    });
+        //상대방의 프로필 이미지 추가
+        const formattedList  = chatList.map(chatRoom => {
+            const isSeller = chatRoom.seller?.userId?._id?.toString() === userId.toString();
+            return {
+                chatRoomId: chatRoom.chatRoomId._id,
+                sellId: chatRoom.chatRoomId._id,  
+                status: chatRoom.chatRoomId?.status,
+                amount: chatRoom.chatRoomId?.amount,
+                currency: chatRoom.chatRoomId?.currency,
+                opponentName : isSeller? chatRoom.buyer?.userId.nickname : chatRoom.seller?.userId.nickname,
+                opponentProfileImg: isSeller?chatRoom.buyer.userId.profile_img : chatRoom.seller.userId.profile_img,
+                lastMessageTime: 0 // 기본값 0으로 설정
+            };
+        });
 
     //Redis에서 최신 메세지 시간 조회
     const chatListByTimestamps = await Promise.all(
