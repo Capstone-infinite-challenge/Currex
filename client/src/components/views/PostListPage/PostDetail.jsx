@@ -78,7 +78,7 @@ function PostDetail() {
         console.error("판매 정보 불러오기 실패:", error);
         if (error.response?.status === 401) {
           alert("인증이 만료되었습니다. 다시 로그인해주세요.");
-          navigate("/login");
+          navigate("/");
         } else if (error.response?.status === 404) {
           alert("판매 정보를 찾을 수 없습니다.");
         }

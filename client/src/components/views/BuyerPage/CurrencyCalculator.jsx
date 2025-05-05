@@ -6,7 +6,7 @@ import backarrow from "../../images/backarrow.svg";
 import dropdown from "../../images/dropdown.svg";
 
 function CurrencyCalculator() {
-  const [currency, setCurrency] = useState("JPY"); // 기본 선택된 통화
+  const [currency, setCurrency] = useState("USD"); // 기본 선택된 통화
   const [exchangeRates, setExchangeRates] = useState({}); // 모든 환율 저장
   const [coinData, setCoinData] = useState([]);
   const [billData, setBillData] = useState([]);
@@ -250,8 +250,8 @@ function CurrencyCalculator() {
         <BackButton src={backarrow} alt="뒤로가기" onClick={() => navigate(-1)} />
         <CurrencySelector>
         <CurrencyDropdown value={currency} onChange={(e) => setCurrency(e.target.value)}>
-            <option value="JPY">JPY</option>
             <option value="USD">USD</option>
+            <option value="JPY">JPY</option>
             <option value="EUR">EUR</option>
             <option value="CNY">CNY</option>
             <option value="HKD">HKD</option>
