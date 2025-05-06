@@ -65,7 +65,6 @@ function CurrencyCalculator() {
         { denomination: 0.1, amount: 0 },
         { denomination: 0.25, amount: 0 },
         { denomination: 0.5, amount: 0 },
-        { denomination: 1, amount: 0 },
       ],
       bills: [
         { denomination: 1, amount: 0 },
@@ -95,7 +94,6 @@ function CurrencyCalculator() {
         { denomination: 50, amount: 0 },
         { denomination: 100, amount: 0 },
         { denomination: 200, amount: 0 },
-        { denomination: 500, amount: 0 },
       ],
     },
     CNY: {
@@ -185,6 +183,41 @@ function CurrencyCalculator() {
       ],
     },
   };
+
+  const formatDenomination = (type, denomination, currency) => {
+    const cents = {
+      USD: "¢",
+      EUR: "c",
+      HKD: "¢",
+      AUD: "¢",
+    };
+  
+    const fullSymbol = {
+      USD: "$",
+      EUR: "€",
+      JPY: "¥",
+      CNY: "元",
+      HKD: "HK$",
+      TWD: "NT$",
+      AUD: "$",
+      VND: "₫"
+    };
+  
+    // 동전일 때
+    if (type === "coin") {
+      if (currency === "USD" && denomination < 1) return `${Math.round(denomination * 100)}¢`;
+      if (currency === "EUR" && denomination < 1) return `${Math.round(denomination * 100)}c`;
+      if (currency === "HKD" && denomination < 1) return `${Math.round(denomination * 100)}¢`;
+      if (currency === "AUD" && denomination < 1) return `${Math.round(denomination * 100)}¢`;
+      if (currency === "CNY" && denomination < 1) return `${denomination}元`;
+      return `${fullSymbol[currency] || ""}${denomination}`;
+    }
+  
+    // 지폐일 때
+    if (currency === "CNY") return `${denomination}元`;
+    return `${fullSymbol[currency] || ""}${denomination}`;
+  };
+  
 
   // 환율 API 호출
   useEffect(() => {
@@ -277,7 +310,9 @@ function CurrencyCalculator() {
         {showCoins &&
           coinData.map((coin, index) => (
             <Row key={coin.denomination}>
-              <Denomination>{currencyConfig[currency].symbol}{coin.denomination}</Denomination>
+              <Denomination>
+                {formatDenomination("coin", coin.denomination, currency)}
+              </Denomination>
               <ValueContainer isHighlighted={coin.amount > 0}>
               <Equals>=</Equals>
               <ConvertedValue>
@@ -308,7 +343,9 @@ function CurrencyCalculator() {
         {showBills &&
           billData.map((bill, index) => (
             <Row key={bill.denomination}>
-              <Denomination>{currencyConfig[currency].symbol}{bill.denomination}</Denomination>
+              <Denomination>
+                {formatDenomination("bill", bill.denomination, currency)}
+              </Denomination>
               <ValueContainer isHighlighted={bill.amount > 0}>
               <Equals>=</Equals>
               <ConvertedValue>
@@ -356,6 +393,7 @@ const Container = styled.div`
   box-shadow: 0px 8px 24px rgba(255, 255, 255, 0.12);
   border-radius: 32px;
   overflow-x: hidden;
+  padding-bottom: 50px;
 `;
 
 const Header = styled.div`
@@ -472,7 +510,8 @@ const Denomination = styled.span`
   font-size: 14px;
   font-weight: 600;
   color: #1f2024;
-  min-width: 50px; /
+  min-width: 50px; 
+  margin-left:0;
   text-align: left; 
 `;
 
