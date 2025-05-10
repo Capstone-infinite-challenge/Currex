@@ -6,7 +6,7 @@ let io;     //io 객체를 외부에서도 가져올 수 있도록 선언
 const initializeSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: ["http://localhost:3000", "http://localhost:5000"],
+            origin: ["https://currex-frontend.vercel.app", "https://currex.kro.kr:5000"],
             methods: ["GET", "POST"],
             credentials: true
         }
