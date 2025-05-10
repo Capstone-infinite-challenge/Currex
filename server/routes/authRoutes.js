@@ -195,7 +195,7 @@ router.get('/google/callback', async(req, res) => {
     console.log('user Data:', user.loginId, user.nickname);           //점검용 4
 
     // 클라이언트로 리다이렉션
-    const clientRedirectUrl = `http://localhost:3000/?token=${encodeURIComponent(token)}&userId=${user._id}&loginId=${encodeURIComponent(user.loginId)}&nickname=${encodeURIComponent(user.nickname)}`;
+    const clientRedirectUrl = `https://currex-frontend.vercel.app/?token=${encodeURIComponent(token)}&userId=${user._id}&loginId=${encodeURIComponent(user.loginId)}&nickname=${encodeURIComponent(user.nickname)}`;
     res.redirect(clientRedirectUrl);
 
   }catch(error){
