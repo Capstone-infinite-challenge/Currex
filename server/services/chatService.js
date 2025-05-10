@@ -9,6 +9,13 @@ const createChatRoom = async (sellId, sellerId, buyerId) => {
     throw new Error("판매자 또는 구매자 정보를 찾을 수 없습니다.");
   }
 
+  // 중복 방지 로직 추가
+  const existingRoom = await ChatRoom.findOne({ chatRoomId: sellId });
+  if (existingRoom) {
+    console.log("이미 존재하는 채팅방입니다.");
+    return res.status(200).json(existingRoom);
+  }
+
   //User모델 찾기
   const seller = await User.findById(sellerId);
   const buyer = await User.findById(buyerId);
@@ -232,6 +239,19 @@ const findChatRoom = async (sellId, buyerId) => {
   }
 };
 
+//해당 sellId를 가진 chatRoom이 있는 지 확인
+const findChatRoomById = async(sellId) => {
+  try{
+    const chatRoom = await ChatRoom.findById({
+      chatRoomId: sellId
+    });
+    return chatRoom !== null;
+  }catch(error){
+    console.error("Error checking while existing chat room", error);
+    return false;
+  }
+}
+
 export default {
   createChatRoom,
   getChatList,
@@ -240,4 +260,5 @@ export default {
   getChatters,
   getRecommendedPlace,
   findChatRoom,
+  findChatRoomById
 };
