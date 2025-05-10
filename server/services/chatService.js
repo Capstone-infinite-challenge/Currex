@@ -242,9 +242,7 @@ const findChatRoom = async (sellId, buyerId) => {
 //해당 sellId를 가진 chatRoom이 있는 지 확인
 const findChatRoomById = async(sellId) => {
   try{
-    const chatRoom = await ChatRoom.findById({
-      chatRoomId: sellId
-    });
+    const chatRoom = await ChatRoom.findOne({ chatRoomId: sellId });
     return chatRoom !== null;
   }catch(error){
     console.error("Error checking while existing chat room", error);
