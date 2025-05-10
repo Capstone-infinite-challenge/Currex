@@ -30,7 +30,7 @@ COPY models/ ./models/
 # requirements 설치 (CPU 버전으로 최적화)
 # CPU 버전 torch를 별도로 설치 (requirements.txt에서 제거한 이유)
 RUN /venv/bin/pip install --upgrade pip && \
-    /venv/bin/pip install numpy && \
+    /venv/bin/pip install numpy==1.26.4 && \
     /venv/bin/pip install torch==2.0.1+cpu torchvision==0.15.2+cpu torchaudio==2.0.2+cpu \
     --index-url https://download.pytorch.org/whl/cpu && \
     /venv/bin/pip install -r models/requirements.txt
