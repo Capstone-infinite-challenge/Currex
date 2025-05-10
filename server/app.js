@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://10.240.67.43:3000"], //임시ㅗip주소추가
+    origin: ["http://localhost:3000", "http://currex.kro.kr"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -46,7 +46,7 @@ app.use("/api", Routes(io));
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port: ${PORT}`);
 });
 
 
