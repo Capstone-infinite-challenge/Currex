@@ -116,7 +116,7 @@ router.get("/sellDescription/:sellId", async (req, res) => {
       ),
     });
     const reformattedSell = reformatSell(sell);
-    console.log(reformattedSell); //점검용
+    //console.log(reformattedSell); //점검용
     res.json(reformattedSell);
   } catch (error) {
     console.error("판매 정보 불러오기 실패:", error);
