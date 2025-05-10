@@ -46,7 +46,7 @@ export default (io) => {
         sellId,
         {
           buyer: buyerId,
-          status: "판매중",
+          status: "거래중",
         },
         { new: true }
       );
