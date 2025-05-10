@@ -48,7 +48,7 @@ router.post("/buy", (req, res) => {
 //판매자 매칭
 router.patch("/SellerMatch", async (req, res) => {
   // 구매자 정보를 기준으로 판매자 필터링
-  const buyerInfo = req.session.buyerInfo;
+  const buyerInfo = req.body;
   const currentUserId = req.user.id; // 현재 로그인한 사용자의 ID
   try {
     //구매자 정보가 없는 경우
