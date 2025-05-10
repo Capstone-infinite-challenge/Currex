@@ -1,9 +1,13 @@
 services:
   currex-server:
-    build: .
+    # 이미지 빌드 시
+    # build: .
+    # ec2에 compose.yml 푸시 할때
+    image: 017868794828.dkr.ecr.ap-northeast-2.amazonaws.com/currex-server
     container_name: server
     ports:
       - "5000:5000"
       - "8000:8000" #fast api용 포트
     env_file:
       - .env
+    restart: always #서버 중지될 경우 자동으로 다시 시작
