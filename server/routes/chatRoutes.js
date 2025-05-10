@@ -31,7 +31,7 @@ export default (io) => {
       const buyerImg = buyerInfo.img;   //판매자 프로필 이미지
 
       //이미 내가 문의하고 있는 채팅방일 경우 -> 해당 채팅방으로 이동
-      const isChat = await chatService.findChatRoom(sellId, buyerId) || chatService.findChatRoomById(sellId);
+      const isChat = await chatService.findChatRoom(sellId, buyerId);
 
       if(isChat){
         return res.status(200).json({
