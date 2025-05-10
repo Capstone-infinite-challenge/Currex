@@ -232,7 +232,9 @@ const findChatRoom = async (sellId, buyerId) => {
       "buyer.userId": buyerId,
     });
 
-    return chatRoom !== null;
+    if(!chatRoom) {
+      return chatRoom;
+    }
   } catch (error) {
     console.error("Error checking chat room", error);
     return false;
