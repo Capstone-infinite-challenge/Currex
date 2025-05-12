@@ -35,7 +35,7 @@ router.post("/buy", (req, res) => {
         .json({ error: "최대 금액은 최소 금액보다 커야 합니다" });
     }
 
-    req.session.buyerInfo = buyerInfo;
+    //req.session.buyerInfo = buyerInfo;
 
     console.log("저장된 구매자 정보:", buyerInfo);
     res.status(201).json(buyerInfo);
@@ -56,7 +56,7 @@ router.patch("/SellerMatch", async (req, res) => {
       return res.status(400).json({ error: "구매자 정보를 먼저 입력해주세요" });
     }
 
-    console.log("구매자 정보:", buyerInfo);
+    console.log("받은 구매자 정보:", buyerInfo);
 
     //구매자의 trade_address가 null인 경우 입력한 정보로 업데이트 ---- 이 부분 에러 수정 필요
     let buyer = await userService.findUserInfo(currentUserId);
