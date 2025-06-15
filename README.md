@@ -88,19 +88,20 @@ npm start
 ```
 cd server
 npm install
-node server.js
+npm start
 ```
 - 전체 직접 실행 시
 ```
-# 프론트 필요한 파일 설치
+# 프론트 패키지 설치
 cd client
 npm install
 cd ..
-# 백엔드 필요한 파일 설치
+# 백엔드 패키지 설치
 cd server
 npm install
 cd ..
 # 루트 경로에서 실행
+npm install
 npm start
 ```
 
