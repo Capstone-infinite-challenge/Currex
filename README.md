@@ -88,7 +88,21 @@ npm start
 ```
 cd server
 npm install
-node server.js
+npm start
+```
+- 전체 직접 실행 시
+```
+# 프론트 패키지 설치
+cd client
+npm install
+cd ..
+# 백엔드 패키지 설치
+cd server
+npm install
+cd ..
+# 루트 경로에서 실행
+npm install
+npm start
 ```
 
 ## 📚 사용된 오픈소스 라이브러리
@@ -149,4 +163,5 @@ root</br>
 │ ├── middleware/ # 미들웨어</br>
 │ ├── compose.yml # 도커 설정 파일</br>
 │ └── app.js # 서버 엔트리 포인트</br>
-├── README.md # 프로젝트 설명</br>
+└── README.md # 프로젝트 설명</br>
+
