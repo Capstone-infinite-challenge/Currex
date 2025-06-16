@@ -23,25 +23,29 @@ AI 기반 화폐 인식과 위치 기반 매칭을 통해 집에 보관 중인 �
 ## **팀원 소개**
 
 <div align="center">
- <table>
+<table>
   <tr>
     <td align="center">
-      <img src="https://avatars.githubusercontent.com/gilmeee" width="100px;" style="border-radius:50%"><br />
-      <strong>김기림</strong><br />
+      <img src="https://avatars.githubusercontent.com/gilmeee" width="120px" style="border-radius:50%"><br />
+      <a href="https://github.com/gilmeee" target="_blank"><strong>김기림</strong></a><br />
+      <hr style="width:50%; border:0.5px solid #ccc;">
       프론트엔드
     </td>
     <td align="center">
-      <img src="https://avatars.githubusercontent.com/m2nsp" width="100px;" style="border-radius:50%"><br />
-      <strong>박민서</strong><br />
+      <img src="https://avatars.githubusercontent.com/m2nsp" width="120px" style="border-radius:50%"><br />
+      <a href="https://github.com/m2nsp" target="_blank"><strong>박민서</strong></a><br />
+      <hr style="width:50%; border:0.5px solid #ccc;">
       백엔드
     </td>
     <td align="center">
-      <img src="https://avatars.githubusercontent.com/sejin-cpding" width="100px;" style="border-radius:50%"><br />
-      <strong>박세진</strong><br />
-      AI
+      <img src="https://avatars.githubusercontent.com/sejin-coding" width="120px" style="border-radius:50%"><br />
+      <a href="https://github.com/sejin-coding" target="_blank"><strong>박세진</strong></a><br />
+      <hr style="width:50%; border:0.5px solid #ccc;">
+      AI 
     </td>
   </tr>
 </table>
+
 </div>
 
 ---
