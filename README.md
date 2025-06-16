@@ -1,7 +1,7 @@
 # **CURREX**
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/14331092-6751-4c99-b823-ef9868c7c964" alt="CURREX Image" />
+  <img src="https://github.com/Capstone-infinite-challenge/Currex/blob/main/shot.png?raw=true" alt="CURREX Image" />
 </div>
 
 ---
